@@ -10,15 +10,14 @@
 set -Eeuo pipefail
 
 REPO_USER="${REPO_USER:-slamb2k}"
-REPO_NAME="${REPO_NAME:-<REPO_NAME>}"
+REPO_NAME="${REPO_NAME:-han-solo}"
 TAG="${TAG:-main}"
 RAW_BASE="https://raw.githubusercontent.com/${REPO_USER}/${REPO_NAME}/${TAG}/.claude"
 
 DEST=".claude"
 AGENTS_DIR="${DEST}/agents"
 CMDS_DIR="${DEST}/commands"
-BOOT_DIR="${CMDS_DIR}/bootstrap"
-GIT_DIR="${CMDS_DIR}/git"
+HAN_SOLO_DIR="${CMDS_DIR}/han-solo"
 
 # Optional checksums (one per file: "sha256 *relative/path")
 CHECKSUMS_URL="${CHECKSUMS_URL:-}"
@@ -28,14 +27,14 @@ require curl
 require mkdir
 require printf
 
-mkdir -p "${AGENTS_DIR}" "${BOOT_DIR}" "${GIT_DIR}"
+mkdir -p "${AGENTS_DIR}" "${HAN_SOLO_DIR}"
 
 # Map of src->dest
 FILES=(
   "agents/bootstrap-guardian.md|${AGENTS_DIR}/bootstrap-guardian.md"
   "agents/git-shipper.md|${AGENTS_DIR}/git-shipper.md"
-  "commands/bootstrap/bootstrap.md|${BOOT_DIR}/bootstrap.md"
-  "commands/git/ship.md|${GIT_DIR}/ship.md"
+  "commands/han-solo/bootstrap.md|${HAN_SOLO_DIR}/bootstrap.md"
+  "commands/han-solo/ship.md|${HAN_SOLO_DIR}/ship.md"
 )
 
 TMPDIR="$(mktemp -d)"

@@ -9,13 +9,20 @@ High-velocity and governed Git workflows for solo devs & very small teams.
 
 ## Install
 
+See [INSTALL.md](INSTALL.md) for installation instructions.
+
+### Repository Structure
+
+```
 .claude/
-  agents/
-    bootstrap-guardian.md
-    git-shipper.md
-  commands/
-    bootstrap/bootstrap.md
-    git/ship.md
+├── agents/
+│   ├── bootstrap-guardian.md
+│   └── git-shipper.md
+└── commands/
+    └── han-solo/
+        ├── bootstrap.md
+        └── ship.md
+```
 
 ## Quickstart (solo default)
 
