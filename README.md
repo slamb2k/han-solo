@@ -19,22 +19,43 @@ High-velocity and governed Git workflows for solo devs & very small teams.
 
 ## Quickstart (solo default)
 
-# 1) Bootstrap governance (solo: 0 required reviewers)
-/bootstrap
+### Normal Dev Process
 
-# 2) Work normally on a feature branch...
-# 3) Ship it (wait for checks then merge)
-/ship
+1) Bootstrap governance (solo: 0 required reviewers)
 
-# PR only (no merge):
+    ```
+    /bootstrap
+    ```
+
+2) Work normally on a feature branch...
+
+3) Ship it (wait for checks then merge)
+
+    ```
+    /ship
+    ```
+
+### PR only (no merge):
+
+```
 /ship --nowait
+```
 
-# Force merge (explicit override):
+### Force merge (explicit override):
+
+```
 /ship --force
+```
 
-# Team mode when you want approvals:
-# require 1 approval on main
+
+
+## Team mode
+
+### Require 1+ approval(s) on main:
+
+```
 /bootstrap --team --reviews 1
+```
 
 ## What /bootstrap sets up (solo-first)
 
