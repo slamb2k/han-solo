@@ -97,8 +97,8 @@ gh api -X PATCH "repos/:owner/:repo" -f allow_auto_merge=true -f delete_branch_o
 if [ ! -f package.json ]; then
   warn "⚠️ No package.json; skipping Husky & Node steps"
 else
-  # Add prepare script to package.json
-  node -e 'const fs=require("fs");const f="package.json";const p=JSON.parse(fs.readFileSync(f,"utf8"));p.scripts=p.scripts||{};p.scripts.prepare="husky";fs.writeFileSync(f,JSON.stringify(p,null,2));'
+  # Add prepare script and packageManager to package.json
+  node -e 'const fs=require("fs");const f="package.json";const p=JSON.parse(fs.readFileSync(f,"utf8"));p.scripts=p.scripts||{};p.scripts.prepare="husky";if(!p.packageManager){p.packageManager="pnpm@latest";}fs.writeFileSync(f,JSON.stringify(p,null,2));'
   git add package.json >/dev/null 2>&1 || true
   
   # Install Husky (latest version)
