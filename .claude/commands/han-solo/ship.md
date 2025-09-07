@@ -26,8 +26,8 @@ Delegate the entire workflow to git-shipper.
 - --branch-name "<name>" → explicit branch when branching from default
 
 ## Context (autocollected)
-- Repo: !$(gh repo view --json name,owner --jq '.owner.login + "/" + .name' || echo "(not a GitHub repo)")
-- Default branch: !$(git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p' || echo main)
+- Repo: !$(gh repo view --json name,owner --jq '.owner.login + "/" + .name' 2>/dev/null || echo "(not a GitHub repo)")
+- Default branch: !$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null || git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p' || echo main)
 - Current branch: !$(git branch --show-current 2>/dev/null || echo "(detached)")
 - Local status: !$(git status --porcelain=v1)
 

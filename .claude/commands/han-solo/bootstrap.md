@@ -29,8 +29,8 @@ The main assistant MUST delegate the full workflow to bootstrap-guardian.
 - --hook <both|pre-commit|pre-push> → which Husky hooks to install (default both)
 
 ## Context (autocollected)
-- Repo: !`gh repo view --json name,owner --jq '.owner.login + "/" + .name' || echo "(not a GitHub repo)"`
-- Default branch: !`git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p' || echo main`
+- Repo: !`gh repo view --json name,owner --jq '.owner.login + "/" + .name' 2>/dev/null || echo "(not a GitHub repo)"`
+- Default branch: !`gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null || git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p' || echo main`
 - pnpm present: !`pnpm -v >/dev/null 2>&1 && echo "pnpm ✓" || echo "pnpm ✗"`
 
 ## Task for subagent
