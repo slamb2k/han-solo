@@ -1,15 +1,5 @@
 description: "Ship with a governed fast path tailored for SOLO devs: rebase onto origin/<default>, create/update PR, WAIT for required checks by default, then squash-merge & clean up. --nowait for PR-only. --force to override failing checks (explicit only)."
 argument-hint: "[--nowait] [--force] [--title \"PR title\"] [--branch-name <name>]"
-allowed-tools: >
-  Bash(git:*),
-  Bash(gh pr:*),
-  Bash(gh repo:*),
-  Bash(gh auth:*),
-  Bash(pnpm:*),
-  Bash(npx:*),
-  Bash(node:*),
-  Bash(jq:*)
-model: claude-sonnet-4-20250514
 ---
 
 ## Invocation rule
