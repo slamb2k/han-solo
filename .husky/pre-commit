@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Run formatting and linting checks
 if [ -f "package.json" ] && command -v pnpm >/dev/null 2>&1; then
   echo "🧹 Running format check..."
