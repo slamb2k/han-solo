@@ -1,6 +1,6 @@
 ![han-solo logo](assets/logo.png)
 
-# han-solo (solo-first)
+# han-solo (solo-first development)
 
 High-velocity and governed Git workflows for solo devs & very small teams.
 
@@ -19,7 +19,7 @@ High-velocity and governed Git workflows for solo devs & very small teams.
 
 ## Quickstart (solo default)
 
-### Normal Dev Process
+### Normal Solo Dev Process
 
 1) Bootstrap governance (solo: 0 required reviewers)
 
@@ -35,6 +35,12 @@ High-velocity and governed Git workflows for solo devs & very small teams.
     /ship
     ```
 
+### Team mode (require approvals)
+
+```
+/bootstrap --team --reviews 1
+```
+
 ### PR only (no merge):
 
 ```
@@ -49,13 +55,7 @@ High-velocity and governed Git workflows for solo devs & very small teams.
 
 
 
-## Team mode
 
-### Require 1+ approval(s) on main:
-
-```
-/bootstrap --team --reviews 1
-```
 
 ## What /bootstrap sets up (solo-first)
 
