@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run formatting and linting checks
+if [ -f "package.json" ] && command -v pnpm >/dev/null 2>&1; then
+  echo "🧹 Running format check..."
+  if ! pnpm run format:check 2>/dev/null; then
+    echo "❌ Format check failed. Run 'pnpm run format' to fix."
+    exit 1
+  fi
+  
+  echo "🔎 Running lint check..."
+  if ! pnpm run lint 2>/dev/null; then
+    echo "❌ Lint check failed. Run 'pnpm run lint:fix' to fix."
+    exit 1
+  fi
+  
+  echo "✅ Pre-commit checks passed"
+fi

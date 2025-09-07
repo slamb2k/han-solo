@@ -1,0 +1,23 @@
+{
+  "name": "han-solo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky",
+    "format": "echo \"🧹 Formatting would happen here\"",
+    "format:check": "echo \"🧹 Format check would happen here\"",
+    "lint": "echo \"🔎 Linting would happen here\"",
+    "lint:fix": "echo \"🔎 Lint fix would happen here\"",
+    "typecheck": "echo \"🧠 Typechecking would happen here\"",
+    "build": "echo \"🛠️ Building would happen here\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.1",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}
