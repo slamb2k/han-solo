@@ -2,7 +2,7 @@ name: bootstrap-guardian
 description: >
   Idempotent repository bootstrap optimized for SOLO developers by default.
   Applies branch protection with STRICT required checks (zero required reviewers by default),
-  enables repo auto-merge & automatic branch deletion, installs Husky v10-style split hooks,
+  enables repo auto-merge & automatic branch deletion, installs modern Husky hooks (v9+ compatible),
   and writes a pnpm-cached CI with emoji job names that map 1:1 to required check contexts.
   Prints an INFO/WARN/ERR report; exits non-zero on errors.
 
@@ -93,17 +93,30 @@ printf '%s' "$REQ_CONTEXTS_JSON" | gh api -X PUT \
 gh api -X PATCH "repos/:owner/:repo" -f allow_auto_merge=true -f delete_branch_on_merge=true \
   && note "🔁 Auto-merge + auto-delete head branches enabled" || warn "⚠️ Failed to toggle auto-merge/auto-delete"
 
-# ----- Husky v10-style hooks -----
+# ----- Husky modern hooks (v9+ compatible, ready for v10) -----
 if [ ! -f package.json ]; then
   warn "⚠️ No package.json; skipping Husky & Node steps"
 else
+  # Add prepare script to package.json
   node -e 'const fs=require("fs");const f="package.json";const p=JSON.parse(fs.readFileSync(f,"utf8"));p.scripts=p.scripts||{};p.scripts.prepare="husky";fs.writeFileSync(f,JSON.stringify(p,null,2));'
   git add package.json >/dev/null 2>&1 || true
-  if command -v pnpm >/dev/null 2>&1; then pnpm -s i >/dev/null 2>&1 || true; pnpm -s run prepare || true; else npm -s i >/dev/null 2>&1 || true; npm -s run prepare || true; fi
+  
+  # Install Husky (latest version)
+  if command -v pnpm >/dev/null 2>&1; then 
+    pnpm add -D husky >/dev/null 2>&1 || true
+  else 
+    npm install --save-dev husky >/dev/null 2>&1 || true
+  fi
+  
+  # Initialize Husky if .husky doesn't exist
+  if [ ! -d .husky ]; then
+    npx husky init >/dev/null 2>&1 || true
+  fi
   mkdir -p .husky
 
-  # pre-commit: lint-staged (fallback format+lint)
+  # pre-commit: lint-staged (fallback format+lint) - v9+ style without deprecated headers
   cat > .husky/pre-commit <<'SH'
+# Husky v9+ hook - no shebang or sourcing needed
 if command -v lint-staged >/dev/null 2>&1; then
   lint-staged
 else
@@ -114,11 +127,12 @@ SH
   chmod +x .husky/pre-commit; git add .husky/pre-commit || true
   [ "$HOOK" = "pre-push" ] || note "🪝 Installed .husky/pre-commit"
 
-  # pre-push: Nx affected fast-path or repo scripts
+  # pre-push: Nx affected fast-path or repo scripts - v9+ style without deprecated headers
   cat > .husky/pre-push <<'SH'
-if (pnpm nx -v >/dev/null 2>&1) || (npx nx -v >/dev/null 2>&1); then
+# Husky v9+ hook - no shebang or sourcing needed
+if command -v nx >/dev/null 2>&1 || pnpm nx -v >/dev/null 2>&1; then
   BASE="$(git merge-base "$(git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -d/ -f1)/$(git rev-parse --abbrev-ref @{u} | sed 's|.*/||')" HEAD 2>/dev/null || echo HEAD~1)"
-  pnpm nx affected -t lint,typecheck,test,build --base="$BASE" --head=HEAD || true
+  nx affected -t lint,typecheck,test,build --base="$BASE" --head=HEAD || true
 else
   pnpm run --if-present typecheck
   pnpm run --if-present test
