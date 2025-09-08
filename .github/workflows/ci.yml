@@ -111,6 +111,8 @@ jobs:
             [ -d ".claude/agents" ] && cp -r .claude/agents release-temp/
             # Copy commands directory
             [ -d ".claude/commands" ] && cp -r .claude/commands release-temp/
+            # Copy README.md to commands/han-solo directory for documentation
+            [ -f "README.md" ] && mkdir -p release-temp/commands/han-solo && cp README.md release-temp/commands/han-solo/README.md
             # Explicitly exclude settings.local.json
             find release-temp -name "settings.local.json" -delete 2>/dev/null || true
           else
