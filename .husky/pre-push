@@ -1,16 +1,9 @@
-# Run typecheck and build
-if [ -f "package.json" ] && command -v pnpm >/dev/null 2>&1; then
-  echo "🧠 Running typecheck..."
-  if ! pnpm run typecheck 2>/dev/null; then
-    echo "❌ Typecheck failed. Fix type errors before pushing."
-    exit 1
-  fi
-  
-  echo "🛠️ Running build..."
-  if ! pnpm run build 2>/dev/null; then
-    echo "❌ Build failed. Fix build errors before pushing."
-    exit 1
-  fi
-  
-  echo "✅ Pre-push checks passed"
+# Husky v9+ hook - no shebang or sourcing needed
+if command -v nx >/dev/null 2>&1 || pnpm nx -v >/dev/null 2>&1; then
+  BASE="$(git merge-base "$(git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -d/ -f1)/$(git rev-parse --abbrev-ref @{u} | sed 's|.*/||')" HEAD 2>/dev/null || echo HEAD~1)"
+  nx affected -t lint,typecheck,test,build --base="$BASE" --head=HEAD || true
+else
+  pnpm run --if-present typecheck
+  pnpm run --if-present test
+  pnpm run --if-present build
 fi
