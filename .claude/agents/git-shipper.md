@@ -420,14 +420,34 @@ fi
 echo -e "\n${GREEN}Waiting for required checks...${NC}"
 echo -e "${BLUE}This may take a few minutes...${NC}"
 
-# Enable auto-merge if available
-if gh pr merge --auto --squash --delete-branch "$PR_EXISTS" >/dev/null 2>&1; then
-  note "🤖 Auto-merge enabled (will merge when checks pass)"
+# Enable auto-merge (using PR number if exists, otherwise current branch)
+AUTO_MERGE_ENABLED=false
+if [ -n "$PR_EXISTS" ]; then
+  if gh pr merge --auto --squash --delete-branch "$PR_EXISTS" 2>/dev/null; then
+    note "🤖 Auto-merge enabled for PR #$PR_EXISTS (will merge when checks pass)"
+    AUTO_MERGE_ENABLED=true
+  else
+    warn "Failed to enable auto-merge - will wait and merge manually"
+  fi
 else
-  debug "Auto-merge not available or already enabled"
+  # Try with current branch
+  if gh pr merge --auto --squash --delete-branch 2>/dev/null; then
+    note "🤖 Auto-merge enabled (will merge when checks pass)"
+    AUTO_MERGE_ENABLED=true
+  else
+    warn "Failed to enable auto-merge - will wait and merge manually"
+  fi
 fi
 
-# Watch required checks
+# If auto-merge is enabled, we're done - GitHub will handle the rest
+if [ "$AUTO_MERGE_ENABLED" = true ]; then
+  note "✨ PR will automatically merge when all checks pass"
+  note "🔗 View PR: $(gh pr view --json url -q .url)"
+  report
+  exit 0
+fi
+
+# Watch required checks (only if auto-merge failed)
 CHECKS_PASSED=false
 MAX_WAIT=1800  # 30 minutes timeout
 ELAPSED=0
