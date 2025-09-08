@@ -58,8 +58,8 @@ Before delegating to bootstrap-guardian, verify:
 3. ✓ Has GitHub remote (`gh repo view`)
 4. ✓ User has admin permissions (for branch protection)
 
-## Task for bootstrap-guardian
-Perform the idempotent bootstrap operation with the provided flags:
+## Instructions for bootstrap-guardian
+Perform the idempotent bootstrap operation using the **bootstrap-guardian** and the provided flags:
 1. Apply branch protection with configured review requirements
 2. Set strict required status checks matching CI job names
 3. Enable auto-merge and auto-delete branches
