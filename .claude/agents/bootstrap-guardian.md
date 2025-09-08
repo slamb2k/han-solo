@@ -545,6 +545,26 @@ YAML
 git add .github/workflows/ci.yml >/dev/null 2>&1 || true
 note "🏗️ CI workflow created with deployment strategy: $DEPLOY_TARGET"
 
+# Enable GitHub Pages if deploying to Pages
+if [ "$DEPLOY_TARGET" = "pages" ]; then
+  echo -e "\n${GREEN}Enabling GitHub Pages...${NC}"
+  
+  # Enable GitHub Pages on main branch with GitHub Actions source
+  if gh api -X PUT "repos/${OWNER_REPO}/pages" \
+    -f source='{"branch":"main","path":"/"}' \
+    -f build_type='workflow' >/dev/null 2>&1; then
+    note "📄 GitHub Pages enabled with GitHub Actions deployment"
+  else
+    # Try the newer API format if the old one fails
+    if gh api -X POST "repos/${OWNER_REPO}/pages" \
+      -f build_type='workflow' >/dev/null 2>&1; then
+      note "📄 GitHub Pages enabled with GitHub Actions deployment"
+    else
+      warn "Could not enable GitHub Pages (may need to be done manually)"
+    fi
+  fi
+fi
+
 # Create initialization workflow to establish status checks
 cat > .github/workflows/initialize-status-checks.yml <<'YAML'
 name: initialize-status-checks
@@ -773,5 +793,6 @@ trap report EXIT
   - PR-only triggers (no feature branch pushes)
   - Smart deployment detection (Pages/GHCR/Release)
   - GitHub releases for deployments
+- GitHub Pages auto-enabled for Pages deployments
 - Status check initialization via manual workflow
 - Clean git history with conventional commits
