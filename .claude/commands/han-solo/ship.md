@@ -99,8 +99,8 @@ Before delegating to git-shipper, verify:
 - Uses squash merge for clean history
 - Auto-deletes branches after merge
 
-## Task for git-shipper
-Execute the complete shipping workflow:
+## Instructions for git-shipper
+Execute the complete shipping workflow using the **git-shipper** sub-agent:
 1. Validate repository state and authentication
 2. Sync with remote and rebase if needed
 3. Run all configured checks (Nx or standard)
