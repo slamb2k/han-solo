@@ -1,20 +1,20 @@
-# cleanup
+# scrub
 
-Comprehensive branch cleanup tool that safely removes merged and orphaned branches while preserving uncommitted work.
+Comprehensive branch scrubbing tool that safely removes merged and orphaned branches while preserving uncommitted work.
 
 ## Purpose
 Clean up local and remote branches that have been fully merged, while protecting branches with unmerged commits. Provides detailed reporting of all cleanup actions.
 
 ## Usage
 ```bash
-# Safe cleanup (prompts for questionable branches)
-/cleanup
+# Safe scrub (prompts for questionable branches)
+/scrub
 
-# Force cleanup (deletes even with potential data loss)
-/cleanup --force
+# Force scrub (deletes even with potential data loss)
+/scrub --force
 
 # Quiet mode (no prompts, only safe deletions)
-/cleanup --quiet
+/scrub --quiet
 ```
 
 ## Options
