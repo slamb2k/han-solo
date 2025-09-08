@@ -42,10 +42,10 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Report arrays
-INFO=()
-WARN=()
-ERR=()
+# Report arrays - initialize as empty arrays
+declare -a INFO=()
+declare -a WARN=()
+declare -a ERR=()
 
 # Logging functions with immediate output
 note() { INFO+=("$1"); echo -e "${GREEN}✓${NC} $1"; }
@@ -58,17 +58,20 @@ report() {
   echo
   echo "===== 🚢 git-shipper report ====="
   
-  if [ ${#INFO[@]} -gt 0 ]; then
+  # Check if INFO array has elements
+  if [ "${#INFO[@]}" -gt 0 ]; then
     echo -e "${GREEN}INFO (${#INFO[@]} items):${NC}"
     for i in "${INFO[@]}"; do echo "  • $i"; done
   fi
   
-  if [ ${#WARN[@]} -gt 0 ]; then
+  # Check if WARN array has elements
+  if [ "${#WARN[@]}" -gt 0 ]; then
     echo -e "${YELLOW}WARNINGS (${#WARN[@]} items):${NC}"
     for w in "${WARN[@]}"; do echo "  • $w"; done
   fi
   
-  if [ ${#ERR[@]} -gt 0 ]; then
+  # Check if ERR array has elements
+  if [ "${#ERR[@]}" -gt 0 ]; then
     echo -e "${RED}ERRORS (${#ERR[@]} items):${NC}"
     for e in "${ERR[@]}"; do echo "  • $e"; done
     echo "================================"
