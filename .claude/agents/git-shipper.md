@@ -490,12 +490,46 @@ if [ "$AUTO_MERGE_ENABLED" = true ]; then
   # Wait a moment for auto-merge to potentially complete
   sleep 5
   
-  # Check if already merged and clean up local branch
+  # Check if already merged and clean up
   if gh pr view --json state -q '.state' | grep -q "MERGED"; then
     note "✅ PR already merged by auto-merge!"
     git switch "$DEFAULT" >/dev/null 2>&1 || true
     git pull --ff-only origin "$DEFAULT" >/dev/null 2>&1 || true
     git branch -d "$CURR_BRANCH" >/dev/null 2>&1 && note "🧹 Deleted local branch: $CURR_BRANCH"
+    
+    # Run comprehensive cleanup after auto-merge
+    echo -e "\n${GREEN}Running post-merge cleanup...${NC}"
+    
+    # Fetch and prune
+    git fetch --all --prune >/dev/null 2>&1
+    
+    # Clean up any other orphaned branches
+    CLEANUP_COUNT=0
+    for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); do
+      BRANCH_NAME="${branch#origin/}"
+      MERGED_PR="$(gh pr list --head "$BRANCH_NAME" --state merged --json number --jq '.[0].number' 2>/dev/null || true)"
+      if [ -n "$MERGED_PR" ]; then
+        if git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1; then
+          note "🗑️ Cleaned up orphaned remote: $BRANCH_NAME (PR #$MERGED_PR)"
+          ((CLEANUP_COUNT++))
+        fi
+      fi
+    done
+    
+    # Clean up local merged branches
+    for branch in $(git branch --merged "$DEFAULT" | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master); do
+      BRANCH_NAME="$(echo "$branch" | xargs)"
+      if git branch -d "$BRANCH_NAME" >/dev/null 2>&1; then
+        note "🧹 Cleaned up local branch: $BRANCH_NAME"
+        ((CLEANUP_COUNT++))
+      fi
+    done
+    
+    if [ $CLEANUP_COUNT -gt 0 ]; then
+      note "📊 Cleaned up $CLEANUP_COUNT additional branch(es)"
+    else
+      note "✨ No additional branches to clean up"
+    fi
   else
     note "⏳ Auto-merge will complete when checks pass"
     note "💡 Run 'git switch $DEFAULT && git pull' after merge completes"
@@ -577,6 +611,50 @@ git push origin --delete "$CURR_BRANCH" >/dev/null 2>&1 || true
 # Delete local branch if merged
 if git branch --merged "$DEFAULT" | grep -qx "  $CURR_BRANCH"; then
   git branch -d "$CURR_BRANCH" >/dev/null 2>&1 && note "🧹 Deleted local branch: $CURR_BRANCH"
+fi
+
+# Comprehensive branch cleanup
+echo -e "\n${GREEN}Running comprehensive branch cleanup...${NC}"
+
+# Fetch and prune deleted remote branches
+git fetch --all --prune >/dev/null 2>&1
+
+# Clean up orphaned remote branches
+ORPHANED_REMOTES=()
+for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); do
+  BRANCH_NAME="${branch#origin/}"
+  # Check if PR was merged for this branch
+  MERGED_PR="$(gh pr list --head "$BRANCH_NAME" --state merged --json number --jq '.[0].number' 2>/dev/null || true)"
+  if [ -n "$MERGED_PR" ]; then
+    # Branch has a merged PR, delete it
+    if git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1; then
+      ORPHANED_REMOTES+=("$BRANCH_NAME (PR #$MERGED_PR merged)")
+      note "🗑️ Deleted orphaned remote branch: $BRANCH_NAME (PR #$MERGED_PR was merged)"
+    fi
+  fi
+done
+
+# Clean up local branches that are merged
+LOCAL_CLEANED=()
+for branch in $(git branch --merged "$DEFAULT" | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master); do
+  BRANCH_NAME="$(echo "$branch" | xargs)"  # Trim whitespace
+  if git branch -d "$BRANCH_NAME" >/dev/null 2>&1; then
+    LOCAL_CLEANED+=("$BRANCH_NAME")
+    note "🧹 Deleted merged local branch: $BRANCH_NAME"
+  fi
+done
+
+# Report cleanup summary
+if [ ${#ORPHANED_REMOTES[@]} -gt 0 ] || [ ${#LOCAL_CLEANED[@]} -gt 0 ]; then
+  note "📊 Branch cleanup summary:"
+  if [ ${#ORPHANED_REMOTES[@]} -gt 0 ]; then
+    note "  • Deleted ${#ORPHANED_REMOTES[@]} orphaned remote branch(es)"
+  fi
+  if [ ${#LOCAL_CLEANED[@]} -gt 0 ]; then
+    note "  • Deleted ${#LOCAL_CLEANED[@]} merged local branch(es)"
+  fi
+else
+  note "✨ No additional branches to clean up"
 fi
 
 note "🏁 Ship complete! Your changes are in $DEFAULT."
