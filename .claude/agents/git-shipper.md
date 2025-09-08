@@ -369,9 +369,52 @@ else
   fi
 fi
 
-# Create or update PR
+# Check for existing PR and its state
 echo -e "\n${GREEN}Managing PR...${NC}"
 PR_EXISTS="$(gh pr list --head "$CURR_BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)"
+
+# Check if there's a merged PR for this branch
+MERGED_PR="$(gh pr list --head "$CURR_BRANCH" --state merged --json number --jq '.[0].number' 2>/dev/null || true)"
+
+# If we have a merged PR but new commits, we need a new branch
+if [ -n "$MERGED_PR" ]; then
+  warn "⚠️ Found merged PR #$MERGED_PR for branch $CURR_BRANCH"
+  
+  # Check if we have new commits since the merge
+  MERGE_COMMIT="$(gh pr view "$MERGED_PR" --json mergeCommit --jq '.mergeCommit.oid' 2>/dev/null || true)"
+  if [ -n "$MERGE_COMMIT" ]; then
+    COMMITS_SINCE_MERGE="$(git rev-list --count "$MERGE_COMMIT"..HEAD 2>/dev/null || echo 0)"
+    
+    if [ "$COMMITS_SINCE_MERGE" -gt 0 ]; then
+      note "📊 Found $COMMITS_SINCE_MERGE new commits since PR #$MERGED_PR was merged"
+      
+      # Create a new branch with incrementing suffix
+      NEW_BRANCH="${CURR_BRANCH}-followup-$(date +%H%M%S)"
+      note "🔄 Creating new branch for follow-up changes: $NEW_BRANCH"
+      
+      git checkout -b "$NEW_BRANCH"
+      CURR_BRANCH="$NEW_BRANCH"
+      
+      # Push the new branch
+      if git push origin "$NEW_BRANCH" --set-upstream >/dev/null 2>&1; then
+        note "📤 Pushed new branch to origin"
+      else
+        fail "Failed to push new branch"
+        report
+      fi
+      
+      # Clear PR_EXISTS since we're on a new branch
+      PR_EXISTS=""
+    else
+      note "✅ No new commits since merge - nothing to ship!"
+      git switch "$DEFAULT" >/dev/null 2>&1 || true
+      git pull --ff-only origin "$DEFAULT" >/dev/null 2>&1 || true
+      git branch -d "$CURR_BRANCH" >/dev/null 2>&1 && note "🧹 Deleted local branch: $CURR_BRANCH"
+      report
+      exit 0
+    fi
+  fi
+fi
 
 if [ -z "$PR_EXISTS" ]; then
   # Create new PR
@@ -443,6 +486,21 @@ fi
 if [ "$AUTO_MERGE_ENABLED" = true ]; then
   note "✨ PR will automatically merge when all checks pass"
   note "🔗 View PR: $(gh pr view --json url -q .url)"
+  
+  # Wait a moment for auto-merge to potentially complete
+  sleep 5
+  
+  # Check if already merged and clean up local branch
+  if gh pr view --json state -q '.state' | grep -q "MERGED"; then
+    note "✅ PR already merged by auto-merge!"
+    git switch "$DEFAULT" >/dev/null 2>&1 || true
+    git pull --ff-only origin "$DEFAULT" >/dev/null 2>&1 || true
+    git branch -d "$CURR_BRANCH" >/dev/null 2>&1 && note "🧹 Deleted local branch: $CURR_BRANCH"
+  else
+    note "⏳ Auto-merge will complete when checks pass"
+    note "💡 Run 'git switch $DEFAULT && git pull' after merge completes"
+  fi
+  
   report
   exit 0
 fi
