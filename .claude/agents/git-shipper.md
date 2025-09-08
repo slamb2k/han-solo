@@ -496,31 +496,7 @@ if [ "$AUTO_MERGE_ENABLED" = true ]; then
     git switch "$DEFAULT" >/dev/null 2>&1 || true
     git pull --ff-only origin "$DEFAULT" >/dev/null 2>&1 || true
     git branch -d "$CURR_BRANCH" >/dev/null 2>&1 && note "🧹 Deleted local branch: $CURR_BRANCH"
-    
-    # Run branch scrub (delegate to scrub command)
-    echo -e "\n${GREEN}Running post-merge scrub...${NC}"
-    note "🧹 Running /scrub --quiet to remove orphaned branches"
-    
-    # Note: In actual Claude Code, this would be:
-    # /scrub --quiet
-    # But for the agent context, we'll inline a simplified version
-    
-    git fetch --all --prune >/dev/null 2>&1
-    
-    # Quick cleanup of obviously safe branches
-    CLEANUP_COUNT=0
-    for branch in $(git branch --merged "$DEFAULT" | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master); do
-      BRANCH_NAME="$(echo "$branch" | xargs)"
-      if git branch -d "$BRANCH_NAME" >/dev/null 2>&1; then
-        ((CLEANUP_COUNT++))
-      fi
-    done
-    
-    if [ $CLEANUP_COUNT -gt 0 ]; then
-      note "📊 Cleaned up $CLEANUP_COUNT merged local branch(es)"
-    fi
-    
-    note "💡 Run /scrub manually for comprehensive branch cleanup"
+    note "💡 Branch cleanup will be handled by /scrub after completion"
   else
     note "⏳ Auto-merge will complete when checks pass"
     note "💡 Run 'git switch $DEFAULT && git pull' after merge completes"
@@ -604,27 +580,7 @@ if git branch --merged "$DEFAULT" | grep -qx "  $CURR_BRANCH"; then
   git branch -d "$CURR_BRANCH" >/dev/null 2>&1 && note "🧹 Deleted local branch: $CURR_BRANCH"
 fi
 
-# Quick branch scrub
-echo -e "\n${GREEN}Running branch scrub...${NC}"
-git fetch --all --prune >/dev/null 2>&1
-
-# Clean up obviously safe local branches
-CLEANUP_COUNT=0
-for branch in $(git branch --merged "$DEFAULT" | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master); do
-  BRANCH_NAME="$(echo "$branch" | xargs)"
-  if git branch -d "$BRANCH_NAME" >/dev/null 2>&1; then
-    note "🧹 Deleted merged local branch: $BRANCH_NAME"
-    ((CLEANUP_COUNT++))
-  fi
-done
-
-if [ $CLEANUP_COUNT -gt 0 ]; then
-  note "📊 Scrubbed $CLEANUP_COUNT merged local branch(es)"
-else
-  note "✨ No merged branches to scrub"
-fi
-
-note "💡 Run /scrub for comprehensive branch cleanup with remote branches"
+note "💡 Comprehensive branch cleanup will be handled by /scrub after completion"
 
 note "🏁 Ship complete! Your changes are in $DEFAULT."
 
