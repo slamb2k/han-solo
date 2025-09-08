@@ -5,22 +5,33 @@ Comprehensive branch scrubbing tool that safely removes merged and orphaned bran
 ## Purpose
 Clean up local and remote branches that have been fully merged, while protecting branches with unmerged commits. Provides detailed reporting of all cleanup actions.
 
+**Note:** This command is automatically run with `--quiet` flag after successful `/ship` operations. You can also run it manually at any time for comprehensive branch cleanup.
+
 ## Usage
 ```bash
-# Safe scrub (prompts for questionable branches)
+# Manual cleanup - prompts for questionable branches (recommended for periodic maintenance)
 /scrub
 
-# Force scrub (deletes even with potential data loss)
+# Force scrub - deletes even with potential data loss (use with caution!)
 /scrub --force
 
-# Quiet mode (no prompts, only safe deletions)
+# Quiet mode - no prompts, only safe deletions (used automatically by /ship)
 /scrub --quiet
+
+# Preview what would be deleted without making changes
+/scrub --dry-run
 ```
 
 ## Options
 - `--force`: Delete branches even if they have unmerged commits (dangerous!)
-- `--quiet`: Skip all prompts, only delete obviously safe branches
+- `--quiet`: Skip all prompts, only delete obviously safe branches (automatically used by `/ship`)
 - `--dry-run`: Show what would be deleted without actually deleting
+
+## When to Use Manually
+- **Periodic maintenance**: Run `/scrub` weekly or monthly to keep your repository clean
+- **After collaborative work**: Clean up feature branches from merged PRs
+- **Before starting new work**: Ensure a clean workspace
+- **After manual PR merges**: If you merged PRs outside of `/ship`
 
 ## What it does
 1. **Fetches and prunes** remote references
