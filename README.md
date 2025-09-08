@@ -16,7 +16,42 @@ Han Solo provides three powerful commands that establish best practices while op
 
 ## 📦 Installation
 
-Place these files in your Claude Code project:
+### Quick Install (Recommended)
+
+#### Project-scoped installation (default)
+```bash
+# Install in current project's .claude/ directory
+curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash
+```
+
+#### Global/user installation (all projects)
+```bash
+# Install in ~/.claude/ for use across all projects
+curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global
+```
+
+#### Install specific version
+```bash
+# Project-scoped with specific version
+TAG=v2024.01.15-1 curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash
+
+# Global with specific version
+TAG=v2024.01.15-1 curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global
+```
+
+### Manual Installation
+
+Download the latest release from [GitHub Releases](https://github.com/slamb2k/han-solo/releases) or clone the repository:
+
+```bash
+# Clone and copy files
+git clone https://github.com/slamb2k/han-solo.git
+cp -r han-solo/.claude/* .claude/
+```
+
+### File Structure
+
+After installation, you'll have:
 
 ```
 .claude/
@@ -26,8 +61,9 @@ Place these files in your Claude Code project:
 └── commands/
     └── han-solo/
         ├── bootstrap.md         # /bootstrap command
+        ├── scrub.md             # /scrub command
         ├── ship.md              # /ship command
-        └── scrub.md             # /scrub command
+        └── README.md            # This documentation
 ```
 
 ## 🚀 Quick Start
