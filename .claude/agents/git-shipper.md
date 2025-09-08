@@ -490,12 +490,13 @@ if [ "$AUTO_MERGE_ENABLED" = true ]; then
   # Wait a moment for auto-merge to potentially complete
   sleep 5
   
-  # Check if already merged and clean up local branch
+  # Check if already merged and clean up
   if gh pr view --json state -q '.state' | grep -q "MERGED"; then
     note "✅ PR already merged by auto-merge!"
     git switch "$DEFAULT" >/dev/null 2>&1 || true
     git pull --ff-only origin "$DEFAULT" >/dev/null 2>&1 || true
     git branch -d "$CURR_BRANCH" >/dev/null 2>&1 && note "🧹 Deleted local branch: $CURR_BRANCH"
+    note "💡 Branch cleanup will be handled by /scrub after completion"
   else
     note "⏳ Auto-merge will complete when checks pass"
     note "💡 Run 'git switch $DEFAULT && git pull' after merge completes"
@@ -578,6 +579,8 @@ git push origin --delete "$CURR_BRANCH" >/dev/null 2>&1 || true
 if git branch --merged "$DEFAULT" | grep -qx "  $CURR_BRANCH"; then
   git branch -d "$CURR_BRANCH" >/dev/null 2>&1 && note "🧹 Deleted local branch: $CURR_BRANCH"
 fi
+
+note "💡 Comprehensive branch cleanup will be handled by /scrub after completion"
 
 note "🏁 Ship complete! Your changes are in $DEFAULT."
 

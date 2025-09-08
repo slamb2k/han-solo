@@ -4,7 +4,7 @@
 
 > **"Fly solo, fly fast, fly safe"** - A governed-but-fast Git workflow system for solo developers and small teams using Claude Code.
 
-Han Solo provides two powerful commands that establish best practices while optimizing for developer velocity. Perfect for solo developers who want professional-grade governance without the overhead.
+Han Solo provides three powerful commands that establish best practices while optimizing for developer velocity. Perfect for solo developers who want professional-grade governance without the overhead.
 
 ## 🎯 Philosophy
 
@@ -24,9 +24,10 @@ Place these files in your Claude Code project:
 │   ├── bootstrap-guardian.md    # Bootstrap sub-agent
 │   └── git-shipper.md           # Shipping sub-agent
 └── commands/
-    └── git/
+    └── han-solo/
         ├── bootstrap.md         # /bootstrap command
-        └── ship.md              # /ship command
+        ├── ship.md              # /ship command
+        └── scrub.md             # /scrub command
 ```
 
 ## 🚀 Quick Start
@@ -42,7 +43,7 @@ git commit -m "feat: add amazing new feature"
 # 3. Ship it!
 /ship
 
-# That's it! Your code is reviewed, tested, and merged.
+# That's it! Your code is reviewed, tested, merged, and branches cleaned up automatically.
 ```
 
 ## 📚 Commands
@@ -91,6 +92,7 @@ The Swiss Army knife for shipping code. Handles everything from commit to merge.
 - ⏳ **Waits for checks** to pass (by default)
 - ✅ **Auto-merges** when green
 - 🧹 **Cleans up** branches automatically
+- 🗑️ **Runs `/scrub --quiet`** after successful merge for comprehensive cleanup
 
 #### Usage:
 ```bash
@@ -117,6 +119,43 @@ The Swiss Army knife for shipping code. Handles everything from commit to merge.
 - `--branch-name <name>`: Custom branch name (when creating new)
 - `--body "<text>"`: Custom PR body
 - `--draft`: Create as draft PR
+
+### `/scrub` - Branch Cleanup
+
+Comprehensive branch cleanup tool that removes merged and orphaned branches while preserving work in progress.
+
+#### What it does:
+- 🔍 **Fetches and prunes** remote references
+- 🗑️ **Removes orphaned branches** with merged PRs
+- 🛡️ **Protects branches** with unmerged commits
+- 📊 **Provides detailed report** of all cleanup actions
+- 🤖 **Runs automatically** after successful `/ship` (with `--quiet`)
+
+#### Usage:
+```bash
+# Manual cleanup with prompts (recommended for periodic maintenance)
+/scrub
+
+# Quiet mode - only delete obviously safe branches
+/scrub --quiet
+
+# Preview what would be deleted
+/scrub --dry-run
+
+# Force delete even with unmerged commits (dangerous!)
+/scrub --force
+```
+
+#### When to use manually:
+- **Weekly/monthly maintenance** to keep your repo clean
+- **After collaborative work** to clean up merged feature branches
+- **Before starting new work** to ensure a clean workspace
+- **After manual PR merges** done outside of `/ship`
+
+#### Options:
+- `--quiet`: Skip prompts, only delete safe branches (auto-used by `/ship`)
+- `--dry-run`: Preview deletions without making changes
+- `--force`: Delete even with unmerged commits (use with extreme caution!)
 
 ## 🔄 Typical Workflow
 

@@ -17,6 +17,7 @@ Do not attempt to implement the shipping logic directly - use the specialist age
 4. **Wait for checks** to pass (default behavior)
 5. **Auto-merge** when all required checks are green
 6. **Clean up** both local and remote branches
+7. **Run /scrub --quiet** automatically after successful merge for comprehensive branch cleanup
 
 ## Command Flags
 - `--nowait`: Create/update PR only, don't wait for merge
@@ -109,12 +110,15 @@ Execute the complete shipping workflow using the **git-shipper** sub-agent:
 6. Clean up branches after successful merge
 7. Provide comprehensive INFO/WARN/ERR report
 
+After git-shipper completes successfully (exit code 0), automatically run `/scrub --quiet` to perform comprehensive branch cleanup of all merged and orphaned branches.
+
 ## Success Criteria
 - Clean rebase without conflicts
 - All checks passing (or explicitly overridden)
 - PR created with descriptive title and body
 - Successful merge to default branch
 - Branches cleaned up locally and remotely
+- Automatic /scrub cleanup of all merged branches
 - Clear report of all actions taken
 
 ## Troubleshooting
@@ -143,6 +147,7 @@ gh pr merge --squash --delete-branch
 ## Related Commands
 - `/bootstrap`: Set up repository governance before first ship
 - `/bootstrap --team`: Switch to team mode with required reviews
+- `/scrub`: Comprehensive branch cleanup (automatically run after successful ship)
 
 ## Best Practices
 1. **Commit often**: Use conventional commits for better PR descriptions
