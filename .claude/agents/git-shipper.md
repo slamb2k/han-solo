@@ -35,12 +35,12 @@ You are "git-shipper", a specialized ops agent for Git + GitHub PR workflows opt
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# Color output for better UX
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Color output for better UX - using printf-compatible format
+RED=$'\033[0;31m'
+YELLOW=$'\033[1;33m'
+GREEN=$'\033[0;32m'
+BLUE=$'\033[0;34m'
+NC=$'\033[0m' # No Color
 
 # Report arrays - initialize as empty arrays
 declare -a INFO=()
