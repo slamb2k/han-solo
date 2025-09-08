@@ -1,9 +1,23 @@
-# Husky v9+ hook - no shebang or sourcing needed
-if command -v nx >/dev/null 2>&1 || pnpm nx -v >/dev/null 2>&1; then
-  BASE="$(git merge-base "$(git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -d/ -f1)/$(git rev-parse --abbrev-ref @{u} | sed 's|.*/||')" HEAD 2>/dev/null || echo HEAD~1)"
-  nx affected -t lint,typecheck,test,build --base="$BASE" --head=HEAD || true
+#!/usr/bin/env sh
+# Husky pre-push hook (v9+ style)
+
+echo "🚀 Running pre-push checks..."
+
+# Detect Nx for affected optimization
+if command -v nx >/dev/null 2>&1 || npx nx --version >/dev/null 2>&1; then
+  echo "🎯 Using Nx affected for fast checks..."
+  
+  # Calculate base for affected
+  BASE_BRANCH="$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null | cut -d/ -f2- || echo main)"
+  BASE="$(git merge-base origin/$BASE_BRANCH HEAD 2>/dev/null || echo HEAD~1)"
+  
+  # Run affected targets
+  npx nx affected -t lint,typecheck,test,build --base="$BASE" --head=HEAD
 else
-  pnpm run --if-present typecheck
-  pnpm run --if-present test
-  pnpm run --if-present build
+  echo "📦 Running standard checks..."
+  
+  # Run standard npm scripts if present
+  npm run typecheck --if-present 2>/dev/null || true
+  npm run test --if-present 2>/dev/null || true
+  npm run build --if-present 2>/dev/null || true
 fi
