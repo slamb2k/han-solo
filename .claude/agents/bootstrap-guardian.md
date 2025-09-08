@@ -430,20 +430,40 @@ if [ "$DEPLOY_TARGET" = "pages" ]; then
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          echo "## 🚀 Deployment v${{ github.run_number }}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### 📍 Deployment Info" >> release_notes.md
+          echo "- **Deployed to**: GitHub Pages" >> release_notes.md
+          echo "- **URL**: ${{ steps.deployment.outputs.page_url }}" >> release_notes.md
+          echo "- **Commit**: \`${{ github.sha }}\`" >> release_notes.md
+          echo "- **Build**: [#${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 📝 Changes Included" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          # Get commits since last tag or last 10 commits
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            git log --pretty=format:"- %s (%an)" -10 >> release_notes.md
+          else
+            git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%an)" >> release_notes.md
+          fi
+          
+          echo "" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 🔗 Links" >> release_notes.md
+          echo "- [View Deployment](https://pages.github.com/${{ github.repository }})" >> release_notes.md
+          echo "- [Compare Changes](https://github.com/${{ github.repository }}/compare/${LAST_TAG:-HEAD~10}...v${{ github.run_number }})" >> release_notes.md
       - name: Create Release
         if: success()
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ github.run_number }}
           name: Release v${{ github.run_number }}
-          body: |
-            ## 🚀 Deployment v${{ github.run_number }}
-            
-            - **Deployed to**: GitHub Pages
-            - **Commit**: ${{ github.sha }}
-            - **Build**: ${{ github.run_id }}
-            
-            [View Deployment](https://pages.github.com/${{ github.repository }})
+          body_path: release_notes.md
           draft: false
           prerelease: false
 YAML
@@ -475,23 +495,50 @@ elif [ "$DEPLOY_TARGET" = "ghcr" ]; then
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.sha }}
             ghcr.io/${{ github.repository }}:v${{ github.run_number }}
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          echo "## 🐳 Container Release v${{ github.run_number }}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### 📍 Deployment Info" >> release_notes.md
+          echo "- **Registry**: ghcr.io" >> release_notes.md
+          echo "- **Image**: \`ghcr.io/${{ github.repository }}:v${{ github.run_number }}\`" >> release_notes.md
+          echo "- **Tags**: \`latest\`, \`v${{ github.run_number }}\`, \`${{ github.sha }}\`" >> release_notes.md
+          echo "- **Commit**: \`${{ github.sha }}\`" >> release_notes.md
+          echo "- **Build**: [#${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 📝 Changes Included" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          # Get commits since last tag or last 10 commits
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            git log --pretty=format:"- %s (%an)" -10 >> release_notes.md
+          else
+            git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%an)" >> release_notes.md
+          fi
+          
+          echo "" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 🐳 Pull Commands" >> release_notes.md
+          echo "\`\`\`bash" >> release_notes.md
+          echo "# Latest version" >> release_notes.md
+          echo "docker pull ghcr.io/${{ github.repository }}:latest" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "# Specific version" >> release_notes.md
+          echo "docker pull ghcr.io/${{ github.repository }}:v${{ github.run_number }}" >> release_notes.md
+          echo "\`\`\`" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 🔗 Links" >> release_notes.md
+          echo "- [Container Registry](https://github.com/${{ github.repository }}/pkgs/container/$(basename ${{ github.repository }}))" >> release_notes.md
+          echo "- [Compare Changes](https://github.com/${{ github.repository }}/compare/${LAST_TAG:-HEAD~10}...v${{ github.run_number }})" >> release_notes.md
       - name: Create Release
         if: success()
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ github.run_number }}
           name: Release v${{ github.run_number }}
-          body: |
-            ## 🐳 Container Release v${{ github.run_number }}
-            
-            - **Registry**: ghcr.io
-            - **Image**: `ghcr.io/${{ github.repository }}:v${{ github.run_number }}`
-            - **Commit**: ${{ github.sha }}
-            
-            ### Pull Command
-            ```bash
-            docker pull ghcr.io/${{ github.repository }}:v${{ github.run_number }}
-            ```
+          body_path: release_notes.md
           draft: false
           prerelease: false
 YAML
@@ -518,21 +565,50 @@ else
           else
             zip -r deployment.zip . -x ".git/*" ".github/*" "node_modules/*" "*.zip"
           fi
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          echo "## 📦 Release v${{ github.run_number }}" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### 📍 Release Info" >> release_notes.md
+          echo "- **Type**: Application Package" >> release_notes.md
+          echo "- **Artifact**: \`deployment.zip\`" >> release_notes.md
+          echo "- **Commit**: \`${{ github.sha }}\`" >> release_notes.md
+          echo "- **Build**: [#${{ github.run_id }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 📝 Changes Included" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          # Get commits since last tag or last 10 commits
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            git log --pretty=format:"- %s (%an)" -10 >> release_notes.md
+          else
+            git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%an)" >> release_notes.md
+          fi
+          
+          echo "" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 📦 Package Contents" >> release_notes.md
+          echo "The \`deployment.zip\` file contains:" >> release_notes.md
+          if [ -d "dist" ] || [ -d "build" ] || [ -d "out" ]; then
+            echo "- Compiled application files from build output" >> release_notes.md
+          else
+            echo "- Complete application source and configuration" >> release_notes.md
+          fi
+          echo "" >> release_notes.md
+          echo "### 💾 Download" >> release_notes.md
+          echo "Download the \`deployment.zip\` file from the Assets section below." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### 🔗 Links" >> release_notes.md
+          echo "- [Compare Changes](https://github.com/${{ github.repository }}/compare/${LAST_TAG:-HEAD~10}...v${{ github.run_number }})" >> release_notes.md
       - name: Create Release
         if: success()
         uses: softprops/action-gh-release@v1
         with:
           tag_name: v${{ github.run_number }}
           name: Release v${{ github.run_number }}
-          body: |
-            ## 📦 Release v${{ github.run_number }}
-            
-            - **Type**: Application Package
-            - **Commit**: ${{ github.sha }}
-            - **Build**: ${{ github.run_id }}
-            
-            ### Assets
-            - deployment.zip - Complete application package
+          body_path: release_notes.md
           files: deployment.zip
           draft: false
           prerelease: false
