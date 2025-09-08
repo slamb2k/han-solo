@@ -432,11 +432,11 @@ INTERVAL=30
 
 while [ $ELAPSED -lt $MAX_WAIT ]; do
   # Get check status
-  STATUS_JSON="$(gh pr checks --json name,status,conclusion 2>/dev/null || echo '[]')"
+  STATUS_JSON="$(gh pr checks --json name,state 2>/dev/null || echo '[]')"
   
   # Count pending and failed checks
-  PENDING="$(echo "$STATUS_JSON" | jq '[.[] | select(.status != "completed")] | length')"
-  FAILED="$(echo "$STATUS_JSON" | jq '[.[] | select(.status == "completed" and .conclusion != "success")] | length')"
+  PENDING="$(echo "$STATUS_JSON" | jq '[.[] | select(.state == "PENDING")] | length')"
+  FAILED="$(echo "$STATUS_JSON" | jq '[.[] | select(.state == "FAILURE" or .state == "ERROR")] | length')"
   
   if [ "$PENDING" -eq 0 ]; then
     if [ "$FAILED" -eq 0 ]; then
@@ -477,7 +477,7 @@ if gh pr merge --squash --delete-branch; then
   note "🎉 PR merged successfully!"
 else
   # Check if already merged
-  if gh pr view --json state --jq '.state' | grep -q "MERGED"; then
+  if gh pr view --json state -q '.state' | grep -q "MERGED"; then
     note "✅ PR was already merged"
   else
     fail "Failed to merge PR (may require manual intervention)"
