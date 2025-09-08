@@ -1,7 +1,7 @@
 name: CI
 on:
   push:
-    branches: ['**']
+    branches: ['main']  # Only run on push to main (when PR merges)
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -85,9 +85,6 @@ jobs:
     needs: [build]
     # Only run on pushes to main branch, not on PRs
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    # Require manual approval via environment protection
-    environment:
-      name: production
     permissions:
       contents: write  # Required for creating releases
     steps:
