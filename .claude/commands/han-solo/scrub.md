@@ -20,6 +20,9 @@ Clean up local and remote branches that have been fully merged, while protecting
 
 # Preview what would be deleted without making changes
 /scrub --dry-run
+
+# Combine flags for different behaviors
+/scrub --quiet --dry-run  # Preview what quiet mode would delete
 ```
 
 ## Options
@@ -32,13 +35,17 @@ Clean up local and remote branches that have been fully merged, while protecting
 - **After collaborative work**: Clean up feature branches from merged PRs
 - **Before starting new work**: Ensure a clean workspace
 - **After manual PR merges**: If you merged PRs outside of `/ship`
+- **After squash-merges**: Automatically detects and cleans squash-merged branches
 
 ## What it does
 1. **Fetches and prunes** remote references
 2. **Identifies orphaned remote branches** with merged PRs
-3. **Checks for unmerged commits** before any deletion
+3. **Detects squash-merged branches** using multiple methods:
+   - Checks if commits are cherry-pick equivalent
+   - Compares cumulative patches for identical changes
+   - Searches for PR merge commits referencing the branch
 4. **Prompts for confirmation** on questionable branches (unless --force or --quiet)
-5. **Cleans local branches** that are fully merged
+5. **Cleans local branches** that are fully merged or squash-merged
 6. **Provides detailed summary** of all actions taken
 
 ## Safety Features
@@ -49,6 +56,8 @@ Clean up local and remote branches that have been fully merged, while protecting
 - Reports all preserved branches for manual review
 
 ## Example Output
+
+### Standard Mode
 ```
 🔍 Analyzing branches...
 ✓ Found 5 remote branches to check
@@ -69,6 +78,23 @@ Delete this branch? (y/N): n
   • Deleted 1 local branch(es)
   • Preserved 1 branch(es) with unmerged commits
     - feat/experimental (3 commits)
+```
+
+### Example with Squash-Merged Branches
+```
+🔍 Analyzing branches...
+✓ Found 5 remote branches to check
+✓ Found 3 local branches to check
+
+🗑️ Deleted squash-merged remote: feat/new-feature (PR #10)
+🧹 Deleted squash-merged local: feat/new-feature
+🧹 Deleted squash-merged local: fix/bug-123
+🧹 Deleted local branch: chore/cleanup
+
+📊 Cleanup Summary:
+  • Deleted 1 remote branch(es)
+  • Deleted 3 local branch(es)
+  • All squash-merged branches detected and cleaned
 ```
 
 ## Invocation rule
@@ -123,6 +149,45 @@ NC='\033[0m'
 # Get default branch
 DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo 'main')
 
+# Function to check if a branch has been squash-merged
+is_squash_merged() {
+  local BRANCH=$1
+  local BASE=${2:-$DEFAULT}
+  
+  # Method 1: Check if all commits are cherry-picked/equivalent
+  # git cherry returns '-' for commits that are equivalent in upstream
+  local UNMERGED_COUNT=$(git cherry "$BASE" "$BRANCH" 2>/dev/null | grep '^+' | wc -l | xargs || echo 0)
+  if [ "$UNMERGED_COUNT" -eq 0 ]; then
+    return 0  # All commits are equivalent, branch is merged
+  fi
+  
+  # Method 2: Check if the patch is empty when applied to base
+  # This catches squash merges where the changes are already in base
+  local PATCH_EMPTY=false
+  local MERGE_BASE=$(git merge-base "$BASE" "$BRANCH" 2>/dev/null || true)
+  if [ -n "$MERGE_BASE" ]; then
+    # Get the cumulative diff and check if it's already applied
+    local DIFF=$(git diff "$BASE"..."$BRANCH" 2>/dev/null | wc -l)
+    if [ "$DIFF" -eq 0 ]; then
+      PATCH_EMPTY=true
+    fi
+  fi
+  
+  if [ "$PATCH_EMPTY" = true ]; then
+    return 0  # Changes are already in base
+  fi
+  
+  # Method 3: Look for PR merge commits that reference this branch
+  # Search for squash merge commits in the base branch
+  local BRANCH_SHORT=${BRANCH#origin/}
+  local SQUASH_COMMIT=$(git log "$BASE" --grep="$BRANCH_SHORT" --grep="(#[0-9]*)" --pretty=format:"%H" -n 1 2>/dev/null || true)
+  if [ -n "$SQUASH_COMMIT" ]; then
+    return 0  # Found a merge commit referencing this branch
+  fi
+  
+  return 1  # Branch is not merged
+}
+
 echo -e "${GREEN}🔍 Analyzing branches...${NC}"
 
 # Fetch and prune
@@ -155,6 +220,22 @@ for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); d
   if [ -n "$MERGED_PR" ]; then
     # Check for unmerged commits
     UNMERGED=$(git rev-list --count origin/$BRANCH_NAME ^$DEFAULT 2>/dev/null || echo 0)
+    
+    # Check for squash merge even if commits appear unmerged
+    if [ "$UNMERGED" -gt 0 ]; then
+      if is_squash_merged "origin/$BRANCH_NAME" "$DEFAULT"; then
+        # Branch is squash-merged, treat as safe to delete
+        if [ "$DRY_RUN" = true ]; then
+          echo -e "${GREEN}[DRY RUN] Would delete: $BRANCH_NAME (PR #$MERGED_PR squash-merged)${NC}"
+        else
+          git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1 && {
+            echo -e "${GREEN}🗑️ Deleted squash-merged remote: $BRANCH_NAME (PR #$MERGED_PR)${NC}"
+            ((REMOTE_DELETED++))
+          }
+        fi
+        continue
+      fi
+    fi
     
     if [ "$UNMERGED" -gt 0 ]; then
       if [ "$FORCE" = true ]; then
@@ -230,6 +311,22 @@ for branch in $(git branch | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master
     # Has unmerged commits
     UNMERGED=$(git rev-list --count $BRANCH_NAME ^$DEFAULT 2>/dev/null || echo 0)
     REMOTE_EXISTS=$(git ls-remote --heads origin "$BRANCH_NAME" 2>/dev/null || true)
+    
+    # Check for squash merge even if commits appear unmerged
+    if [ "$UNMERGED" -gt 0 ]; then
+      if is_squash_merged "$BRANCH_NAME" "$DEFAULT"; then
+        # Branch is squash-merged, treat as safe to delete
+        if [ "$DRY_RUN" = true ]; then
+          echo -e "${GREEN}[DRY RUN] Would delete local: $BRANCH_NAME (squash-merged)${NC}"
+        else
+          git branch -D "$BRANCH_NAME" >/dev/null 2>&1 && {
+            echo -e "${GREEN}🧹 Deleted squash-merged local: $BRANCH_NAME${NC}"
+            ((LOCAL_DELETED++))
+          }
+        fi
+        continue
+      fi
+    fi
     
     if [ "$UNMERGED" -gt 0 ] && [ -z "$REMOTE_EXISTS" ]; then
       # Local-only with unmerged commits

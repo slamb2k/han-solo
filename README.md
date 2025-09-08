@@ -127,6 +127,7 @@ Comprehensive branch cleanup tool that removes merged and orphaned branches whil
 #### What it does:
 - 🔍 **Fetches and prunes** remote references
 - 🗑️ **Removes orphaned branches** with merged PRs
+- 🔬 **Detects squash-merged branches** automatically via patch comparison
 - 🛡️ **Protects branches** with unmerged commits
 - 📊 **Provides detailed report** of all cleanup actions
 - 🤖 **Runs automatically** after successful `/ship` (with `--quiet`)
@@ -144,6 +145,9 @@ Comprehensive branch cleanup tool that removes merged and orphaned branches whil
 
 # Force delete even with unmerged commits (dangerous!)
 /scrub --force
+
+# Combine flags for different behaviors
+/scrub --quiet --dry-run  # Preview what quiet mode would delete
 ```
 
 #### When to use manually:
