@@ -137,40 +137,66 @@ jobs:
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           
+          # Generate release notes with commit history
+          echo "Automated release of han-solo Claude Code tools." > release_notes.md
+          echo "" >> release_notes.md
+          echo "## 📝 Changes Included" >> release_notes.md
+          echo "" >> release_notes.md
+          
+          # Get commits since last tag or last 10 commits
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "*Recent commits (up to 10):*" >> release_notes.md
+            echo "" >> release_notes.md
+            git log --pretty=format:"- %s (%an)" -10 >> release_notes.md
+          else
+            echo "*Commits since ${LAST_TAG}:*" >> release_notes.md
+            echo "" >> release_notes.md
+            git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%an)" >> release_notes.md
+          fi
+          
+          echo "" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## 📥 Installation" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Project-scoped (recommended)" >> release_notes.md
+          echo "\`\`\`bash" >> release_notes.md
+          echo "curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash" >> release_notes.md
+          echo "\`\`\`" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Global (all projects)" >> release_notes.md
+          echo "\`\`\`bash" >> release_notes.md
+          echo "curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global" >> release_notes.md
+          echo "\`\`\`" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### Install specific version" >> release_notes.md
+          echo "\`\`\`bash" >> release_notes.md
+          echo "# Project-scoped" >> release_notes.md
+          echo "TAG=$VERSION curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "# Global" >> release_notes.md
+          echo "TAG=$VERSION curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global" >> release_notes.md
+          echo "\`\`\`" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## 📦 Contents" >> release_notes.md
+          echo "- **bootstrap-guardian** agent - Repository bootstrapping with governance" >> release_notes.md
+          echo "- **git-shipper** agent - Solo-first PR shipping workflow" >> release_notes.md
+          echo "- **/bootstrap** command - Set up repository with quality gates" >> release_notes.md
+          echo "- **/ship** command - Ship code through governed fast-path" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## 🔍 Verification" >> release_notes.md
+          echo "The release includes SHA256 checksums for integrity verification." >> release_notes.md
+          echo "" >> release_notes.md
+          echo "## 🔗 Links" >> release_notes.md
+          if [ -n "$LAST_TAG" ]; then
+            echo "- [Compare Changes](https://github.com/${{ github.repository }}/compare/${LAST_TAG}...$VERSION)" >> release_notes.md
+          fi
+          echo "- [All Releases](https://github.com/${{ github.repository }}/releases)" >> release_notes.md
+          
           # Create release with gh CLI (available in GitHub Actions by default)
           gh release create "$VERSION" \
             --title "Han-Solo Claude Tools $VERSION" \
-            --notes "Automated release of han-solo Claude Code tools.
-          
-          ## 📥 Installation
-          
-          ### Project-scoped (recommended)
-          \`\`\`bash
-          curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash
-          \`\`\`
-          
-          ### Global (all projects)
-          \`\`\`bash
-          curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global
-          \`\`\`
-          
-          ### Install specific version
-          \`\`\`bash
-          # Project-scoped
-          TAG=$VERSION curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash
-          
-          # Global
-          TAG=$VERSION curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global
-          \`\`\`
-          
-          ## 📦 Contents
-          - **bootstrap-guardian** agent - Repository bootstrapping with governance
-          - **git-shipper** agent - Solo-first PR shipping workflow
-          - **/bootstrap** command - Set up repository with quality gates
-          - **/ship** command - Ship code through governed fast-path
-          
-          ## 🔍 Verification
-          The release includes SHA256 checksums for integrity verification." \
+            --notes-file release_notes.md \
             han-solo-claude-*.zip \
             SHA256SUMS
           
