@@ -503,15 +503,30 @@ if [ "$AUTO_MERGE_ENABLED" = true ]; then
     # Fetch and prune
     git fetch --all --prune >/dev/null 2>&1
     
-    # Clean up any other orphaned branches
+    # Clean up any other orphaned branches with safety checks
     CLEANUP_COUNT=0
+    SKIPPED_COUNT=0
     for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); do
       BRANCH_NAME="${branch#origin/}"
       MERGED_PR="$(gh pr list --head "$BRANCH_NAME" --state merged --json number --jq '.[0].number' 2>/dev/null || true)"
+      OPEN_PR="$(gh pr list --head "$BRANCH_NAME" --state open --json number --jq '.[0].number' 2>/dev/null || true)"
+      
+      # Skip if there's an open PR
+      if [ -n "$OPEN_PR" ]; then
+        continue
+      fi
+      
       if [ -n "$MERGED_PR" ]; then
-        if git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1; then
-          note "🗑️ Cleaned up orphaned remote: $BRANCH_NAME (PR #$MERGED_PR)"
-          ((CLEANUP_COUNT++))
+        # Check for unmerged commits
+        UNMERGED="$(git rev-list --count origin/$BRANCH_NAME ^$DEFAULT 2>/dev/null || echo 0)"
+        if [ "$UNMERGED" -eq 0 ]; then
+          if git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1; then
+            note "🗑️ Cleaned up orphaned remote: $BRANCH_NAME (PR #$MERGED_PR)"
+            ((CLEANUP_COUNT++))
+          fi
+        else
+          warn "⏭️ Skipped $BRANCH_NAME - has $UNMERGED unmerged commits"
+          ((SKIPPED_COUNT++))
         fi
       fi
     done
@@ -525,8 +540,8 @@ if [ "$AUTO_MERGE_ENABLED" = true ]; then
       fi
     done
     
-    if [ $CLEANUP_COUNT -gt 0 ]; then
-      note "📊 Cleaned up $CLEANUP_COUNT additional branch(es)"
+    if [ $CLEANUP_COUNT -gt 0 ] || [ $SKIPPED_COUNT -gt 0 ]; then
+      note "📊 Cleanup summary: $CLEANUP_COUNT deleted, $SKIPPED_COUNT preserved"
     else
       note "✨ No additional branches to clean up"
     fi
@@ -619,39 +634,120 @@ echo -e "\n${GREEN}Running comprehensive branch cleanup...${NC}"
 # Fetch and prune deleted remote branches
 git fetch --all --prune >/dev/null 2>&1
 
-# Clean up orphaned remote branches
+# Clean up orphaned remote branches with safety checks
 ORPHANED_REMOTES=()
+QUESTIONABLE_BRANCHES=()
 for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); do
   BRANCH_NAME="${branch#origin/}"
+  
   # Check if PR was merged for this branch
   MERGED_PR="$(gh pr list --head "$BRANCH_NAME" --state merged --json number --jq '.[0].number' 2>/dev/null || true)"
+  OPEN_PR="$(gh pr list --head "$BRANCH_NAME" --state open --json number --jq '.[0].number' 2>/dev/null || true)"
+  
+  # Skip if there's an open PR
+  if [ -n "$OPEN_PR" ]; then
+    debug "Skipping $BRANCH_NAME - has open PR #$OPEN_PR"
+    continue
+  fi
+  
   if [ -n "$MERGED_PR" ]; then
-    # Branch has a merged PR, delete it
-    if git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1; then
-      ORPHANED_REMOTES+=("$BRANCH_NAME (PR #$MERGED_PR merged)")
-      note "🗑️ Deleted orphaned remote branch: $BRANCH_NAME (PR #$MERGED_PR was merged)"
+    # Check if branch has unmerged commits
+    UNMERGED_COMMITS="$(git rev-list --count origin/$BRANCH_NAME ^$DEFAULT 2>/dev/null || echo 0)"
+    
+    if [ "$UNMERGED_COMMITS" -gt 0 ]; then
+      # Branch has unmerged commits - ask user
+      warn "⚠️ Branch $BRANCH_NAME has $UNMERGED_COMMITS unmerged commit(s) but PR #$MERGED_PR was merged"
+      echo -e "${YELLOW}This could mean commits were added after the PR was merged.${NC}"
+      echo -e "${BLUE}Recent commits on this branch:${NC}"
+      git log --oneline -5 origin/$BRANCH_NAME ^$DEFAULT 2>/dev/null || true
+      
+      echo -ne "${YELLOW}Delete this branch? (y/N): ${NC}"
+      read -r CONFIRM
+      if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
+        if git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1; then
+          ORPHANED_REMOTES+=("$BRANCH_NAME (PR #$MERGED_PR merged, $UNMERGED_COMMITS commits dropped)")
+          note "🗑️ Deleted remote branch: $BRANCH_NAME (user confirmed)"
+        fi
+      else
+        QUESTIONABLE_BRANCHES+=("$BRANCH_NAME")
+        note "⏭️ Skipped $BRANCH_NAME (preserved by user)"
+      fi
+    else
+      # Safe to delete - no unmerged commits
+      if git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1; then
+        ORPHANED_REMOTES+=("$BRANCH_NAME (PR #$MERGED_PR merged)")
+        note "🗑️ Deleted orphaned remote branch: $BRANCH_NAME (PR #$MERGED_PR was merged)"
+      fi
     fi
   fi
 done
 
-# Clean up local branches that are merged
+# Clean up local branches with safety checks
 LOCAL_CLEANED=()
-for branch in $(git branch --merged "$DEFAULT" | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master); do
+LOCAL_SKIPPED=()
+for branch in $(git branch | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master); do
   BRANCH_NAME="$(echo "$branch" | xargs)"  # Trim whitespace
-  if git branch -d "$BRANCH_NAME" >/dev/null 2>&1; then
-    LOCAL_CLEANED+=("$BRANCH_NAME")
-    note "🧹 Deleted merged local branch: $BRANCH_NAME"
+  
+  # Check if branch is fully merged
+  if git branch --merged "$DEFAULT" | grep -qx "  $BRANCH_NAME"; then
+    # Safe to delete - fully merged
+    if git branch -d "$BRANCH_NAME" >/dev/null 2>&1; then
+      LOCAL_CLEANED+=("$BRANCH_NAME")
+      note "🧹 Deleted merged local branch: $BRANCH_NAME"
+    fi
+  else
+    # Branch has unmerged commits - check if safe
+    UNMERGED_COUNT="$(git rev-list --count $BRANCH_NAME ^$DEFAULT 2>/dev/null || echo 0)"
+    
+    if [ "$UNMERGED_COUNT" -gt 0 ]; then
+      # Check if commits exist on remote
+      REMOTE_EXISTS="$(git ls-remote --heads origin "$BRANCH_NAME" 2>/dev/null || true)"
+      
+      if [ -z "$REMOTE_EXISTS" ]; then
+        # Local-only branch with unmerged commits - ask user
+        warn "⚠️ Local branch $BRANCH_NAME has $UNMERGED_COUNT unmerged commit(s) and no remote"
+        echo -e "${BLUE}Recent commits on this branch:${NC}"
+        git log --oneline -5 $BRANCH_NAME ^$DEFAULT 2>/dev/null || true
+        
+        echo -ne "${YELLOW}Delete this local branch? (y/N): ${NC}"
+        read -r CONFIRM
+        if [[ "$CONFIRM" =~ ^[Yy]$ ]]; then
+          if git branch -D "$BRANCH_NAME" >/dev/null 2>&1; then
+            LOCAL_CLEANED+=("$BRANCH_NAME (forced, $UNMERGED_COUNT commits)")
+            note "🗑️ Deleted local branch: $BRANCH_NAME (user confirmed)"
+          fi
+        else
+          LOCAL_SKIPPED+=("$BRANCH_NAME")
+          note "⏭️ Preserved local branch: $BRANCH_NAME"
+        fi
+      else
+        # Has remote, skip for safety
+        debug "Keeping $BRANCH_NAME - has unmerged commits and remote tracking"
+      fi
+    fi
   fi
 done
 
 # Report cleanup summary
-if [ ${#ORPHANED_REMOTES[@]} -gt 0 ] || [ ${#LOCAL_CLEANED[@]} -gt 0 ]; then
+if [ ${#ORPHANED_REMOTES[@]} -gt 0 ] || [ ${#LOCAL_CLEANED[@]} -gt 0 ] || [ ${#QUESTIONABLE_BRANCHES[@]} -gt 0 ] || [ ${#LOCAL_SKIPPED[@]} -gt 0 ]; then
   note "📊 Branch cleanup summary:"
   if [ ${#ORPHANED_REMOTES[@]} -gt 0 ]; then
     note "  • Deleted ${#ORPHANED_REMOTES[@]} orphaned remote branch(es)"
   fi
   if [ ${#LOCAL_CLEANED[@]} -gt 0 ]; then
-    note "  • Deleted ${#LOCAL_CLEANED[@]} merged local branch(es)"
+    note "  • Deleted ${#LOCAL_CLEANED[@]} local branch(es)"
+  fi
+  if [ ${#QUESTIONABLE_BRANCHES[@]} -gt 0 ]; then
+    warn "  • Preserved ${#QUESTIONABLE_BRANCHES[@]} remote branch(es) with unmerged commits"
+    for branch in "${QUESTIONABLE_BRANCHES[@]}"; do
+      warn "    - $branch (review manually)"
+    done
+  fi
+  if [ ${#LOCAL_SKIPPED[@]} -gt 0 ]; then
+    warn "  • Preserved ${#LOCAL_SKIPPED[@]} local branch(es) with unmerged commits"
+    for branch in "${LOCAL_SKIPPED[@]}"; do
+      warn "    - $branch (review manually)"
+    done
   fi
 else
   note "✨ No additional branches to clean up"
