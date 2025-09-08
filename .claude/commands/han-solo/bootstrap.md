@@ -3,7 +3,7 @@ argument-hint: "[--branch main] [--hook both|pre-commit|pre-push] [--team] [--re
 ---
 
 ## Invocation rule
-The main assistant MUST delegate the full workflow to bootstrap-guardian.
+Delegate to a general-purpose agent with the bootstrap-guardian implementation, ensuring context isolation.
 
 ## Defaults
 - Solo mode (no required reviewers)
@@ -22,4 +22,15 @@ The main assistant MUST delegate the full workflow to bootstrap-guardian.
 - pnpm present: !`pnpm -v >/dev/null 2>&1 && echo "pnpm ✓" || echo "pnpm ✗"`
 
 ## Instructions
-Perform the idempotent bootstrap per the defaults/flags and print a final INFO/WARN/ERR report.
+1. Read the entire contents of `.claude/agents/bootstrap-guardian.md`
+2. Use the Task tool with:
+   - subagent_type: "general-purpose"
+   - description: "Execute bootstrap-guardian workflow"
+   - prompt: Include the full agent markdown content plus these instructions:
+     - "You are bootstrap-guardian. Execute the bash script embedded between ```bash markers."
+     - "Set these environment variables based on flags provided:"
+       * If --team flag present: TEAM_MODE=true
+       * If --reviews flag present: REQUIRED_REVIEWS=<value>
+       * If --branch flag present: EXPLICIT_BRANCH=<value>
+       * If --hook flag present: HOOK_TYPE=<value>
+     - "Run the bash script and report the final INFO/WARN/ERR summary"

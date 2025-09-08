@@ -3,11 +3,11 @@ argument-hint: "[--nowait] [--force] [--title \"PR title\"] [--branch-name <name
 ---
 
 ## Invocation rule
-Delegate the entire workflow to git-shipper.
+Delegate to a general-purpose agent with the git-shipper implementation, ensuring context isolation.
 
 ## Defaults
 - Wait for required checks and merge when green
-- No required human reviewers (compatible with /bootstrap’s solo defaults)
+- No required human reviewers (compatible with /bootstrap's solo defaults)
 
 ## Flags
 - --nowait → PR only; do not merge
@@ -22,4 +22,15 @@ Delegate the entire workflow to git-shipper.
 - Local status: !$(git status --porcelain=v1)
 
 ## Instructions
-Execute the shipping workflow per the defaults/flags and print a final INFO/WARN/ERR report.
+1. Read the entire contents of `.claude/agents/git-shipper.md`
+2. Use the Task tool with:
+   - subagent_type: "general-purpose"
+   - description: "Execute git-shipper workflow"
+   - prompt: Include the full agent markdown content plus these instructions:
+     - "You are git-shipper. Execute the bash script embedded between ```bash markers."
+     - "Set these environment variables based on flags provided:"
+       * If --nowait flag present: NOWAIT=true
+       * If --force flag present: FORCE=true
+       * If --title flag present: EXPLICIT_TITLE=<value>
+       * If --branch-name flag present: EXPLICIT_BRANCH_NAME=<value>
+     - "Run the bash script and report the final INFO/WARN/ERR summary"
