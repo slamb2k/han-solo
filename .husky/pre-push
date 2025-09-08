@@ -3,8 +3,8 @@
 
 echo "🚀 Running pre-push checks..."
 
-# Detect Nx for affected optimization
-if command -v nx >/dev/null 2>&1 || npx nx --version >/dev/null 2>&1; then
+# Detect Nx workspace (check for nx.json or proper Nx setup)
+if [ -f nx.json ] || [ -f angular.json ] || [ -f workspace.json ]; then
   echo "🎯 Using Nx affected for fast checks..."
   
   # Calculate base for affected
