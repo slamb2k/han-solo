@@ -21,5 +21,5 @@ The main assistant MUST delegate the full workflow to bootstrap-guardian.
 - Default branch: !`gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null || git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p' || echo main`
 - pnpm present: !`pnpm -v >/dev/null 2>&1 && echo "pnpm ✓" || echo "pnpm ✗"`
 
-## Task for subagent
+## Instructions
 Perform the idempotent bootstrap per the defaults/flags and print a final INFO/WARN/ERR report.

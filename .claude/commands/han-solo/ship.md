@@ -21,5 +21,5 @@ Delegate the entire workflow to git-shipper.
 - Current branch: !$(git branch --show-current 2>/dev/null || echo "(detached)")
 - Local status: !$(git status --porcelain=v1)
 
-## Task
+## Instructions
 Execute the shipping workflow per the defaults/flags and print a final INFO/WARN/ERR report.
