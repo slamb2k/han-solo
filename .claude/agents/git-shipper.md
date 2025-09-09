@@ -27,6 +27,7 @@ You are "git-shipper", a specialized ops agent for Git + GitHub PR workflows opt
 ## Flags (environment variables accepted)
 - `--nowait` (env: `NOWAIT=true`): Create/update PR only, skip merge
 - `--force` (env: `FORCE=true`): Allow merge even with failing checks (explicit override)
+- `--staged` (env: `STAGED=true`): Ship only staged changes, stash unstaged work
 - `--title "<text>"`: Explicit PR title (overrides auto-generation)
 - `--branch-name "<name>"`: Explicit branch name when creating from default
 - `--body "<text>"`: Explicit PR body (overrides auto-generation)
@@ -87,15 +88,22 @@ report() {
 # Parse arguments
 NOWAIT="${NOWAIT:-}"
 FORCE="${FORCE:-}"
+STAGED="${STAGED:-}"
 EXPLICIT_TITLE=""
 EXPLICIT_BRANCH_NAME=""
 EXPLICIT_BODY=""
 DRAFT=""
+STASH_MSG=""
+NEED_STASH_POP="false"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
     --nowait)
       NOWAIT="true"
+      shift
+      ;;
+    --staged)
+      STAGED="true"
       shift
       ;;
     --force)
@@ -186,9 +194,66 @@ else
   note "🌿 Using existing branch: $CURR_BRANCH"
 fi
 
-# Check for uncommitted changes
-if [ -n "$(git status --porcelain=v1)" ]; then
-  warn "Working tree has uncommitted changes - commit them first or they won't be included"
+# Handle staged vs default mode for uncommitted changes
+if [ "$STAGED" = "true" ]; then
+  # Staged mode: Check for staged changes
+  if [ -z "$(git diff --cached --name-only)" ]; then
+    fail "No staged changes to ship. Stage files with 'git add' first."
+    report
+  fi
+  
+  echo -e "\n${GREEN}=== STAGED MODE ===${NC}"
+  echo -e "${GREEN}Will ship only STAGED changes:${NC}"
+  git diff --cached --stat
+  
+  # Show unstaged changes that will be stashed
+  if [ -n "$(git diff --name-only)" ]; then
+    echo -e "\n${YELLOW}Will STASH these unstaged changes:${NC}"
+    git diff --stat
+  fi
+  
+  # Confirmation prompt
+  echo -e "\n${YELLOW}Continue with shipping staged changes only? [Y/n]:${NC} "
+  read -r CONFIRM
+  if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
+    fail "Ship cancelled by user"
+    report
+  fi
+  
+  # Stash unstaged changes if any exist
+  if [ -n "$(git diff --name-only)" ]; then
+    STASH_MSG="ship-staged-preserve-$(date +%s)"
+    note "📦 Stashing unstaged changes..."
+    git stash push -m "$STASH_MSG" --keep-index
+    NEED_STASH_POP="true"
+  fi
+  
+  # Commit only staged changes
+  if [ -n "$(git diff --cached --name-only)" ]; then
+    echo -e "\n${GREEN}Committing staged changes...${NC}"
+    git commit -m "Ship staged changes"
+    note "✅ Committed staged changes only"
+  fi
+else
+  # Default mode: Commit ALL uncommitted changes
+  if [ -n "$(git status --porcelain=v1)" ]; then
+    echo -e "\n${YELLOW}=== DEFAULT MODE ===${NC}"
+    echo -e "${YELLOW}Will commit and ship ALL changes:${NC}"
+    git status --short
+    
+    # Confirmation prompt
+    echo -e "\n${YELLOW}Continue with shipping ALL changes? [Y/n]:${NC} "
+    read -r CONFIRM
+    if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
+      fail "Ship cancelled by user"
+      report
+    fi
+    
+    echo -e "\n${GREEN}Committing ALL uncommitted changes...${NC}"
+    git add -A
+    git commit -m "Ship all uncommitted changes"
+    note "✅ Committed all changes"
+  fi
 fi
 
 # Check if we have any commits on this branch
@@ -498,12 +563,14 @@ if [ "$AUTO_MERGE_ENABLED" = true ]; then
     if gh pr view --json state -q '.state' | grep -q "MERGED"; then
       note "✅ PR successfully merged by auto-merge!"
       
-      # Critical: Sync main branch to avoid divergence
+      # Critical: Force reset main branch to avoid divergence
       echo -e "\n${GREEN}📥 Syncing $DEFAULT branch...${NC}"
       git switch "$DEFAULT" >/dev/null 2>&1 || true
       
-      if git pull --ff-only origin "$DEFAULT"; then
-        note "✅ Successfully synced $DEFAULT with origin/$DEFAULT"
+      # Force reset to avoid divergence from squash-merge
+      git fetch origin "$DEFAULT" >/dev/null 2>&1
+      if git reset --hard "origin/$DEFAULT"; then
+        note "✅ Successfully reset $DEFAULT to origin/$DEFAULT"
         note "🎯 Your local $DEFAULT is now up-to-date with the squash-merged changes"
       else
         warn "⚠️ Failed to sync $DEFAULT - you may need to run 'git pull --rebase' manually"
@@ -596,24 +663,43 @@ else
   fi
 fi
 
-# Critical: Sync main branch after successful merge
+# Critical: Sync main branch after successful merge using force reset
 if [ "${MERGE_SUCCESS:-false}" = true ]; then
   echo -e "\n${GREEN}📥 Syncing $DEFAULT branch after merge...${NC}"
+  
+  # Switch to main/default branch
   git switch "$DEFAULT" >/dev/null 2>&1 || true
   
-  if git pull --ff-only origin "$DEFAULT"; then
-    note "✅ Successfully synced $DEFAULT with origin/$DEFAULT"
-    note "🎯 Your local $DEFAULT is now up-to-date with the squash-merged changes"
-  else
-    warn "⚠️ Failed to fast-forward $DEFAULT"
-    warn "⚠️ This usually means you have local commits on $DEFAULT"
-    warn "⚠️ Run 'git status' to check, then either:"
-    warn "⚠️   1. 'git pull --rebase' to rebase your local commits"
-    warn "⚠️   2. 'git reset --hard origin/$DEFAULT' to discard local commits"
+  # Force reset to origin to avoid divergence from squash-merge
+  echo -e "${GREEN}Resetting $DEFAULT to origin/$DEFAULT...${NC}"
+  git fetch origin "$DEFAULT" >/dev/null 2>&1
+  git reset --hard "origin/$DEFAULT"
+  note "✅ Successfully reset $DEFAULT to origin/$DEFAULT"
+  note "🎯 Your local $DEFAULT matches the remote exactly (avoiding divergence)"
+  
+  # Restore stashed changes if we saved them (--staged mode)
+  if [ "$NEED_STASH_POP" = "true" ] && [ -n "$STASH_MSG" ]; then
+    echo -e "\n${GREEN}📤 Restoring stashed unstaged changes...${NC}"
+    if git stash list | grep -q "$STASH_MSG"; then
+      if git stash pop >/dev/null 2>&1; then
+        note "✅ Restored unstaged changes successfully"
+      else
+        warn "⚠️ Could not auto-restore stash (possible conflicts)"
+        warn "⚠️ Use 'git stash list' and 'git stash pop' to manually restore"
+      fi
+    fi
   fi
 else
   echo -e "\n${YELLOW}⚠️ Skipping branch sync due to merge failure${NC}"
   git switch "$DEFAULT" >/dev/null 2>&1 || true
+  
+  # Still restore stash even if merge failed
+  if [ "$NEED_STASH_POP" = "true" ] && [ -n "$STASH_MSG" ]; then
+    echo -e "\n${GREEN}📤 Restoring stashed changes...${NC}"
+    if git stash list | grep -q "$STASH_MSG"; then
+      git stash pop >/dev/null 2>&1 || warn "Could not restore stash"
+    fi
+  fi
 fi
 
 # Delete remote branch (may already be deleted by GitHub)
@@ -635,11 +721,12 @@ trap report EXIT
 ## Branch Sync Behavior
 After successful merge, git-shipper automatically:
 1. Switches to main/default branch
-2. Pulls with --ff-only to sync squash-merged changes
-3. Reports success or provides clear instructions if sync fails
-4. Warns prominently if PR doesn't merge within 2 minutes
+2. **Force resets to origin/main** to avoid divergence from squash-merge
+3. Restores any stashed changes (in --staged mode)
+4. Reports success clearly
+5. Warns prominently if PR doesn't merge within 2 minutes
 
-This prevents the common "diverged branches" problem caused by squash-merging.
+This prevents the common "diverged branches" problem caused by squash-merging by using `git reset --hard origin/main` instead of pull.
 
 ## Error Recovery
 - Rebase conflicts: Clear instructions for resolution

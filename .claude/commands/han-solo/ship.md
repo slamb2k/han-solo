@@ -1,6 +1,6 @@
 ---
-description: "Ship code with a governed fast-path tailored for SOLO devs: rebase onto origin/<default>, create/update PR, WAIT for required checks by default, then squash-merge & clean up. Use --nowait for PR-only. Use --force to override failing checks (explicit only)."
-argument-hint: "[--nowait] [--force] [--title \"title\"] [--branch-name name] [--body \"description\"] [--draft]"
+description: "Ship code with a governed fast-path tailored for SOLO devs: rebase onto origin/<default>, create/update PR, WAIT for required checks by default, then squash-merge & clean up. Use --nowait for PR-only. Use --force to override failing checks (explicit only). Use --staged to ship only staged changes."
+argument-hint: "[--nowait] [--force] [--staged] [--title \"title\"] [--branch-name name] [--body \"description\"] [--draft]"
 ---
 
 ## Purpose
@@ -23,6 +23,7 @@ Do not attempt to implement the shipping logic directly - use the specialist age
 - `--check`: Run safety checks only, don't create PR (uses pre-ship-check.sh)
 - `--nowait`: Create/update PR only, don't wait for merge
 - `--force`: Allow merge even with failing checks (requires explicit intent)
+- `--staged`: Ship only staged changes, stashing unstaged work (power user mode)
 - `--title "<text>"`: Set explicit PR title (overrides auto-generation)
 - `--branch-name <n>`: Set explicit branch name when creating from default
 - `--body "<text>"`: Set explicit PR body (overrides auto-generation)
@@ -33,8 +34,12 @@ Do not attempt to implement the shipping logic directly - use the specialist age
 # Run safety checks before shipping
 /ship --check
 
-# Standard ship (wait for checks, then merge)
+# Standard ship (commits and ships ALL changes)
 /ship
+
+# Ship only staged changes (power user mode)
+git add file1.js file2.js
+/ship --staged  # Ships staged files, preserves other work
 
 # Quick PR creation without waiting
 /ship --nowait
@@ -69,6 +74,24 @@ Before delegating to git-shipper, verify:
 2. ✓ GitHub CLI authenticated (`gh auth status`)
 3. ✓ Has commits to ship (`git log -1`)
 4. ✓ Remote is accessible (`git fetch --dry-run`)
+
+## Shipping Modes
+
+### Default Mode (Opinionated)
+When you run `/ship` without flags:
+- **Commits ALL uncommitted changes** automatically
+- Creates a single commit with all your work
+- Ships everything in your working directory
+- After merge, force resets to origin/main for clean slate
+- Best for: Complete features, clean working directory workflow
+
+### Staged Mode (Power User)
+When you run `/ship --staged`:
+- **Ships ONLY staged changes** (files added with `git add`)
+- **Preserves unstaged work** by stashing it temporarily
+- After merge, restores your unstaged changes
+- Allows selective shipping while continuing development
+- Best for: Shipping part of your work while keeping WIP changes
 
 ## Workflow Steps (handled by git-shipper)
 
