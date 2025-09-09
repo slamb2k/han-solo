@@ -158,10 +158,28 @@ The Swiss Army knife for shipping code. Handles everything from commit to merge.
 - 🧹 **Cleans up** branches automatically
 - 🗑️ **Runs `/scrub --quiet`** after successful merge for comprehensive cleanup
 
+#### Two Shipping Modes:
+
+**Default Mode** (Opinionated):
+- Commits ALL uncommitted changes automatically
+- Ships everything in your working directory
+- Force resets to origin/main after merge
+- Best for: Complete features, clean workflow
+
+**Staged Mode** (Power User):
+- Ships ONLY staged changes (`git add`)
+- Preserves unstaged work via stashing
+- Restores unstaged changes after merge
+- Best for: Selective shipping, work-in-progress
+
 #### Usage:
 ```bash
-# Standard ship (wait for checks, then merge)
+# Standard ship (commits and ships ALL changes)
 /ship
+
+# Ship only staged changes (power user mode)
+git add file1.js file2.js
+/ship --staged  # Ships staged files, preserves other work
 
 # Create PR without waiting for merge
 /ship --nowait
@@ -179,6 +197,7 @@ The Swiss Army knife for shipping code. Handles everything from commit to merge.
 #### Options:
 - `--nowait`: Create PR only, don't wait for merge
 - `--force`: Merge even if checks fail (requires explicit intent)
+- `--staged`: Ship only staged changes, stash unstaged work
 - `--title "<text>"`: Custom PR title
 - `--branch-name <name>`: Custom branch name (when creating new)
 - `--body "<text>"`: Custom PR body
