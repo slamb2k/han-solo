@@ -4,6 +4,12 @@ on:
     branches: ['main']  # Only run on push to main (when PR merges)
   pull_request:
     types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: 'Manual release version (optional, e.g., 1.2.0)'
+        required: false
+        type: string
 
 # Cancel in-progress runs for the same branch
 concurrency:
@@ -83,62 +89,68 @@ jobs:
     name: "📦 Release"
     runs-on: ubuntu-latest
     needs: [build]
-    # Only run on pushes to main branch, not on PRs
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # Only run on pushes to main branch or manual workflow dispatch, not on PRs
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     permissions:
       contents: write  # Required for creating releases
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
       
       - name: "Generate version 🏷️"
         id: version
         run: |
-          # Generate semantic version based on date and run number
-          VERSION="v$(date +%Y.%m.%d)-${{ github.run_number }}"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "📌 Generated version: $VERSION"
-      
-      - name: "Create release archive 📦"
-        run: |
-          echo "📁 Preparing release archive..."
-          
-          # Create a clean directory for the release
-          mkdir -p release-temp
-          
-          # Copy .claude contents, excluding settings.local.json
-          if [ -d ".claude" ]; then
-            # Copy agents directory
-            [ -d ".claude/agents" ] && cp -r .claude/agents release-temp/
-            # Copy commands directory
-            [ -d ".claude/commands" ] && cp -r .claude/commands release-temp/
-            # Copy README.md to commands/han-solo directory for documentation
-            [ -f "README.md" ] && mkdir -p release-temp/commands/han-solo && cp README.md release-temp/commands/han-solo/README.md
-            # Explicitly exclude settings.local.json
-            find release-temp -name "settings.local.json" -delete 2>/dev/null || true
+          # Use manual version if provided, otherwise generate based on date and run number
+          if [ -n "${{ github.event.inputs.release_version }}" ]; then
+            VERSION="${{ github.event.inputs.release_version }}"
+            echo "📌 Using manual version: $VERSION"
           else
-            echo "⚠️ Warning: .claude directory not found"
-            exit 1
+            VERSION="$(date +%Y.%m.%d)-${{ github.run_number }}"
+            echo "📌 Generated version: $VERSION"
           fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_tag=v$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: "Update package version 📝"
+        run: |
+          cd installer
+          # Update package.json with the new version
+          npm version ${{ steps.version.outputs.version }} --no-git-tag-version
+          echo "✅ Updated package.json to version ${{ steps.version.outputs.version }}"
+      
+      - name: "Publish to NPM 🚀"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # Configure npm authentication
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
           
-          # Create the zip file
-          cd release-temp
-          zip -r ../han-solo-claude-${{ steps.version.outputs.version }}.zip . -q
-          cd ..
+          cd installer
+          # Install dependencies
+          npm ci
           
-          # Create checksums
-          sha256sum han-solo-claude-*.zip > SHA256SUMS
+          # Publish to npm
+          npm publish --access public
           
-          echo "✅ Archive created successfully"
-          ls -lh han-solo-claude-*.zip SHA256SUMS
+          echo "✅ Published han-solo-installer@${{ steps.version.outputs.version }} to NPM"
       
       - name: "Create GitHub Release 🚀"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          VERSION_TAG="${{ steps.version.outputs.version_tag }}"
           
           # Generate release notes with commit history
           echo "Automated release of han-solo Claude Code tools." > release_notes.md
+          echo "" >> release_notes.md
+          echo "## 📦 NPM Package" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "This version is available on NPM: [\`han-solo-installer@${VERSION}\`](https://www.npmjs.com/package/han-solo-installer/v/${VERSION})" >> release_notes.md
           echo "" >> release_notes.md
           echo "## 📝 Changes Included" >> release_notes.md
           echo "" >> release_notes.md
@@ -159,45 +171,41 @@ jobs:
           echo "" >> release_notes.md
           echo "## 📥 Installation" >> release_notes.md
           echo "" >> release_notes.md
-          echo "### Project-scoped (recommended)" >> release_notes.md
+          echo "### Interactive Installer (Recommended)" >> release_notes.md
           echo "\`\`\`bash" >> release_notes.md
-          echo "curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash" >> release_notes.md
+          echo "npx han-solo-installer@${VERSION}" >> release_notes.md
           echo "\`\`\`" >> release_notes.md
           echo "" >> release_notes.md
-          echo "### Global (all projects)" >> release_notes.md
+          echo "### Curl Installation (Legacy)" >> release_notes.md
           echo "\`\`\`bash" >> release_notes.md
+          echo "# Project-scoped" >> release_notes.md
+          echo "curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "# Global" >> release_notes.md
           echo "curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global" >> release_notes.md
           echo "\`\`\`" >> release_notes.md
           echo "" >> release_notes.md
-          echo "### Install specific version" >> release_notes.md
-          echo "\`\`\`bash" >> release_notes.md
-          echo "# Project-scoped" >> release_notes.md
-          echo "TAG=$VERSION curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "# Global" >> release_notes.md
-          echo "TAG=$VERSION curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global" >> release_notes.md
-          echo "\`\`\`" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "## 📦 Contents" >> release_notes.md
-          echo "- **bootstrap-guardian** agent - Repository bootstrapping with governance" >> release_notes.md
-          echo "- **git-shipper** agent - Solo-first PR shipping workflow" >> release_notes.md
-          echo "- **/bootstrap** command - Set up repository with quality gates" >> release_notes.md
-          echo "- **/ship** command - Ship code through governed fast-path" >> release_notes.md
-          echo "" >> release_notes.md
-          echo "## 🔍 Verification" >> release_notes.md
-          echo "The release includes SHA256 checksums for integrity verification." >> release_notes.md
+          echo "## 🎯 What's Included" >> release_notes.md
+          echo "- **Interactive TUI** - Professional installer with arrow key navigation" >> release_notes.md
+          echo "- **Status Lines** - Real-time git status in your terminal" >> release_notes.md
+          echo "- **bootstrap-guardian** - Repository bootstrapping with governance" >> release_notes.md
+          echo "- **git-shipper** - Solo-first PR shipping workflow" >> release_notes.md
+          echo "- **/bootstrap** - Set up repository with quality gates" >> release_notes.md
+          echo "- **/ship** - Ship code through governed fast-path" >> release_notes.md
+          echo "- **/fresh** - Start clean feature branches" >> release_notes.md
+          echo "- **/health** - Check repository health" >> release_notes.md
           echo "" >> release_notes.md
           echo "## 🔗 Links" >> release_notes.md
+          echo "- [NPM Package](https://www.npmjs.com/package/han-solo-installer/v/${VERSION})" >> release_notes.md
           if [ -n "$LAST_TAG" ]; then
-            echo "- [Compare Changes](https://github.com/${{ github.repository }}/compare/${LAST_TAG}...$VERSION)" >> release_notes.md
+            echo "- [Compare Changes](https://github.com/${{ github.repository }}/compare/${LAST_TAG}...${VERSION_TAG})" >> release_notes.md
           fi
           echo "- [All Releases](https://github.com/${{ github.repository }}/releases)" >> release_notes.md
+          echo "- [Documentation](https://github.com/${{ github.repository }}#readme)" >> release_notes.md
           
           # Create release with gh CLI (available in GitHub Actions by default)
-          gh release create "$VERSION" \
-            --title "Han-Solo Claude Tools $VERSION" \
-            --notes-file release_notes.md \
-            han-solo-claude-*.zip \
-            SHA256SUMS
+          gh release create "$VERSION_TAG" \
+            --title "Han-Solo Claude Tools ${VERSION_TAG}" \
+            --notes-file release_notes.md
           
-          echo "✅ Release $VERSION created successfully!"
+          echo "✅ Release $VERSION_TAG created successfully!"
