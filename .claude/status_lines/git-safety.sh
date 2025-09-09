@@ -1,10 +1,6 @@
----
-name: git-safety
-description: Shows git branch safety status and PR state to prevent merge conflicts
-refresh_interval: 5
----
-
 #!/bin/bash
+# git-safety status line - Shows git branch safety status and PR state
+# Refresh interval: 5 seconds
 
 # Colors
 GREEN='✅'
@@ -12,18 +8,22 @@ YELLOW='⚠️'
 RED='🔴'
 BLUE='🔵'
 ROCKET='🚀'
+FOLDER='📁'
+
+# Get current directory (basename only for brevity)
+CURRENT_DIR=$(basename "$(pwd)")
 
 # Get current branch
 BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 
 if [ -z "$BRANCH" ]; then
-  echo "📁 Not a git repo"
+  echo "${FOLDER} ${CURRENT_DIR} - Not a git repo"
   exit 0
 fi
 
 # Check if we're on main/master
 if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
-  echo "${RED} ON MAIN - Use /fresh to start work"
+  echo "${RED} ${CURRENT_DIR} ON MAIN - Use /fresh to start work"
   exit 0
 fi
 
@@ -95,11 +95,16 @@ else
 fi
 
 # Format branch name (truncate if too long)
-if [ ${#BRANCH} -gt 20 ]; then
-  BRANCH_DISPLAY="${BRANCH:0:17}..."
+if [ ${#BRANCH} -gt 15 ]; then
+  BRANCH_DISPLAY="${BRANCH:0:12}..."
 else
   BRANCH_DISPLAY="$BRANCH"
 fi
 
-# Output status line
-echo "${STATUS} ${BRANCH_DISPLAY}${CHANGES}${SYNC}${PR_INFO}${AGE_WARN}"
+# Highlight if this is a feature branch (created with /fresh)
+if [[ "$BRANCH" == feat/* ]] || [[ "$BRANCH" == feature/* ]]; then
+  BRANCH_DISPLAY="🌟${BRANCH_DISPLAY}"
+fi
+
+# Output status line with current directory
+echo "${STATUS} ${CURRENT_DIR}/${BRANCH_DISPLAY}${CHANGES}${SYNC}${PR_INFO}${AGE_WARN}"
