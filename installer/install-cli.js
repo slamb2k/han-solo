@@ -320,6 +320,12 @@ class HanSoloInstaller {
         }
       }
 
+      // Configure status line in settings.json if status_lines component was installed
+      if (this.state.selectedComponents.includes('status_lines')) {
+        spinner.text = 'Configuring status line in settings.json...';
+        await this.configureStatusLine();
+      }
+
       spinner.succeed('Installation complete!');
     } catch (error) {
       spinner.fail('Installation failed');
@@ -327,25 +333,63 @@ class HanSoloInstaller {
     }
   }
 
+  async configureStatusLine() {
+    // Determine settings file (use settings.local.json for local-only config)
+    const settingsFile = path.join(this.state.installPath, 'settings.local.json');
+    const statusLinePath = path.join(this.state.installPath, 'status_lines', 'git-safety.sh');
+    
+    // Read existing settings or create new object
+    let settings = {};
+    if (await fs.pathExists(settingsFile)) {
+      try {
+        const content = await fs.readFile(settingsFile, 'utf8');
+        settings = JSON.parse(content);
+      } catch (err) {
+        // If parsing fails, start fresh
+        settings = {};
+      }
+    }
+    
+    // Configure status line
+    settings.statusLine = {
+      type: 'command',
+      command: statusLinePath
+    };
+    
+    // Write settings back
+    await fs.writeFile(settingsFile, JSON.stringify(settings, null, 2), 'utf8');
+  }
+
   showSuccess() {
     console.log();
-    const successBox = boxen(
-      chalk.green.bold('✨ Installation Complete!\n\n') +
+    
+    // Build success message with status line info if applicable
+    let successMessage = chalk.green.bold('✨ Installation Complete!\n\n') +
       'Han-Solo has been successfully installed to:\n' +
-      chalk.cyan(this.state.installPath) + '\n\n' +
-      chalk.yellow.bold('Next Steps:\n') +
+      chalk.cyan(this.state.installPath) + '\n\n';
+    
+    if (this.state.selectedComponents.includes('status_lines')) {
+      successMessage += chalk.green('✓ Status line configured in settings.local.json\n\n');
+    }
+    
+    successMessage += chalk.yellow.bold('Next Steps:\n') +
       '1. Restart Claude Code or reload the window\n' +
       '2. Run ' + chalk.cyan('/help') + ' to see available commands\n' +
       '3. Run ' + chalk.cyan('/bootstrap') + ' to set up repository governance\n' +
-      '4. Run ' + chalk.cyan('/fresh') + ' to start a new feature branch\n\n' +
-      chalk.green('Happy shipping! 🚀'),
-      {
-        padding: 1,
-        margin: 1,
-        borderStyle: 'double',
-        borderColor: 'green'
-      }
-    );
+      '4. Run ' + chalk.cyan('/fresh') + ' to start a new feature branch\n\n';
+    
+    if (this.state.selectedComponents.includes('status_lines')) {
+      successMessage += chalk.gray('The git-safety status line will appear in your terminal.\n\n');
+    }
+    
+    successMessage += chalk.green('Happy shipping! 🚀');
+    
+    const successBox = boxen(successMessage, {
+      padding: 1,
+      margin: 1,
+      borderStyle: 'double',
+      borderColor: 'green'
+    });
     
     console.log(successBox);
   }
