@@ -1,5 +1,7 @@
 ---
-description: "Idempotent bootstrap of repo governance optimized for SOLO developers (zero required reviewers by default). Sets branch protection + strict checks, Husky v9+ hooks, and pnpm-cached CI with 🧹/🔎/🧠/🛠️ required contexts. Delegates to bootstrap-guardian agent."
+name: /han-solo:bootstrap
+description: "Idempotent bootstrap of repo governance optimized for SOLO developers (zero required reviewers by default). Sets branch protection + strict checks, Husky v9+ hooks, and pnpm-cached CI with 🧹/🔎/🧠/🛠️ required contexts."
+requires_args: false
 argument-hint: "[--branch main] [--hook both|pre-commit|pre-push] [--team] [--reviews N]"
 ---
 

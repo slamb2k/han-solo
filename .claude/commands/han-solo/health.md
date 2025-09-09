@@ -2,6 +2,7 @@
 name: /han-solo:health
 description: Comprehensive git repository health check - detect and diagnose potential issues before they cause problems
 requires_args: false
+argument-hint: "[--quick] [--suggest-cleanup]"
 ---
 
 ## Purpose
