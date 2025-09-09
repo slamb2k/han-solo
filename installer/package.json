@@ -1,0 +1,45 @@
+{
+  "name": "@han-solo/installer",
+  "version": "1.0.0",
+  "description": "Interactive installer for Han-Solo Claude Code tools",
+  "main": "index.js",
+  "bin": {
+    "han-solo-install": "./install-cli.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [
+    "han-solo",
+    "claude",
+    "git",
+    "workflow",
+    "installer",
+    "cli",
+    "tui"
+  ],
+  "author": "slamb2k",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^8.2.6",
+    "ora": "^5.4.1",
+    "boxen": "^5.1.2",
+    "gradient-string": "^2.0.2",
+    "figlet": "^1.7.0"
+  },
+  "optionalDependencies": {
+    "blessed": "^0.1.81",
+    "blessed-contrib": "^4.11.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "preferGlobal": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/slamb2k/han-solo.git"
+  }
+}

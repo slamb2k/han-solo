@@ -31,24 +31,30 @@ Solo development is like flying the Millennium Falcon - you need to move fast, m
 
 ### 1. Install Han-Solo
 
-**Interactive Installation** (Recommended - Beautiful Terminal UI):
+**Interactive Installation with NPX** (Recommended - Beautiful Terminal UI):
 ```bash
-# Clone and run locally for interactive mode
+npx @han-solo/installer
+```
+
+This will launch an interactive installer with:
+- Arrow key navigation
+- Profile selection (Solo, Team, Minimal, Custom)
+- Component selection
+- Project or global installation
+
+**Alternative Installation Methods**:
+
+```bash
+# Clone and run locally
 git clone https://github.com/slamb2k/han-solo.git
 cd han-solo
 ./scripts/install.sh
-```
 
-**Remote Installation** (Non-interactive):
-```bash
-# Project-scoped with auto mode
+# Remote installation (non-interactive)
 curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --auto
 
-# Global installation (all projects)
+# Global installation
 curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --auto --global
-
-# Custom profile
-curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --auto --profile team
 ```
 
 ### 2. Bootstrap Your Repository
