@@ -1,0 +1,19 @@
+# Development files
+node_modules/
+*.log
+.DS_Store
+
+# Test files
+test/
+*.test.js
+
+# Source control
+.git/
+.gitignore
+
+# Editor files
+.vscode/
+.idea/
+
+# Keep only necessary files for npm package
+# The actual han-solo files will be downloaded from GitHub
