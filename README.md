@@ -1,53 +1,69 @@
 ![han-solo logo](assets/logo.png)
 
-# 🚀 han-solo
+# 🚀 Han-Solo
 
-> **"Fly solo, fly fast, fly safe"** - A governed-but-fast Git workflow system for solo developers and small teams using Claude Code.
+> **"Never tell me the odds!"** - Git workflow automation that makes the Kessel Run in less than twelve parsecs
 
-Han Solo provides three powerful commands that establish best practices while optimizing for developer velocity. Perfect for solo developers who want professional-grade governance without the overhead.
+Han-Solo is a comprehensive git workflow automation system for solo developers who want to ship fast without getting caught in the Sarlacc pit of merge conflicts. Built on Claude Code, it provides intelligent commands that prevent problems before they happen.
 
-## 🎯 Philosophy
+## 🎯 Why Han-Solo?
 
-- **Solo-first, team-ready**: Zero friction for solo devs, easily scales to teams
-- **Governed but fast**: Quality gates without bureaucracy
-- **Convention over configuration**: Smart defaults that just work
-- **Fail safely**: Use `--force-with-lease`, never raw `--force`
-- **Clear feedback**: Comprehensive INFO/WARN/ERR reporting
+Solo development is like flying the Millennium Falcon - you need to move fast, make quick decisions, and sometimes shoot first. Han-Solo gives you:
 
-## 📦 Installation
+- **🛡️ Deflector Shields**: Prevent git disasters before they happen
+- **⚡ Hyperdrive**: Ship at lightspeed with automated workflows  
+- **🤖 R2-D2 Mode**: Intelligent automation that handles the details
+- **📊 Navicomputer**: Real-time repository health monitoring
+- **🔄 Escape Pod**: Smart recovery when things go wrong
 
-### Quick Install (Recommended)
+## ✨ The Arsenal
 
-#### Project-scoped installation (default)
+### Essential Commands
+
+| Command | What It Does | When to Use |
+|---------|--------------|-------------|
+| `/ship` | Complete PR workflow with auto-merge | Ready to deploy your changes |
+| `/bootstrap` | Set up CI/CD and repository governance | Starting a new project |
+| `/fresh` | Start a clean feature branch | Beginning new work |
+| `/health` | Full repository diagnostic scan | Daily check or when issues arise |
+
+## 🚀 Quick Start
+
+### 1. Install Han-Solo
+
+**Interactive Installation** (Recommended - Beautiful Terminal UI):
 ```bash
-# Install in current project's .claude/ directory
-curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install-interactive.sh | bash
 ```
 
-#### Global/user installation (all projects)
+**Standard Installation**:
 ```bash
-# Install in ~/.claude/ for use across all projects
+# Project-scoped (recommended)
+curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash
+
+# Global (all projects)
 curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global
 ```
 
-#### Install specific version
-```bash
-# Project-scoped with specific version
-TAG=v2024.01.15-1 curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash
-
-# Global with specific version
-TAG=v2024.01.15-1 curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global
-```
-
-### Manual Installation
-
-Download the latest release from [GitHub Releases](https://github.com/slamb2k/han-solo/releases) or clone the repository:
+### 2. Bootstrap Your Repository
 
 ```bash
-# Clone and copy files
-git clone https://github.com/slamb2k/han-solo.git
-cp -r han-solo/.claude/* .claude/
+/bootstrap    # Solo mode - no reviews required, just quality gates
 ```
+
+### 3. Start Your First Feature
+
+```bash
+/fresh my-awesome-feature    # Creates clean branch from latest main
+# ... make your changes ...
+/ship                        # Creates PR, runs checks, auto-merges
+```
+
+## 📖 Essential Reading
+
+- **[SARLACC.md](docs/SARLACC.md)** - The pit of git despair (and how to avoid it)
+- **[KESSEL_RUN.md](docs/KESSEL_RUN.md)** - Your guide to making the run in record time
+- **[GIT_WORKFLOW_GUIDE.md](docs/GIT_WORKFLOW_GUIDE.md)** - Detailed workflow patterns
 
 ### File Structure
 
