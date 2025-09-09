@@ -33,16 +33,22 @@ Solo development is like flying the Millennium Falcon - you need to move fast, m
 
 **Interactive Installation** (Recommended - Beautiful Terminal UI):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install-interactive.sh | bash
+# Clone and run locally for interactive mode
+git clone https://github.com/slamb2k/han-solo.git
+cd han-solo
+./scripts/install.sh
 ```
 
-**Standard Installation**:
+**Remote Installation** (Non-interactive):
 ```bash
-# Project-scoped (recommended)
-curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash
+# Project-scoped with auto mode
+curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --auto
 
-# Global (all projects)
-curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global
+# Global installation (all projects)
+curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --auto --global
+
+# Custom profile
+curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --auto --profile team
 ```
 
 ### 2. Bootstrap Your Repository
