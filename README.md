@@ -33,7 +33,7 @@ Solo development is like flying the Millennium Falcon - you need to move fast, m
 
 **Interactive Installation with NPX** (Recommended - Beautiful Terminal UI):
 ```bash
-npx @han-solo/installer
+npx han-solo-installer
 ```
 
 This will launch an interactive installer with:

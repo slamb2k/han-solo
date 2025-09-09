@@ -1,15 +1,21 @@
 {
-  "name": "@han-solo/installer",
+  "name": "han-solo-installer",
   "version": "1.0.0",
-  "description": "Interactive installer for Han-Solo Claude Code tools",
-  "main": "index.js",
+  "description": "Interactive NPX installer for Han-Solo Claude Code git workflow automation tools",
+  "main": "install-cli.js",
   "bin": {
     "han-solo-install": "./install-cli.js"
   },
   "scripts": {
-    "start": "node index.js",
-    "test": "echo \"No tests yet\""
+    "start": "node install-cli.js",
+    "test": "echo \"No tests yet\"",
+    "prepublishOnly": "echo 'Preparing package for publishing...'"
   },
+  "files": [
+    "install-cli.js",
+    "index.js",
+    "README.md"
+  ],
   "keywords": [
     "han-solo",
     "claude",
@@ -40,6 +46,11 @@
   "preferGlobal": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/slamb2k/han-solo.git"
-  }
+    "url": "git+https://github.com/slamb2k/han-solo.git",
+    "directory": "installer"
+  },
+  "bugs": {
+    "url": "https://github.com/slamb2k/han-solo/issues"
+  },
+  "homepage": "https://github.com/slamb2k/han-solo#readme"
 }

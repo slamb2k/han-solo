@@ -7,7 +7,7 @@ Interactive installer for Han-Solo Claude Code tools with a beautiful terminal U
 Run the installer directly with npx (no installation required):
 
 ```bash
-npx @han-solo/installer
+npx han-solo-installer
 ```
 
 ## ✨ Features
@@ -24,14 +24,14 @@ npx @han-solo/installer
 ### Project Installation (Recommended)
 Installs to `.claude/` in current directory:
 ```bash
-npx @han-solo/installer
+npx han-solo-installer
 # Select "Project" when prompted
 ```
 
 ### Global Installation
 Installs to `~/.claude/` for all projects:
 ```bash
-npx @han-solo/installer
+npx han-solo-installer
 # Select "Global" when prompted
 ```
 
@@ -69,12 +69,12 @@ Choose your own components
 
 ### Run Specific Version
 ```bash
-npx @han-solo/installer@1.0.0
+npx han-solo-installer@1.0.0
 ```
 
 ### Use with Node
 ```javascript
-const HanSoloInstaller = require('@han-solo/installer');
+const HanSoloInstaller = require('han-solo-installer');
 const installer = new HanSoloInstaller();
 installer.run();
 ```
