@@ -89,6 +89,7 @@ class HanSoloInstaller {
     try {
       await this.showWelcome();
       await this.findSourceDirectory();
+      console.log();
       await this.promptInstallation();
       await this.performInstallation();
       this.showSuccess();
@@ -108,8 +109,7 @@ class HanSoloInstaller {
     });
 
     console.log(gradient.pastel.multiline(logo));
-    console.log();
-    console.log(chalk.cyan.bold('  Git Workflow Automation for Solo Developers'));
+    console.log(chalk.cyan.bold('    Git Workflow Automation for Solo Developers'));
     console.log();
     
     const welcomeBox = boxen(
@@ -121,14 +121,12 @@ class HanSoloInstaller {
       chalk.green('  • ') + 'Repository governance tools',
       {
         padding: 1,
-        margin: 1,
         borderStyle: 'round',
         borderColor: 'cyan'
       }
     );
     
     console.log(welcomeBox);
-    console.log();
   }
 
   async findSourceDirectory() {
@@ -272,6 +270,7 @@ class HanSoloInstaller {
         borderColor: 'cyan'
       }
     ));
+    console.log();
 
     const { confirm } = await inquirer.prompt([
       {
@@ -386,7 +385,6 @@ class HanSoloInstaller {
     
     const successBox = boxen(successMessage, {
       padding: 1,
-      margin: 1,
       borderStyle: 'double',
       borderColor: 'green'
     });
