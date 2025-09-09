@@ -1,6 +1,6 @@
 {
   "name": "han-solo-installer",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Interactive NPX installer for Han-Solo Claude Code git workflow automation tools",
   "main": "install-cli.js",
   "bin": {
@@ -13,7 +13,6 @@
   },
   "files": [
     "install-cli.js",
-    "index.js",
     "README.md"
   ],
   "keywords": [
@@ -35,10 +34,6 @@
     "boxen": "^5.1.2",
     "gradient-string": "^2.0.2",
     "figlet": "^1.7.0"
-  },
-  "optionalDependencies": {
-    "blessed": "^0.1.81",
-    "blessed-contrib": "^4.11.0"
   },
   "engines": {
     "node": ">=14.0.0"

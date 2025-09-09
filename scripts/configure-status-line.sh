@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configure status line in Claude Code settings
-# This script sets up the git-safety status line in settings.toml
+# This script sets up the git-safety status line in settings.json
 
 set -e
 
