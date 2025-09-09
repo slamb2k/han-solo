@@ -207,6 +207,8 @@ class HanSoloInstaller {
     ]);
     this.state.scope = scope;
 
+    console.log();
+
     // Profile selection
     const { profile } = await inquirer.prompt([
       {
@@ -325,9 +327,9 @@ class HanSoloInstaller {
         await this.configureStatusLine();
       }
 
-      spinner.succeed('Installation complete!');
+      spinner.succeed('Done.');
     } catch (error) {
-      spinner.fail('Installation failed');
+      spinner.fail('Failed.');
       throw error;
     }
   }
@@ -363,7 +365,7 @@ class HanSoloInstaller {
     console.log();
     
     // Build success message with status line info if applicable
-    let successMessage = chalk.green.bold('✨ Installation Complete!\n\n') +
+    let successMessage = chalk.green.bold('💪 Installation Complete!\n\n') +
       'Han-Solo has been successfully installed to:\n' +
       chalk.cyan(this.state.installPath) + '\n\n';
     
