@@ -45,16 +45,13 @@ This will launch an interactive installer with:
 **Alternative Installation Methods**:
 
 ```bash
-# Clone and run locally
+# Clone and install locally
 git clone https://github.com/slamb2k/han-solo.git
 cd han-solo
-./scripts/install.sh
+npm install -g .
 
-# Remote installation (non-interactive)
-curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --auto
-
-# Global installation
-curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --auto --global
+# Or use directly from GitHub
+npx github:slamb2k/han-solo
 ```
 
 ### 2. Bootstrap Your Repository
@@ -85,14 +82,28 @@ After installation, you'll have:
 .claude/
 ├── agents/
 │   ├── bootstrap-guardian.md    # Bootstrap sub-agent
-│   └── git-shipper.md           # Shipping sub-agent
-└── commands/
-    └── han-solo/
-        ├── bootstrap.md         # /bootstrap command
-        ├── scrub.md             # /scrub command
-        ├── ship.md              # /ship command
-        └── README.md            # This documentation
+│   └── git-shipper.md           # Shipping sub-agent (delegates to ship-core.sh)
+├── commands/
+│   └── han-solo/
+│       ├── bootstrap.md         # /bootstrap command
+│       ├── fresh.md             # /fresh command (delegates to fresh-core.sh)
+│       ├── health.md            # /health command (delegates to health-core.sh)
+│       ├── scrub.md             # /scrub command (delegates to scrub-core.sh)
+│       ├── ship.md              # /ship command
+│       └── README.md            # Command documentation
+└── scripts/
+    ├── fresh-core.sh            # Core logic for /fresh command
+    ├── health-core.sh           # Core logic for /health command
+    ├── scrub-core.sh            # Core logic for /scrub command
+    ├── ship-check.sh            # Pre-ship safety checks
+    └── ship-core.sh             # Core logic for /ship command
 ```
+
+**Architecture Notes:**
+- Commands in `.claude/commands/` are lightweight wrappers (~100 lines)
+- Core logic is extracted to `scripts/*-core.sh` files for maintainability
+- This modular design reduces context usage by ~60% for Claude AI
+- All scripts follow the `{command}-core.sh` naming convention
 
 ## 🚀 Quick Start
 
