@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# 🔄 Post-merge Hook - Auto-syncs after merges
+# This hook helps keep your repository clean after merges
+
+# Colors
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+BOLD='\033[1m'
+
+# Get current branch
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Only run on main/master
+if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+    echo -e "${CYAN}${BOLD}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "     🔄 Post-Merge Sync"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo -e "${NC}"
+    
+    # Fetch latest
+    echo -e "${YELLOW}Fetching latest changes...${NC}"
+    git fetch origin --prune
+    
+    # Clean up merged branches
+    echo -e "${YELLOW}Cleaning merged branches...${NC}"
+    git branch --merged | grep -v "^\*" | grep -v main | grep -v master | xargs -r git branch -d
+    
+    echo -e "${GREEN}✅ Sync complete!${NC}"
+    echo ""
+    echo -e "${CYAN}Remember to create a feature branch for new work:${NC}"
+    echo -e "  ${GREEN}git checkout -b feature/your-feature${NC}"
+    echo ""
+fi
+
+exit 0

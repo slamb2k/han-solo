@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# 🛡️ Pre-commit Hook - Prevents commits to main/master branch
+# This hook prevents accidental commits to the main branch
+
+# Get current branch name
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Define protected branches
+PROTECTED_BRANCHES="^(main|master|production|release)$"
+
+# Colors for output
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+BOLD='\033[1m'
+
+# Check if current branch is protected
+if echo "$BRANCH" | grep -qE "$PROTECTED_BRANCHES"; then
+    echo -e "${RED}${BOLD}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "     🛑 COMMIT BLOCKED: Protected Branch!"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo -e "${NC}"
+    echo -e "${RED}You are trying to commit directly to: ${BOLD}$BRANCH${NC}"
+    echo ""
+    echo -e "${YELLOW}This is not allowed to prevent merge conflicts.${NC}"
+    echo ""
+    echo -e "${GREEN}To fix this:${NC}"
+    echo -e "  1. Create a feature branch:"
+    echo -e "     ${GREEN}git checkout -b feature/your-feature${NC}"
+    echo ""
+    echo -e "  2. Or stash changes and create branch:"
+    echo -e "     ${GREEN}git stash${NC}"
+    echo -e "     ${GREEN}git checkout -b feature/your-feature${NC}"
+    echo -e "     ${GREEN}git stash pop${NC}"
+    echo ""
+    echo -e "${YELLOW}Then use ${BOLD}/ship${NC} ${YELLOW}to create a PR${NC}"
+    echo -e "${RED}${BOLD}"
+    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo -e "${NC}"
+    exit 1
+fi
+
+# If we're here, we're on a feature branch - allow commit
+exit 0

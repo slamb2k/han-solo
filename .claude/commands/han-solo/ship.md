@@ -20,6 +20,7 @@ Do not attempt to implement the shipping logic directly - use the specialist age
 7. **Run /scrub --quiet** automatically after successful merge for comprehensive branch cleanup
 
 ## Command Flags
+- `--check`: Run safety checks only, don't create PR (uses pre-ship-check.sh)
 - `--nowait`: Create/update PR only, don't wait for merge
 - `--force`: Allow merge even with failing checks (requires explicit intent)
 - `--title "<text>"`: Set explicit PR title (overrides auto-generation)
@@ -29,6 +30,9 @@ Do not attempt to implement the shipping logic directly - use the specialist age
 
 ## Examples
 ```bash
+# Run safety checks before shipping
+/ship --check
+
 # Standard ship (wait for checks, then merge)
 /ship
 
