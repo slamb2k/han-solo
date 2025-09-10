@@ -13,11 +13,11 @@ NC=$'\033[0m' # No Color
 BOLD=$'\033[1m'
 
 # Display colorful figlet-style banner
-printf "\033[38;5;196m .dMMMb  dMP dMP dMP dMMMMb  dMMMMb  dMP dMMMMb  .aMMMMP\033[0m\n"
-printf "\033[38;5;202m  dMP\" VP dMP dMP amr dMP.dMP dMP.dMP amr dMP dMP dMP\"\033[0m\n"
-printf "\033[38;5;208m  VMMMb  dMMMMMP dMP dMMMMP\" dMMMMP\" dMP dMP dMP dMP MMP\"\033[0m\n"
-printf "\033[38;5;214mdP .dMP dMP dMP dMP dMP     dMP     dMP dMP dMP dMP.dMP\033[0m\n"
-printf "\033[38;5;220mVMMMP\" dMP dMP dMP dMP     dMP     dMP dMP dMP  VMMMP\"\033[0m\n"
+printf "${RED} .dMMMb  dMP dMP dMP dMMMMb  dMMMMb  dMP dMMMMb  .aMMMMP${NC}\n"
+printf "${RED}  dMP\" VP dMP dMP amr dMP.dMP dMP.dMP amr dMP dMP dMP\"${NC}\n"
+printf "${YELLOW}  VMMMb  dMMMMMP dMP dMMMMP\" dMMMMP\" dMP dMP dMP dMP MMP\"${NC}\n"
+printf "${YELLOW}dP .dMP dMP dMP dMP dMP     dMP     dMP dMP dMP dMP.dMP${NC}\n"
+printf "${GREEN}VMMMP\" dMP dMP dMP dMP     dMP     dMP dMP dMP  VMMMP\"${NC}\n"
 echo
 
 # Report arrays - initialize as empty arrays
