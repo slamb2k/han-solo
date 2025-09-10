@@ -13,7 +13,7 @@ NC=$'\033[0m' # No Color
 BOLD=$'\033[1m'
 
 # Display colorful figlet-style banner
-printf "${RED} .dMMMb  dMP dMP dMP dMMMMb  dMMMMb  dMP dMMMMb  .aMMMMP${NC}\n"
+printf " ${RED} .dMMMb  dMP dMP dMP dMMMMb  dMMMMb  dMP dMMMMb  .aMMMMP${NC}\n"
 printf "${RED}  dMP\" VP dMP dMP amr dMP.dMP dMP.dMP amr dMP dMP dMP\"${NC}\n"
 printf "${YELLOW}  VMMMb  dMMMMMP dMP dMMMMP\" dMMMMP\" dMP dMP dMP dMP MMP\"${NC}\n"
 printf "${YELLOW}dP .dMP dMP dMP dMP dMP     dMP     dMP dMP dMP dMP.dMP${NC}\n"
