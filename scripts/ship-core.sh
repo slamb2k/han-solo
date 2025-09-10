@@ -7,7 +7,16 @@ RED=$'\033[0;31m'
 YELLOW=$'\033[1;33m'
 GREEN=$'\033[0;32m'
 BLUE=$'\033[0;34m'
+CYAN=$'\033[0;36m'
+PURPLE=$'\033[0;35m'
 NC=$'\033[0m' # No Color
+BOLD=$'\033[1m'
+
+# Display colorful action header
+printf "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+printf "${BOLD}${YELLOW}▶▶▶${NC}  ${BOLD}${GREEN}🚢  S H I P P I N G   C O D E${NC}  ${BOLD}${YELLOW}◀◀◀${NC}\n"
+printf "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+echo
 
 # Report arrays - initialize as empty arrays
 declare -a INFO=()
