@@ -12,15 +12,13 @@ PURPLE=$'\033[0;35m'
 NC=$'\033[0m' # No Color
 BOLD=$'\033[1m'
 
-# Display figlet-style banner only in TTY mode (no colors)
-if [ -t 1 ]; then
-  printf " .dMMMb  dMP dMP dMP dMMMMb  dMMMMb  dMP dMMMMb  .aMMMMP\n"
-  printf "  dMP\" VP dMP dMP amr dMP.dMP dMP.dMP amr dMP dMP dMP\"\n"
-  printf "  VMMMb  dMMMMMP dMP dMMMMP\" dMMMMP\" dMP dMP dMP dMP MMP\"\n"
-  printf "dP .dMP dMP dMP dMP dMP     dMP     dMP dMP dMP dMP.dMP\n"
-  printf "VMMMP\" dMP dMP dMP dMP     dMP     dMP dMP dMP  VMMMP\"\n"
-  echo
-fi
+# Display figlet-style banner (no colors)
+printf " .dMMMb  dMP dMP dMP dMMMMb  dMMMMb  dMP dMMMMb  .aMMMMP\n"
+printf "  dMP\" VP dMP dMP amr dMP.dMP dMP.dMP amr dMP dMP dMP\"\n"
+printf "  VMMMb  dMMMMMP dMP dMMMMP\" dMMMMP\" dMP dMP dMP dMP MMP\"\n"
+printf "dP .dMP dMP dMP dMP dMP     dMP     dMP dMP dMP dMP.dMP\n"
+printf "VMMMP\" dMP dMP dMP dMP     dMP     dMP dMP dMP  VMMMP\"\n"
+echo
 
 # Report arrays - initialize as empty arrays
 declare -a INFO=()
