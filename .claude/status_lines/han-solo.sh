@@ -91,7 +91,7 @@ get_sync_status() {
   local base_rev=$(git merge-base HEAD @{u} 2>/dev/null)
   
   if [ "$local_rev" = "$remote_rev" ]; then
-    echo "${GREEN}✓${NC}"
+    echo "${GREEN}✓ synced${NC}"
   elif [ "$local_rev" = "$base_rev" ]; then
     local behind=$(git rev-list --count HEAD..@{u} 2>/dev/null)
     echo "${CYAN}↓${behind}${NC}"
