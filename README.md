@@ -2,523 +2,361 @@
 
 # 🚀 Han-Solo
 
-> **"Never tell me the odds!"** - Git workflow automation that makes the Kessel Run in less than twelve parsecs
+> **"Never tell me the odds!"** - Opinionated Git workflow automation that ships features, not excuses
 
-Han-Solo is a comprehensive git workflow automation system for solo developers who want to ship fast without getting caught in the Sarlacc pit of merge conflicts. Built on Claude Code, it provides intelligent commands that prevent problems before they happen.
+Han-Solo is your co-pilot for shipping code at lightspeed. Stop fighting Git, start shipping features. Built specifically for Claude Code, it leverages AI memory and hooks to ensure your workflow stays on track, every time.
 
 ## 🎯 Why Han-Solo?
 
-Solo development is like flying the Millennium Falcon - you need to move fast, make quick decisions, and sometimes shoot first. Han-Solo gives you:
+**You're here to ship features, not wrestle with Git.** Han-Solo provides an opinionated, battle-tested workflow that eliminates decision fatigue and Git anxiety. 
 
-- **🛡️ Deflector Shields**: Prevent git disasters before they happen
-- **⚡ Hyperdrive**: Ship at lightspeed with automated workflows  
-- **🤖 R2-D2 Mode**: Intelligent automation that handles the details
-- **📊 Navicomputer**: Real-time repository health monitoring
-- **🔄 Escape Pod**: Smart recovery when things go wrong
+### The Problem
+- 😩 **Git Confusion**: Merge conflicts, orphaned branches, forgotten stashes
+- 🤯 **Process Overhead**: Manual PR creation, waiting for checks, remembering to cleanup
+- 😱 **Production Breaks**: Code goes to main without proper checks
+- 🔄 **Half-Baked States**: Incomplete workflows leaving you in limbo
+- 🧹 **Technical Debt**: Orphaned branches, failed deployments, inconsistent practices
 
-## ✨ The Arsenal
+### The Solution
+Han-Solo implements a **complete, opinionated workflow** that:
+- ✅ **Ships or fails completely** - no half-baked states
+- 🤖 **Uses Claude Code's memory** - stays on track across sessions
+- 🛡️ **Shifts left on quality** - catches issues before they reach main
+- 🚀 **Automates everything** - from branch creation to deployment
+- 🧹 **Cleans up after itself** - no orphaned branches or forgotten PRs
 
-### Essential Commands
+## ✨ Core Features
 
-| Command | What It Does | When to Use |
-|---------|--------------|-------------|
-| `/ship` | Complete PR workflow with auto-merge | Ready to deploy your changes |
-| `/fresh` | Start a clean feature branch | Beginning new work |
-| `/health` | Full repository diagnostic scan | Daily check or when issues arise |
-| `/scrub` | Clean up merged branches | After shipping or periodically |
-| `/status-line` | Switch status line modes | Customize terminal display |
+### 🎯 Opinionated Workflow
+**Stop debating process, start shipping features.** Han-Solo implements a proven workflow:
+1. Create feature branch → 2. Make changes → 3. Ship → 4. Auto-merge → 5. Deploy → 6. Cleanup
 
-### 🆕 New Features
+No decisions needed. Just `/ship` and move on to the next story.
 
-#### 🧠 Smart Status Line
-The terminal status line now automatically switches based on your context:
-- **Has PR?** → Shows CI status and reviews
-- **On main?** → Shows safety warnings
-- **Coding?** → Shows productivity metrics
-- **Large branch?** → Shows size warnings
+### 🤖 Claude Code Integration
+**Leverages Claude's memory and hooks** to ensure consistent workflow:
+- Remembers your preferences across sessions
+- Uses hooks to enforce safety rules
+- Prevents accidental commits to main
+- Maintains workflow continuity even after context switches
 
-Control with `/status-line [smart|safety|work|pr|metrics]`
+### 🛡️ Shift-Left Quality Gates
+**Catch issues before they reach production:**
+- **Husky hooks** run checks before commit/push
+- **Required CI checks** must pass before merge
+- **Automated testing** on every PR
+- **Build validation** ensures deployable code
+- **Customizable definition of "working"** - you define the complexity
+
+### 🚢 Complete Shipping Pipeline
+**One command ships everything:**
+```bash
+/ship  # That's it. Really.
+```
+- Commits all changes
+- Creates/updates PR with auto-generated description
+- Waits for required checks
+- Auto-merges when green
+- Triggers deployment
+- Cleans up branches
+- **Never leaves you hanging** - completes or rolls back cleanly
+
+### 👥 Solo & Team Modes
+**Optimized for solo devs, scales to teams:**
+- **Solo Mode** (default): No review required, just quality gates
+- **Team Mode**: Human or AI reviewers with configurable approval count
+- Switch modes anytime: `/bootstrap --team --reviews 2`
+
+### 📦 Smart Deployment
+**Auto-detected deployment targets with GitHub Releases:**
+- **GitHub Pages** - Static sites and docs
+- **Container Registry** - Docker images to GHCR
+- **Release Packages** - Versioned ZIP artifacts
+- **Release History** - Every merge creates a traceable release
+- Coming soon: Vercel, NPM, AWS, Azure
+
+### 🧹 Automatic Cleanup
+**Never wonder "did that code make it to prod?"**
+- Runs after every successful ship
+- Removes merged branches locally and remotely
+- Cleans up squash-merged branches
+- Detects orphaned work
+- Manual cleanup anytime: `/scrub`
+
+### 📊 Smart Status Line
+**Visual workflow guidance in your terminal:**
+- **Real-time context tracking** - See how much context remains before compaction
+- **Branch warnings** - Red alerts when on main, reminders to use `/fresh`
+- **PR status** - Shows CI checks, review status, mergeability
+- **Work tracking** - Uncommitted changes, sync status, divergence warnings
+- **Model awareness** - Displays active Claude model (Opus 4.1, Sonnet 3.5, etc.)
+- **Smart hints** - Visual cues guide you through the workflow:
+  - ⚠️ **Red on main** - "USE /fresh TO START WORK"
+  - 🌟 **Feature branches** - Shows you're in the right place
+  - ⚡ **Diverged branches** - Warns about potential conflicts
+  - 🚫 **Closed PR branches** - Alerts to dead-end work
+
+### ✅ Validation & Safety
+**Strong validation ensures complete shipping:**
+- Pre-flight checks before operations
+- Rollback on failure
+- Clear error reporting
+- Dry-run mode: `/ship --check`
+- Never leaves repository in broken state
 
 ## 🚀 Quick Start
 
 ### 1. Install Han-Solo
 
-**Interactive Installation with NPX** (Recommended - Beautiful Terminal UI):
 ```bash
 npx han-solo-installer
 ```
 
-This will launch an interactive installer with:
-- Arrow key navigation
+Interactive installer with:
 - Profile selection (Solo, Team, Minimal, Custom)
 - Component selection
-- Project or global installation
-
-**Alternative Installation Methods**:
-
-```bash
-# Clone and install locally
-git clone https://github.com/slamb2k/han-solo.git
-cd han-solo
-npm install -g .
-
-# Or use directly from GitHub
-npx github:slamb2k/han-solo
-```
+- Status line configuration
 
 ### 2. Bootstrap Your Repository
 
 ```bash
-/bootstrap    # Solo mode - no reviews required, just quality gates
+/bootstrap    # One-time setup with all the goodies
 ```
 
-### 3. Start Your First Feature
+This gives you:
+- ✅ Branch protection with required checks
+- ✅ Husky v10 hooks for pre-commit/push validation  
+- ✅ GitHub Actions CI with pnpm caching
+- ✅ Auto-merge when checks pass
+- ✅ Deployment detection and setup
+- ✅ Claude Code safety rules
+
+### 3. Ship Your First Feature
 
 ```bash
-/fresh my-awesome-feature    # Creates clean branch from latest main
-# ... make your changes ...
-/ship                        # Creates PR, runs checks, auto-merges
+/fresh my-feature    # Start clean
+# ... make changes ...
+/ship               # Ship it!
 ```
 
-## 📖 Essential Reading
+**That's it!** Your code is tested, reviewed, merged, deployed, and cleaned up.
 
-- **[SARLACC.md](docs/SARLACC.md)** - The pit of git despair (and how to avoid it)
-- **[KESSEL_RUN.md](docs/KESSEL_RUN.md)** - Your guide to making the run in record time
-- **[GIT_WORKFLOW_GUIDE.md](docs/GIT_WORKFLOW_GUIDE.md)** - Detailed workflow patterns
+## 🎬 Visual Demo: See It In Action!
 
-### File Structure
+### The Smart Status Line - Your Workflow Co-Pilot
 
-After installation, you'll have:
+<div align="center">
 
 ```
-.claude/
-├── agents/
-│   ├── bootstrap-guardian.md    # Bootstrap sub-agent
-│   └── git-shipper.md           # Shipping sub-agent (delegates to ship-core.sh)
-├── commands/
-│   └── han-solo/
-│       ├── bootstrap.md         # /bootstrap command
-│       ├── fresh.md             # /fresh command (delegates to fresh-core.sh)
-│       ├── health.md            # /health command (delegates to health-core.sh)
-│       ├── scrub.md             # /scrub command (delegates to scrub-core.sh)
-│       ├── ship.md              # /ship command
-│       └── README.md            # Command documentation
-└── scripts/
-    ├── fresh-core.sh            # Core logic for /fresh command
-    ├── health-core.sh           # Core logic for /health command
-    ├── scrub-core.sh            # Core logic for /scrub command
-    ├── ship-check.sh            # Pre-ship safety checks
-    └── ship-core.sh             # Core logic for /ship command
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     🚀 Han-Solo Status Line Demo                         │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Architecture Notes:**
-- Commands in `.claude/commands/` are lightweight wrappers (~100 lines)
-- Core logic is extracted to `scripts/*-core.sh` files for maintainability
-- This modular design reduces context usage by ~60% for Claude AI
-- All scripts follow the `{command}-core.sh` naming convention
+</div>
 
-## 🚀 Quick Start
+#### 🔴 Scenario 1: On Main Branch (Warning Mode)
+```ansi
+📁 my-app | ⚠️ main | ✓ clean | ✓ | 🤖 Opus 4.1 | 🧠 [█░░░░░░░░░] 90% left [USE /fresh TO START WORK]
+            ^^^^^^^^                                                      ^^^^^^^^^^^^^^^^^^^^^^^^
+              RED                                                           FLASHING WARNING
+```
+**What you see:** Bright red warning that you're on main, with clear instruction to use `/fresh`
 
+#### 🟢 Scenario 2: Active Feature Development
+```ansi
+📁 my-app | 🌟 feat/auth | ●3 +45/-12 | ↑2 | PR#42→ | 🤖 Sonnet 3.5 | 🧠 [███░░░░░░░] 70% left
+            ^^^^^^^^^^^^   ^^^^^^^^^^   ^^   ^^^^^^^                      ^^^^^^^^^^^
+            YELLOW STAR    3 CHANGES   AHEAD  PR OPEN                    GREEN = SAFE
+```
+**What you see:** Everything is good! Star shows feature branch, changes tracked, PR in progress
+
+#### 🟡 Scenario 3: Context Running Low
+```ansi
+📁 my-app | 🌟 feat/big-refactor | ●15 +2048/-512 | ↑8 | 🤖 Opus 4.1 | 🧠 [████████░░] 20% left
+                                                                           ^^^^^^^^^^^
+                                                                           YELLOW/RED WARNING
+```
+**What you see:** Context bar turns yellow then red as you approach compaction
+
+#### ⚡ Scenario 4: Diverged Branch (Danger!)
+```ansi
+📁 my-app | 🌿 old-feature | ●2 | ↕ | 🤖 Haiku 3.5 | 🧠 [████░░░░░░] 60% left
+                                  ^^
+                              DIVERGED!
+```
+**What you see:** Divergence indicator warns of potential conflicts
+
+### 📺 Live Terminal Experience
+
+<div align="center">
+
+```
+╔═══════════════════════════════════════════════════════════════════════════╗
+║  Terminal                                                    □ ○ ×       ║
+╠═══════════════════════════════════════════════════════════════════════════╣
+║ $ git status                                                              ║
+║ On branch feat/awesome-feature                                           ║
+║ Changes not staged for commit:                                           ║
+║   modified:   src/index.js                                               ║
+║                                                                           ║
+║ ─────────────────────────────────────────────────────────────────────    ║
+║ 📁 my-app | 🌟 feat/awesome-feature | ●1 +23/-5 | ↑1 | 🤖 Opus 4.1 |    ║
+║ 🧠 [███████░░░] 65% left                                                 ║
+║ ─────────────────────────────────────────────────────────────────────    ║
+║ $                                                                         ║
+╚═══════════════════════════════════════════════════════════════════════════╝
+```
+
+</div>
+
+## 📊 Smart Status Line Details
+
+**Your co-pilot's instrument panel** provides real-time guidance:
+
+### Information Architecture
+```
+📁 {dir} | {branch} | {changes} | {sync} | {pr} | 🤖 {model} | 🧠 {context}
+```
+
+### Visual Language Guide
+
+| Symbol | Meaning | Color | Action Needed |
+|--------|---------|-------|---------------|
+| ⚠️ | On main branch | 🔴 Red | Use `/fresh` to start |
+| 🌟 | Feature branch | 🟡 Yellow | You're good! |
+| ● | Uncommitted changes | 🟠 Orange | Consider committing |
+| ✓ | Clean working tree | 🟢 Green | Ready to switch |
+| ↑ | Ahead of origin | 🟡 Yellow | Push when ready |
+| ↓ | Behind origin | 🔵 Blue | Pull to sync |
+| ↕ | Diverged | 🔴 Red | Rebase needed |
+| PR#X→ | PR open | 🔵 Blue | Checks running |
+| PR#X✓ | PR merged | 🟢 Green | Run `/scrub` |
+
+### Context Bar Visualization
+
+The context bar changes color as you work:
+
+```
+🧠 [██████████] 100% left  - 🟢 Fresh start
+🧠 [███████░░░] 70% left   - 🟢 Plenty of room
+🧠 [█████░░░░░] 50% left   - 🟡 Half way there
+🧠 [███░░░░░░░] 30% left   - 🟠 Getting tight
+🧠 [█░░░░░░░░░] 10% left   - 🔴 Wrap it up!
+```
+
+## 📖 Commands
+
+### Essential Commands
+
+| Command | What It Does | 
+|---------|--------------|
+| `/bootstrap` | One-time repository setup with all automation |
+| `/ship` | Complete PR workflow with auto-merge and deploy |
+| `/fresh` | Start a clean feature branch |
+| `/scrub` | Clean up merged branches |
+| `/health` | Repository diagnostic scan |
+
+### Command Details
+
+#### `/bootstrap` - Repository Setup
+**One-time setup for professional-grade automation:**
 ```bash
-# 1. Bootstrap your repo (one-time setup)
-/bootstrap
-
-# 2. Make your changes, commit with conventional commits
-git add .
-git commit -m "feat: add amazing new feature"
-
-# 3. Ship it!
-/ship
-
-# That's it! Your code is reviewed, tested, merged, and branches cleaned up automatically.
+/bootstrap              # Solo mode (no reviews)
+/bootstrap --team       # Team mode (1 reviewer)
+/bootstrap --team --reviews 2  # Multiple reviewers
 ```
 
-## 📚 Commands
-
-### `/bootstrap` - Repository Setup
-
-Sets up professional-grade repository governance optimized for solo developers.
-
-#### What it does:
-- ✅ **Branch protection** with strict required checks
-- ✅ **Required status checks**: 🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build
-- ✅ **Auto-merge** enabled (merges when checks pass)
-- ✅ **Auto-delete** branches after merge
-- ✅ **Husky hooks** for pre-commit and pre-push
-- ✅ **CI workflow** with pnpm caching and emoji job names
-
-#### Usage:
+#### `/ship` - Ship Your Code  
+**The magic happens here:**
 ```bash
-# Solo mode (default - no review required)
-/bootstrap
-
-# Team mode with 1 reviewer required
-/bootstrap --team
-
-# Team mode with 2 reviewers on develop branch
-/bootstrap --branch develop --team --reviews 2
-
-# Only install pre-push hooks
-/bootstrap --hook pre-push
+/ship                   # Ship everything
+/ship --staged          # Ship only staged changes
+/ship --nowait          # Create PR without waiting
+/ship --check           # Dry run to see what would happen
+/ship --force           # Override failing checks (dangerous!)
 ```
 
-#### Options:
-- `--branch <name>`: Branch to protect (default: auto-detected)
-- `--team`: Require human reviews (default: solo mode)
-- `--reviews <N>`: Number of required reviewers (default: 0 solo, 1 team)
-- `--hook <both|pre-commit|pre-push>`: Which hooks to install (default: both)
-
-### `/fresh` - Start Fresh Branch
-
-Creates a clean feature branch from the latest main, ensuring you never start with conflicts.
-
-#### What it does:
-- 📦 **Stashes** uncommitted work
-- 🔄 **Syncs** with origin/main
-- 🧹 **Cleans** working directory
-- 🌱 **Creates** new feature branch
-- 📤 **Restores** stashed work
-
-#### Usage:
+#### `/fresh` - Start Fresh
+**Clean slate for new work:**
 ```bash
-# Auto-generated branch name
-/fresh
-
-# Custom branch name
-/fresh my-feature
-/fresh fix/bug-123
+/fresh                  # Auto-generated branch name
+/fresh my-feature       # Custom branch name
 ```
 
-### `/health` - Repository Health Check
-
-Comprehensive diagnostic scan to detect issues before they become problems.
-
-#### What it shows:
-- 🌿 Current branch status and age
-- 📝 Uncommitted changes
-- 🔄 Sync status (ahead/behind/diverged)
-- 📦 Stashed changes
-- 🎯 Open PRs
-- 💯 Health score
-
-#### Usage:
+#### `/scrub` - Cleanup
+**Keep your repository tidy:**
 ```bash
-/health
+/scrub                  # Interactive cleanup
+/scrub --quiet          # Auto-cleanup (used by /ship)
+/scrub --dry-run        # Preview what would be deleted
 ```
 
-### `/scrub` - Branch Cleanup
-
-Safely removes merged and orphaned branches while preserving uncommitted work.
-
-#### What it does:
-- 🔍 **Detects** merged branches (including squash-merges)
-- 🗑️ **Removes** safe branches
-- ⚠️ **Prompts** for questionable branches
-- 📊 **Reports** cleanup summary
-
-#### Usage:
+#### `/health` - Health Check
+**Comprehensive diagnostic:**
 ```bash
-# Interactive mode (default)
-/scrub
-
-# Quiet mode (used by /ship)
-/scrub --quiet
-
-# Preview without deleting
-/scrub --dry-run
+/health                 # Full repository scan
 ```
 
-### `/status-line` - Status Line Control (NEW)
-
-Switch between different status line modes or enable smart auto-switching.
-
-#### Modes:
-- 🧠 **smart**: Auto-switches based on context (default)
-- 🛡️ **safety**: Git safety warnings
-- 💼 **work**: Work session tracking
-- 🎯 **pr**: PR and CI monitoring
-- 📊 **metrics**: Branch size metrics
-
-#### Usage:
-```bash
-# Enable smart mode
-/status-line smart
-
-# Switch to specific mode
-/status-line pr
-/status-line work
-
-# Check current mode
-/status-line current
-```
-
-### `/ship` - Ship Your Code
-
-The Swiss Army knife for shipping code. Handles everything from commit to merge.
-
-#### What it does:
-- 🔄 **Rebases** onto latest default branch
-- 🧪 **Runs checks** (Nx affected or standard scripts)
-- 📝 **Creates PR** with auto-generated title and body
-- ⏳ **Waits for checks** to pass (by default)
-- ✅ **Auto-merges** when green
-- 🧹 **Cleans up** branches automatically
-- 🗑️ **Runs `/scrub --quiet`** after successful merge for comprehensive cleanup
-
-#### Two Shipping Modes:
-
-**Default Mode** (Opinionated):
-- Commits ALL uncommitted changes automatically
-- Ships everything in your working directory
-- Force resets to origin/main after merge
-- Best for: Complete features, clean workflow
-
-**Staged Mode** (Power User):
-- Ships ONLY staged changes (`git add`)
-- Preserves unstaged work via stashing
-- Restores unstaged changes after merge
-- Best for: Selective shipping, work-in-progress
-
-#### Usage:
-```bash
-# Standard ship (commits and ships ALL changes)
-/ship
-
-# Ship only staged changes (power user mode)
-git add file1.js file2.js
-/ship --staged  # Ships staged files, preserves other work
-
-# Create PR without waiting for merge
-/ship --nowait
-
-# Ship with custom title
-/ship --title "Add authentication system"
-
-# Force merge despite check failures (use carefully!)
-/ship --force
-
-# Create draft PR for early feedback
-/ship --draft --nowait
-```
-
-#### Options:
-- `--nowait`: Create PR only, don't wait for merge
-- `--force`: Merge even if checks fail (requires explicit intent)
-- `--staged`: Ship only staged changes, stash unstaged work
-- `--title "<text>"`: Custom PR title
-- `--branch-name <name>`: Custom branch name (when creating new)
-- `--body "<text>"`: Custom PR body
-- `--draft`: Create as draft PR
-
-### `/scrub` - Branch Cleanup
-
-Comprehensive branch cleanup tool that removes merged and orphaned branches while preserving work in progress.
-
-#### What it does:
-- 🔍 **Fetches and prunes** remote references
-- 🗑️ **Removes orphaned branches** with merged PRs
-- 🔬 **Detects squash-merged branches** automatically via patch comparison
-- 🛡️ **Protects branches** with unmerged commits
-- 📊 **Provides detailed report** of all cleanup actions
-- 🤖 **Runs automatically** after successful `/ship` (with `--quiet`)
-
-#### Usage:
-```bash
-# Manual cleanup with prompts (recommended for periodic maintenance)
-/scrub
-
-# Quiet mode - only delete obviously safe branches
-/scrub --quiet
-
-# Preview what would be deleted
-/scrub --dry-run
-
-# Force delete even with unmerged commits (dangerous!)
-/scrub --force
-
-# Combine flags for different behaviors
-/scrub --quiet --dry-run  # Preview what quiet mode would delete
-```
-
-#### When to use manually:
-- **Weekly/monthly maintenance** to keep your repo clean
-- **After collaborative work** to clean up merged feature branches
-- **Before starting new work** to ensure a clean workspace
-- **After manual PR merges** done outside of `/ship`
-
-#### Options:
-- `--quiet`: Skip prompts, only delete safe branches (auto-used by `/ship`)
-- `--dry-run`: Preview deletions without making changes
-- `--force`: Delete even with unmerged commits (use with extreme caution!)
-
-## 🔄 Typical Workflow
+## 🔄 Typical Workflows
 
 ### Solo Developer Flow
 ```bash
 # One-time setup
 /bootstrap
 
-# Daily development
-git switch -c feat/new-feature
-# ... make changes ...
-git add .
-git commit -m "feat: implement new feature"
-git commit -m "test: add test coverage"
-git commit -m "docs: update README"
-
-# Ship it (waits for checks, auto-merges)
+# Daily workflow
+/fresh new-feature
+# ... code ...
 /ship
-
-# You're back on main with everything merged!
+# Already on main, ready for next feature!
 ```
 
-### Quick Iteration Flow
+### Power User Flow
 ```bash
-# Make changes on main
-# ... edit files ...
-git add .
-git commit -m "fix: resolve critical bug"
-
-# Ship directly from main (creates branch automatically)
-/ship --title "Fix critical bug in payment system"
+# Ship part of your work
+git add src/auth.js tests/auth.test.js
+/ship --staged  # Ships auth, keeps other work
 ```
 
-### Team Collaboration Flow
+### Team Collaboration
 ```bash
 # Switch to team mode
-/bootstrap --team --reviews 2
+/bootstrap --team --reviews 1
 
 # Create PR for review
 /ship --nowait
 
-# After approval, checks will auto-merge
+# After approval, auto-merges
 ```
-
-## 🎯 Conventional Commits
-
-Han Solo works best with [Conventional Commits](https://www.conventionalcommits.org/):
-
-```bash
-feat: add new feature
-fix: resolve bug
-docs: update documentation
-test: add tests
-refactor: restructure code
-perf: improve performance
-build: update build config
-ci: update CI/CD
-chore: routine tasks
-```
-
-These automatically generate meaningful PR descriptions!
 
 ## 🛡️ Safety Features
 
-### Protected by Default
-- ✅ Strict status checks (base must be up-to-date)
-- ✅ Required checks must pass before merge
-- ✅ Linear history enforced
-- ✅ Force pushes blocked on protected branches
+### Git Safety
+- **Branch protection** prevents direct pushes to main
+- **Force-with-lease** for safe rebasing
+- **Automatic stashing** preserves uncommitted work
+- **Rollback on failure** keeps repository stable
 
-### Safe Operations
-- Uses `--force-with-lease` (never raw `--force`)
-- Rebases for clean history
-- Squash merges to keep main clean
-- Automatic branch cleanup
+### Claude Code Integration
+- **Memory persistence** maintains context across sessions
+- **Hook enforcement** prevents unsafe operations
+- **Safety rules** in CLAUDE.md can't be overridden
+- **Automatic validation** before destructive operations
 
-### Clear Reporting
-Every operation ends with a comprehensive report:
-```
-===== 🚢 git-shipper report =====
-INFO (8 items):
-  • Repository: owner/repo
-  • Created branch: feat/new-feature
-  • Rebased onto origin/main
-  • All checks passed
-  • PR created successfully
-  • PR merged successfully
-  • Deleted local branch
-  • Ship complete!
-==================================
-✨ Ship completed successfully!
-```
+### Quality Gates
+- **Required checks** must pass before merge
+- **Husky hooks** run local validation
+- **CI/CD pipeline** validates on every push
+- **Build verification** ensures deployable code
 
-## 🔧 Troubleshooting
+## 🎯 Best Practices
 
-### Common Issues
-
-#### Rebase Conflicts
-```bash
-# If rebase fails during /ship
-git rebase --abort  # Cancel the rebase
-# Fix conflicts manually, then:
-git rebase --continue
-/ship  # Try again
-```
-
-#### Check Failures
-```bash
-# View which checks failed
-gh pr checks
-
-# Fix the issues, push, and checks re-run automatically
-git push
-
-# Or force merge if you're certain (use sparingly!)
-/ship --force
-```
-
-#### Authentication Issues
-```bash
-# Ensure GitHub CLI is authenticated
-gh auth login
-```
-
-### Manual Recovery
-
-If something goes wrong, you can always fall back to manual operations:
-
-```bash
-# Check PR status
-gh pr view --web
-
-# Manually merge if needed
-gh pr merge --squash --delete-branch
-
-# Return to main
-git switch main
-git pull
-```
-
-## 🎨 Customization
-
-### CI Job Names
-The emoji job names in CI must match exactly:
-- `🧹 Format`
-- `🔎 Lint`
-- `🧠 Typecheck`
-- `🛠️ Build`
-
-### Package Scripts
-Ensure your `package.json` has these scripts:
-```json
-{
-  "scripts": {
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
-    "test": "jest",
-    "build": "vite build"
-  }
-}
-```
-
-### Nx Monorepos
-Han Solo automatically detects and uses Nx for optimized checks:
-- Runs only affected projects
-- Parallelizes execution
-- Caches results
+1. **Ship Small**: Smaller PRs = fewer conflicts, faster reviews
+2. **Ship Often**: Daily shipping keeps you in sync
+3. **Trust the Process**: Let automation handle the details
+4. **Use Conventional Commits**: Enables auto-generated PR descriptions
+5. **Don't Force**: Only override checks when absolutely certain
 
 ## 📋 Requirements
 
@@ -528,45 +366,42 @@ Han Solo automatically detects and uses Nx for optimized checks:
 - **Node.js** and **pnpm** (recommended)
 - **Claude Code** with agents enabled
 
-## 🚁 Advanced Usage
+## 🚁 Advanced Features
 
 ### Environment Variables
 ```bash
-# Use environment variables instead of flags
-NOWAIT=true /ship
-FORCE=true /ship
-TEAM=true REVIEWS=2 /bootstrap
+NOWAIT=true /ship       # Skip waiting for checks
+FORCE=true /ship        # Force merge
+DEBUG=true /ship        # Enable debug output
 ```
 
-### Debugging
-```bash
-# Enable debug output
-DEBUG=true /ship
-```
+### Nx Monorepo Support
+Automatically detects and optimizes for Nx:
+- Runs only affected projects
+- Parallelizes execution
+- Leverages computation caching
 
-### Custom Contexts
-Both commands auto-collect context about your repository. This is shown in the Claude Code interface and helps the agents make better decisions.
-
-## 📖 Best Practices
-
-1. **Commit Often**: Smaller commits make better PR descriptions
-2. **Use Conventional Commits**: Enables automatic PR generation
-3. **Ship Small**: Smaller PRs = fewer conflicts, faster reviews
-4. **Trust the Process**: Let checks run, don't abuse `--force`
-5. **Stay Current**: Regular rebasing prevents conflicts
+### Custom Deployment Targets
+Configure in `.github/workflows/ci.yml`:
+- Deploy conditions based on paths
+- Multiple deployment targets
+- Environment-specific deployments
 
 ## 🤝 Contributing
 
-Han Solo is designed to be extended. Feel free to:
-- Add new required checks
-- Customize commit message parsing
-- Extend the agent capabilities
-- Add new commands
+Han-Solo is designed to be extended:
+- Add new deployment targets
+- Customize quality gates
+- Extend safety checks
+- Create new commands
 
 ## 📝 License
 
-Use freely in your Claude Code projects. Solo-first, always.
+MIT - Use freely in your Claude Code projects. Solo-first, always.
 
 ---
 
-**Remember**: With great velocity comes great responsibility. Ship fast, but ship safe! 🚀
+**Stop fighting Git. Start shipping features.** 🚀
+
+*"I've got a bad feeling about this" - You, before Han-Solo*  
+*"Never tell me the odds!" - You, after Han-Solo*

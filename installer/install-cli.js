@@ -102,14 +102,18 @@ class HanSoloInstaller {
   async showWelcome() {
     console.clear();
     
-    const logo = figlet.textSync('Han-Solo', {
-      font: 'Speed',
-      horizontalLayout: 'default',
-      verticalLayout: 'default'
-    });
-
-    console.log(gradient.pastel.multiline(logo));
-    console.log(chalk.cyan.bold('    Git Workflow Automation for Solo Developers'));
+    // Han-Solo ASCII art banner - matching the bash scripts
+    console.log(chalk.rgb(255, 215, 0)('╔════════════════════════════════════════════════════════════════════════════════════════╗'));
+    console.log(chalk.rgb(255, 215, 0)('║  __    __       ___       __   __               _______   ______    __        ______   ║'));
+    console.log(chalk.rgb(255, 185, 0)('║ |  |  |  |     /   \\     |  \\ |  |             /       | /  __  \\  |  |      /  __  \\  ║'));
+    console.log(chalk.rgb(255, 165, 0)('║ |  |__|  |    /  ^  \\    |   \\|  |  ______    |   (----`|  |  |  | |  |     |  |  |  | ║'));
+    console.log(chalk.rgb(255, 140, 0)('║ |   __   |   /  /_\\  \\   |  . `  | |______|    \\   \\    |  |  |  | |  |     |  |  |  | ║'));
+    console.log(chalk.rgb(255, 215, 100)('║ |  |  |  |  /  _____  \\  |  |\\   |         .----)   |   |  `--\'  | |  `----.|  `--\'  | ║'));
+    console.log(chalk.rgb(255, 185, 50)('║ |__|  |__| /__/     \\__\\ |__| \\__|         |_______/     \\______/  |_______| \\______/  ║'));
+    console.log(chalk.rgb(205, 133, 0)('║                                                                                        ║'));
+    console.log(chalk.rgb(205, 133, 0)('╚════════════════════════════════════════════════════════════════════════════════════════╝'));
+    console.log();
+    console.log(chalk.cyan.bold('                    🚀 Git Workflow Automation for Solo Developers'));
     console.log();
     
     const welcomeBox = boxen(
