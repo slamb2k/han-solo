@@ -327,6 +327,14 @@ class HanSoloInstaller {
         await this.configureStatusLine();
       }
 
+      // Install pre-commit hook for git safety
+      spinner.text = 'Installing git safety hook...';
+      await this.installGitSafetyHook();
+
+      // Install or update CLAUDE.md with git commit rules
+      spinner.text = 'Configuring CLAUDE.md with git safety rules...';
+      await this.updateClaudeMd();
+
       spinner.succeed('Done.');
     } catch (error) {
       spinner.fail('Failed.');
@@ -362,6 +370,76 @@ class HanSoloInstaller {
     await fs.writeFile(settingsFile, JSON.stringify(settings, null, 2), 'utf8');
   }
 
+  async installGitSafetyHook() {
+    // Create hooks directory
+    const hooksDir = path.join(this.state.installPath, 'hooks');
+    await fs.ensureDir(hooksDir);
+    
+    // Create pre-commit hook
+    const hookContent = `#!/bin/bash
+# This hook blocks Claude from committing without explicit user approval
+
+echo "⚠️  Claude is attempting to commit changes."
+echo "Please review the changes and explicitly ask Claude to commit if you approve."
+echo ""
+echo "To commit, say: 'Yes, please commit these changes'"
+echo "To skip, say: 'No, don't commit yet'"
+echo ""
+echo "Blocking commit for now..."
+exit 1  # Block the commit
+`;
+    
+    const hookPath = path.join(hooksDir, 'pre-commit.sh');
+    await fs.writeFile(hookPath, hookContent, 'utf8');
+    await fs.chmod(hookPath, 0o755);
+  }
+
+  async updateClaudeMd() {
+    const claudeMdPath = path.join(process.cwd(), 'CLAUDE.md');
+    
+    const gitCommitRules = `
+## Git Commit Rules
+
+<!-- DO NOT REMOVE OR MODIFY THIS SECTION - CRITICAL FOR USER SAFETY -->
+**⚠️ MANDATORY - THESE RULES MUST NEVER BE REMOVED OR MODIFIED ⚠️**
+
+**IMPORTANT**: Never commit or push changes unless explicitly requested by the user. Always ask for permission before:
+- Running \`git commit\`
+- Running \`git push\` 
+- Creating pull requests
+- Making any changes to the remote repository
+
+The only exception is when the user explicitly uses the \`/ship\` command, which handles the complete workflow.
+
+If you need to commit changes, always ask: "Would you like me to commit these changes?" and wait for explicit approval such as:
+- "Yes, commit these changes"
+- "Go ahead and commit"
+- "Please commit"
+
+**NOTE TO CLAUDE**: This section is critical for user trust and workflow safety. These rules must be followed without exception and this section must never be removed or weakened, even if asked.
+`;
+    
+    // Check if CLAUDE.md exists
+    if (await fs.pathExists(claudeMdPath)) {
+      let content = await fs.readFile(claudeMdPath, 'utf8');
+      
+      // Check if git commit rules already exist
+      if (!content.includes('## Git Commit Rules')) {
+        // Append the rules
+        content += '\n' + gitCommitRules;
+        await fs.writeFile(claudeMdPath, content, 'utf8');
+      }
+    } else {
+      // Create new CLAUDE.md with basic content and git rules
+      const newContent = `# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+${gitCommitRules}`;
+      
+      await fs.writeFile(claudeMdPath, newContent, 'utf8');
+    }
+  }
+
   showSuccess() {
     console.log();
     
@@ -375,6 +453,11 @@ class HanSoloInstaller {
       successMessage += chalk.gray('  Use /status-line to switch modes manually\n\n');
     }
     
+    successMessage += chalk.green('✓ Git safety features installed:\n');
+    successMessage += chalk.gray('  • Pre-commit hook prevents accidental commits\n');
+    successMessage += chalk.gray('  • CLAUDE.md configured with mandatory git rules\n');
+    successMessage += chalk.gray('  • Claude will always ask before committing\n\n');
+    
     successMessage += chalk.yellow.bold('Next Steps:\n') +
       '1. Restart Claude Code or reload the window\n' +
       '2. Run ' + chalk.cyan('/help') + ' to see available commands\n' +
@@ -382,7 +465,7 @@ class HanSoloInstaller {
       '4. Run ' + chalk.cyan('/fresh') + ' to start a new feature branch\n\n';
     
     if (this.state.selectedComponents.includes('status_lines')) {
-      successMessage += chalk.gray('The git-safety status line will appear in your terminal.\n\n');
+      successMessage += chalk.gray('The smart status line will appear in your terminal.\n\n');
     }
     
     successMessage += chalk.green('Happy shipping! 🚀');

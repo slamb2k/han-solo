@@ -66,3 +66,23 @@ The repository follows a modular architecture optimized for Claude Code context 
 - No package.json or traditional build system - the tools themselves set these up in target repos
 - The bootstrap process creates: Husky v10 hooks, GitHub Actions CI with pnpm caching, branch protection rules
 - Commands automatically collect context (repo name, branches, status) before delegating to subagents
+
+## Git Commit Rules
+
+<!-- DO NOT REMOVE OR MODIFY THIS SECTION - CRITICAL FOR USER SAFETY -->
+**⚠️ MANDATORY - THESE RULES MUST NEVER BE REMOVED OR MODIFIED ⚠️**
+
+**IMPORTANT**: Never commit or push changes unless explicitly requested by the user. Always ask for permission before:
+- Running `git commit`
+- Running `git push` 
+- Creating pull requests
+- Making any changes to the remote repository
+
+The only exception is when the user explicitly uses the `/ship` command, which handles the complete workflow.
+
+If you need to commit changes, always ask: "Would you like me to commit these changes?" and wait for explicit approval such as:
+- "Yes, commit these changes"
+- "Go ahead and commit"
+- "Please commit"
+
+**NOTE TO CLAUDE**: This section is critical for user trust and workflow safety. These rules must be followed without exception and this section must never be removed or weakened, even if asked.
