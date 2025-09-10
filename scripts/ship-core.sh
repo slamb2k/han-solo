@@ -12,7 +12,7 @@ PURPLE=$'\033[0;35m'
 NC=$'\033[0m' # No Color
 BOLD=$'\033[1m'
 
-# Display colorful figlet-style banner only in TTY mode
+# Display colorful figlet-style banner only using TTY mode
 if [ -t 1 ]; then
   printf "${RED} .dMMMb  dMP dMP dMP dMMMMb  dMMMMb  dMP dMMMMb  .aMMMMP${NC}\n"
   printf "${RED}  dMP\" VP dMP dMP amr dMP.dMP dMP.dMP amr dMP dMP dMP\"${NC}\n"
