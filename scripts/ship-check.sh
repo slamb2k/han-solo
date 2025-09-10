@@ -14,10 +14,12 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display colorful action header
-printf "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-printf "${BOLD}${YELLOW}▶▶▶${NC}  ${BOLD}${RED}🚦  S A F E T Y   C H E C K${NC}  ${BOLD}${YELLOW}◀◀◀${NC}\n"
-printf "${RED}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+# Display colorful figlet-style banner
+printf "\033[38;5;196m .dMMMb  dMP dMP dMP dMMMMb      .aMMMb  dMP dMP dMMMMMP .aMMMb  dMP  dMP\033[0m\n"
+printf "\033[38;5;202mdMP\" VP dMP dMP amr dMP.dMP    dMP\"VMP dMP dMP dMP     dMP\"VMP dMP .dMP\033[0m\n"
+printf "\033[38;5;208m VMMMb  dMMMMMP dMP dMMMMP\"    dMP     dMMMMMP dMMMP   dMP     dMMMMK\"\033[0m\n"
+printf "\033[38;5;214mdMP dMP dMP dMP dMP dMP        dMP.aMP dMP dMP dMP     dMP.aMP dMP\"AMF\033[0m\n"
+printf "\033[38;5;220m VMMMP\" dMP dMP dMP dMP         VMMMP\" dMP dMP dMMMMMP  VMMMP\" dMP dMP\033[0m\n"
 echo
 
 # Emoji
@@ -46,11 +48,6 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-
-echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BOLD}${CYAN}              🚦 Pre-Ship Safety Check${NC}"
-echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo ""
 
 # Helper function for errors
 fail_check() {
