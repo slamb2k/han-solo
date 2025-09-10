@@ -3,14 +3,15 @@ name: /han-solo:ship
 description: "Ship code with a governed fast-path tailored for SOLO devs: rebase onto origin/<default>, create/update PR, WAIT for required checks by default, then squash-merge & clean up."
 requires_args: false
 argument-hint: "[--check] [--nowait] [--force] [--staged] [--title 'text'] [--body 'text'] [--draft]"
+allowed-tools:
+  - Bash
+  - Read
+  - Grep
+  - Glob
 ---
 
 ## Purpose
 Ship your code changes through a governed fast-path optimized for solo developers. Creates PRs, waits for checks, and merges automatically when green.
-
-## Invocation Rule
-**IMPORTANT**: This command MUST delegate the entire workflow to the git-shipper agent.
-Do not attempt to implement the shipping logic directly - use the specialist agent.
 
 ## Default Behavior
 1. **Rebase** current branch onto origin/<default> for clean history
@@ -129,8 +130,21 @@ When you run `/ship --staged`:
 - Uses squash merge for clean history
 - Auto-deletes branches after merge
 
-## Instructions for git-shipper
-Execute the complete shipping workflow using the **git-shipper** sub-agent:
+## Implementation
+This command delegates to the git-shipper agent for efficient context usage.
+
+When invoked, use the Task tool with:
+- **subagent_type**: "git-shipper"
+- **description**: "Ship code changes via PR"
+- **prompt**: Pass all command arguments and flags directly to the agent
+
+The git-shipper agent will:
+1. Execute ship-core.sh with all provided arguments
+2. Handle the complete shipping workflow
+3. Run scrub cleanup automatically after successful merge
+4. Provide comprehensive INFO/WARN/ERR reporting
+
+## Workflow Steps (handled by ship-core.sh)
 1. Validate repository state and authentication
 2. Sync with remote and rebase if needed
 3. Run all configured checks (Nx or standard)
@@ -138,8 +152,6 @@ Execute the complete shipping workflow using the **git-shipper** sub-agent:
 5. Handle merge based on flags (wait/nowait/force)
 6. Clean up branches after successful merge
 7. Provide comprehensive INFO/WARN/ERR report
-
-After git-shipper completes successfully (exit code 0), automatically run `/scrub --quiet` to perform comprehensive branch cleanup of all merged and orphaned branches.
 
 ## Success Criteria
 - Clean rebase without conflicts

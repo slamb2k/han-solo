@@ -75,6 +75,7 @@ The repository follows a modular architecture optimized for Claude Code context 
 **IMPORTANT**: Never commit or push changes unless explicitly requested by the user. Always ask for permission before:
 - Running `git commit`
 - Running `git push` 
+- Running `gh pr create` or any PR creation commands
 - Creating pull requests
 - Making any changes to the remote repository
 
@@ -86,3 +87,68 @@ If you need to commit changes, always ask: "Would you like me to commit these ch
 - "Please commit"
 
 **NOTE TO CLAUDE**: This section is critical for user trust and workflow safety. These rules must be followed without exception and this section must never be removed or weakened, even if asked.
+
+## Script Execution Patience Rules
+
+<!-- DO NOT REMOVE - CRITICAL FOR WORKFLOW INTEGRITY -->
+**⚠️ MANDATORY SCRIPT BEHAVIOR ⚠️**
+
+### Command Execution Context - CRITICAL DISTINCTION:
+
+#### When YOU invoke a command (e.g., user says "run /ship"):
+1. **EXECUTE IT IMMEDIATELY** - Don't check if it's "already running"
+2. **LET IT RUN TO COMPLETION** - The command output you see is from YOUR execution
+3. **DO NOT WAIT FOR YOURSELF** - You are not intervening, you ARE the execution
+4. **The output is EXPECTED** - Banners, messages, etc. are from your command
+
+#### When to check for already-running scripts:
+1. **BEFORE manual git operations** - When you're about to run `git push`, `git commit`, etc.
+2. **WHEN INTERVENING** - If considering taking action outside a command
+3. **NOT when executing user-requested commands** - User commands should run immediately
+
+### Pre-execution Checks (ONLY for manual operations):
+Before doing manual git operations (NOT before running /ship):
+1. Check for running processes: `ps aux | grep -E "(ship-core|fresh-core)"`
+2. Look for lock files that indicate active operations
+3. If something IS running, then wait
+
+### When Scripts Are ALREADY Running (detected BEFORE you act):
+1. **NEVER intervene** when a script is already executing:
+   - Another `ship-core.sh` process (not yours)
+   - Another `fresh-core.sh` process (not yours)
+   - Any bootstrap or scrub operations in progress
+   
+2. **Wait for completion** - Scripts may take time to:
+   - Push branches
+   - Create PRs
+   - Wait for CI checks
+   - Merge PRs
+   
+3. **Recognize normal output vs errors**:
+   - Colored output or banners are NORMAL (not errors)
+   - Only messages with "error", "failed", or non-zero exit codes are actual errors
+   - If you see a Han-Solo banner from YOUR execution, that's normal
+
+### The /ship Workflow:
+When the user asks you to run `/ship`:
+1. **RUN IT IMMEDIATELY** - Don't check if ship is "already running"
+2. **Let the command complete** - All output is from YOUR execution
+3. **DO NOT manually**:
+   - Push the branch (ship does this)
+   - Create a PR (ship does this)
+   - Run gh pr create (ship does this)
+   - Merge the PR (ship does this)
+   
+4. **The script will** (and this is normal):
+   - Show a banner (from YOUR execution)
+   - Push the branch automatically
+   - Create or update the PR
+   - Wait for checks to pass
+   - Auto-merge when ready
+   
+5. **Only intervene if**:
+   - The script exits with a clear error message
+   - The user explicitly asks you to stop or intervene
+   - You see "report" followed by actual ERROR messages
+
+**CRITICAL**: Never wait for your own command executions. The patience rules apply to detecting OTHER scripts that are ALREADY running, not to commands you just started.

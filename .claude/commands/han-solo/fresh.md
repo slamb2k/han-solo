@@ -62,11 +62,13 @@ The command will detect:
 ```
 
 ## Implementation
+The fresh command directly executes the fresh-core.sh script:
+
 ```bash
 #!/bin/bash
 set -e
 
-# Use the fresh-core.sh script for implementation
+# Execute fresh-core.sh with all arguments
 if [ -f "./scripts/fresh-core.sh" ]; then
   ./scripts/fresh-core.sh "$@"
 else
