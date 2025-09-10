@@ -24,13 +24,15 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display colorful figlet-style banner
-printf "${YELLOW} .aMMMb  dMP     dMMMMMP .aMMMb  dMMMMb  dMP dMMMMb  .aMMMMP${NC}\n"
-printf "${YELLOW}dMP\"VMP dMP     dMP     dMP\"dMP dMP dMP amr dMP dMP dMP\"${NC}\n"
-printf "${RED}dMP     dMP     dMMMP   dMMMMMP dMP dMP dMP dMP dMP dMP MMP\"${NC}\n"
-printf "${RED}dMP.aMP dMP     dMP     dMP dMP dMP dMP dMP dMP dMP dMP.dMP${NC}\n"
-printf "${GREEN} VMMMP\" dMMMMMP dMMMMMP dMP dMP dMP dMP dMP dMP dMP  VMMMP\"${NC}\n"
-echo
+# Display colorful figlet-style banner only in TTY mode
+if [ -t 1 ]; then
+  printf "${YELLOW} .aMMMb  dMP     dMMMMMP .aMMMb  dMMMMb  dMP dMMMMb  .aMMMMP${NC}\n"
+  printf "${YELLOW}dMP\"VMP dMP     dMP     dMP\"dMP dMP dMP amr dMP dMP dMP\"${NC}\n"
+  printf "${RED}dMP     dMP     dMMMP   dMMMMMP dMP dMP dMP dMP dMP dMP MMP\"${NC}\n"
+  printf "${RED}dMP.aMP dMP     dMP     dMP dMP dMP dMP dMP dMP dMP dMP.dMP${NC}\n"
+  printf "${GREEN} VMMMP\" dMMMMMP dMMMMMP dMP dMP dMP dMP dMP dMP dMP  VMMMP\"${NC}\n"
+  echo
+fi
 
 # Get default branch
 DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo 'main')

@@ -27,13 +27,15 @@ FIRE="🔥"
 HEALTH_SCORE=100
 ISSUES_FOUND=0
 
-# Display colorful figlet-style banner
-printf "${CYAN}dMP dMP dMMMMMP .aMMMb  dMP     dMMMMMMP dMP dMP     .aMMMb  dMP dMP dMMMMMP .aMMMb  dMP  dMP${NC}\n"
-printf "${CYAN}dMP dMP dMP     dMP\"dMP dMP        dMP   dMP dMP    dMP\"VMP dMP dMP dMP     dMP\"VMP dMP .dMP${NC}\n"
-printf "${BLUE}dMMMMMP dMMMP   dMMMMMP dMP        dMP   dMMMMMP    dMP     dMMMMMP dMMMP   dMP     dMMMMK\"${NC}\n"
-printf "${BLUE}dMP dMP dMP     dMP dMP dMP        dMP   dMP dMP    dMP.aMP dMP dMP dMP     dMP.aMP dMP\"AMF${NC}\n"
-printf "${PURPLE}dMP dMP dMMMMMP dMP dMP dMMMMMP    dMP   dMP dMP     VMMMP\" dMP dMP dMMMMMP  VMMMP\" dMP dMP${NC}\n"
-echo
+# Display colorful figlet-style banner only in TTY mode
+if [ -t 1 ]; then
+  printf "${CYAN}dMP dMP dMMMMMP .aMMMb  dMP     dMMMMMMP dMP dMP     .aMMMb  dMP dMP dMMMMMP .aMMMb  dMP  dMP${NC}\n"
+  printf "${CYAN}dMP dMP dMP     dMP\"dMP dMP        dMP   dMP dMP    dMP\"VMP dMP dMP dMP     dMP\"VMP dMP .dMP${NC}\n"
+  printf "${BLUE}dMMMMMP dMMMP   dMMMMMP dMP        dMP   dMMMMMP    dMP     dMMMMMP dMMMP   dMP     dMMMMK\"${NC}\n"
+  printf "${BLUE}dMP dMP dMP     dMP dMP dMP        dMP   dMP dMP    dMP.aMP dMP dMP dMP     dMP.aMP dMP\"AMF${NC}\n"
+  printf "${PURPLE}dMP dMP dMMMMMP dMP dMP dMMMMMP    dMP   dMP dMP     VMMMP\" dMP dMP dMMMMMP  VMMMP\" dMP dMP${NC}\n"
+  echo
+fi
 
 # Function to reduce health score
 reduce_health() {
