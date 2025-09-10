@@ -12,10 +12,12 @@ PURPLE=$'\033[0;35m'
 NC=$'\033[0m' # No Color
 BOLD=$'\033[1m'
 
-# Display colorful action header
-printf "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-printf "${BOLD}${YELLOW}▶▶▶${NC}  ${BOLD}${GREEN}🚢  S H I P P I N G   C O D E${NC}  ${BOLD}${YELLOW}◀◀◀${NC}\n"
-printf "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+# Display colorful figlet-style banner
+printf "\033[38;5;196m .dMMMb  dMP dMP dMP dMMMMb  dMMMMb  dMP dMMMMb  .aMMMMP\033[0m\n"
+printf "\033[38;5;202m  dMP\" VP dMP dMP amr dMP.dMP dMP.dMP amr dMP dMP dMP\"\033[0m\n"
+printf "\033[38;5;208m  VMMMb  dMMMMMP dMP dMMMMP\" dMMMMP\" dMP dMP dMP dMP MMP\"\033[0m\n"
+printf "\033[38;5;214mdP .dMP dMP dMP dMP dMP     dMP     dMP dMP dMP dMP.dMP\033[0m\n"
+printf "\033[38;5;220mVMMMP\" dMP dMP dMP dMP     dMP     dMP dMP dMP  VMMMP\"\033[0m\n"
 echo
 
 # Report arrays - initialize as empty arrays
@@ -128,18 +130,6 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
   report
 fi
 
-# Gradient from bright gold to darker yellow - Han-Solo banner
-# Using 256-color mode for better gradient effect
-printf "\033[38;5;220m╔════════════════════════════════════════════════════════════════════════════════════════╗\n"
-printf "\033[38;5;220m║  __    __       ___       __   __               _______   ______    __        ______   ║\n"
-printf "\033[38;5;214m║ |  |  |  |     /   \\     |  \\ |  |             /       | /  __  \\  |  |      /  __  \\  ║\n"
-printf "\033[38;5;208m║ |  |__|  |    /  ^  \\    |   \\|  |  ______    |   (----\`|  |  |  | |  |     |  |  |  | ║\n"
-printf "\033[38;5;202m║ |   __   |   /  /_\\  \\   |  . \`  | |______|    \\   \\    |  |  |  | |  |     |  |  |  | ║\n"
-printf "\033[38;5;178m║ |  |  |  |  /  _____  \\  |  |\\   |         .----)   |   |  \`--'  | |  \`----.|  \`--'  | ║\n"
-printf "\033[38;5;172m║ |__|  |__| /__/     \\__\\ |__| \\__|         |_______/     \\______/  |_______| \\______/  ║\n"
-printf "\033[38;5;130m║                                                                                        ║\n"
-printf "\033[38;5;130m╚════════════════════════════════════════════════════════════════════════════════════════╝\n"
-printf "\033[0m\n"
 
 # Verify GitHub context
 OWNER_REPO="$(gh repo view --json owner,name --jq '.owner.login + "/" + .name' 2>/dev/null || true)"

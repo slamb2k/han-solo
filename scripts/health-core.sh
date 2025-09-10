@@ -27,10 +27,12 @@ FIRE="🔥"
 HEALTH_SCORE=100
 ISSUES_FOUND=0
 
-# Display colorful action header
-printf "${PURPLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
-printf "${BOLD}${BLUE}▶▶▶${NC}  ${BOLD}${PURPLE}🔍  H E A L T H   C H E C K${NC}  ${BOLD}${BLUE}◀◀◀${NC}\n"
-printf "${PURPLE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}\n"
+# Display colorful figlet-style banner
+printf "\033[38;5;51mdMP dMP dMMMMMP .aMMMb  dMP     dMMMMMMP dMP dMP     .aMMMb  dMP dMP dMMMMMP .aMMMb  dMP  dMP\033[0m\n"
+printf "\033[38;5;50mdMP dMP dMP     dMP\"dMP dMP        dMP   dMP dMP    dMP\"VMP dMP dMP dMP     dMP\"VMP dMP .dMP\033[0m\n"
+printf "\033[38;5;49mdMMMMMP dMMMP   dMMMMMP dMP        dMP   dMMMMMP    dMP     dMMMMMP dMMMP   dMP     dMMMMK\"\033[0m\n"
+printf "\033[38;5;48mdMP dMP dMP     dMP dMP dMP        dMP   dMP dMP    dMP.aMP dMP dMP dMP     dMP.aMP dMP\"AMF\033[0m\n"
+printf "\033[38;5;47mdMP dMP dMMMMMP dMP dMP dMMMMMP    dMP   dMP dMP     VMMMP\" dMP dMP dMMMMMP  VMMMP\" dMP dMP\033[0m\n"
 echo
 
 # Function to reduce health score
