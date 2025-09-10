@@ -11,11 +11,11 @@ NC='\033[0m'
 BOLD='\033[1m'
 
 # Display colorful figlet-style banner
-printf "\033[38;5;46mdMMMMb  dMMMMMP dMP dMP dMP    dMMMMMP dMMMMMP .aMMMb dMMMMMMP dMP dMP dMMMMb  dMMMMMP\033[0m\n"
-printf "\033[38;5;82m   dMP dMP     dMP dMP dMP     dMP     dMP     dMP\"dMP   dMP   dMP dMP dMP.dMP dMP\033[0m\n"
-printf "\033[38;5;118m  dMP dMMMP   dMP dMP dMP     dMMMP   dMMMP   dMMMMMP   dMP   dMP dMP dMMMMK\" dMMMP\033[0m\n"
-printf "\033[38;5;154m dMP dMP     dMP.dMP.dMP     dMP     dMP     dMP dMP   dMP   dMP.aMP dMP\"AMF dMP\033[0m\n"
-printf "\033[38;5;190mdMP dMMMMMP  VMMMPVMMP\"     dMP     dMMMMMP dMP dMP   dMP    VMMMP\" dMP dMP dMMMMMP\033[0m\n"
+printf "${GREEN}dMMMMb  dMMMMMP dMP dMP dMP    dMMMMMP dMMMMMP .aMMMb dMMMMMMP dMP dMP dMMMMb  dMMMMMP${NC}\n"
+printf "${GREEN}   dMP dMP     dMP dMP dMP     dMP     dMP     dMP\"dMP   dMP   dMP dMP dMP.dMP dMP${NC}\n"
+printf "${CYAN}  dMP dMMMP   dMP dMP dMP     dMMMP   dMMMP   dMMMMMP   dMP   dMP dMP dMMMMK\" dMMMP${NC}\n"
+printf "${CYAN} dMP dMP     dMP.dMP.dMP     dMP     dMP     dMP dMP   dMP   dMP.aMP dMP\"AMF dMP${NC}\n"
+printf "${YELLOW}dMP dMMMMMP  VMMMPVMMP\"     dMP     dMMMMMP dMP dMP   dMP    VMMMP\" dMP dMP dMMMMMP${NC}\n"
 echo
 
 # Parse branch name argument

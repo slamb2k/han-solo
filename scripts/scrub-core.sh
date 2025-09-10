@@ -25,11 +25,11 @@ NC='\033[0m'
 BOLD='\033[1m'
 
 # Display colorful figlet-style banner
-printf "\033[38;5;214m .aMMMb  dMP     dMMMMMP .aMMMb  dMMMMb  dMP dMMMMb  .aMMMMP\033[0m\n"
-printf "\033[38;5;208mdMP\"VMP dMP     dMP     dMP\"dMP dMP dMP amr dMP dMP dMP\"\033[0m\n"
-printf "\033[38;5;202mdMP     dMP     dMMMP   dMMMMMP dMP dMP dMP dMP dMP dMP MMP\"\033[0m\n"
-printf "\033[38;5;196mdMP.aMP dMP     dMP     dMP dMP dMP dMP dMP dMP dMP dMP.dMP\033[0m\n"
-printf "\033[38;5;160m VMMMP\" dMMMMMP dMMMMMP dMP dMP dMP dMP dMP dMP dMP  VMMMP\"\033[0m\n"
+printf "${YELLOW} .aMMMb  dMP     dMMMMMP .aMMMb  dMMMMb  dMP dMMMMb  .aMMMMP${NC}\n"
+printf "${YELLOW}dMP\"VMP dMP     dMP     dMP\"dMP dMP dMP amr dMP dMP dMP\"${NC}\n"
+printf "${RED}dMP     dMP     dMMMP   dMMMMMP dMP dMP dMP dMP dMP dMP MMP\"${NC}\n"
+printf "${RED}dMP.aMP dMP     dMP     dMP dMP dMP dMP dMP dMP dMP dMP.dMP${NC}\n"
+printf "${GREEN} VMMMP\" dMMMMMP dMMMMMP dMP dMP dMP dMP dMP dMP dMP  VMMMP\"${NC}\n"
 echo
 
 # Get default branch

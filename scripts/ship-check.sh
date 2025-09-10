@@ -15,11 +15,11 @@ NC='\033[0m'
 BOLD='\033[1m'
 
 # Display colorful figlet-style banner
-printf "\033[38;5;196m .dMMMb  dMP dMP dMP dMMMMb      .aMMMb  dMP dMP dMMMMMP .aMMMb  dMP  dMP\033[0m\n"
-printf "\033[38;5;202mdMP\" VP dMP dMP amr dMP.dMP    dMP\"VMP dMP dMP dMP     dMP\"VMP dMP .dMP\033[0m\n"
-printf "\033[38;5;208m VMMMb  dMMMMMP dMP dMMMMP\"    dMP     dMMMMMP dMMMP   dMP     dMMMMK\"\033[0m\n"
-printf "\033[38;5;214mdMP dMP dMP dMP dMP dMP        dMP.aMP dMP dMP dMP     dMP.aMP dMP\"AMF\033[0m\n"
-printf "\033[38;5;220m VMMMP\" dMP dMP dMP dMP         VMMMP\" dMP dMP dMMMMMP  VMMMP\" dMP dMP\033[0m\n"
+printf "${RED} .dMMMb  dMP dMP dMP dMMMMb      .aMMMb  dMP dMP dMMMMMP .aMMMb  dMP  dMP${NC}\n"
+printf "${RED}dMP\" VP dMP dMP amr dMP.dMP    dMP\"VMP dMP dMP dMP     dMP\"VMP dMP .dMP${NC}\n"
+printf "${YELLOW} VMMMb  dMMMMMP dMP dMMMMP\"    dMP     dMMMMMP dMMMP   dMP     dMMMMK\"${NC}\n"
+printf "${YELLOW}dMP dMP dMP dMP dMP dMP        dMP.aMP dMP dMP dMP     dMP.aMP dMP\"AMF${NC}\n"
+printf "${GREEN} VMMMP\" dMP dMP dMP dMP         VMMMP\" dMP dMP dMMMMMP  VMMMP\" dMP dMP${NC}\n"
 echo
 
 # Emoji
