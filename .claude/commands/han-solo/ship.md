@@ -1,6 +1,8 @@
 ---
-description: "Ship code with a governed fast-path tailored for SOLO devs: rebase onto origin/<default>, create/update PR, WAIT for required checks by default, then squash-merge & clean up. Use --nowait for PR-only. Use --force to override failing checks (explicit only). Use --staged to ship only staged changes."
-argument-hint: "[--nowait] [--force] [--staged] [--title \"title\"] [--branch-name name] [--body \"description\"] [--draft]"
+name: /han-solo:ship
+description: "Ship code with a governed fast-path tailored for SOLO devs: rebase onto origin/<default>, create/update PR, WAIT for required checks by default, then squash-merge & clean up."
+requires_args: false
+argument-hint: "[--check] [--nowait] [--force] [--staged] [--title 'text'] [--body 'text'] [--draft]"
 ---
 
 ## Purpose

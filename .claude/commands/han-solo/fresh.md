@@ -2,6 +2,7 @@
 name: /han-solo:fresh
 description: Start a fresh feature branch with all safety checks - the safest way to begin new work
 requires_args: false
+argument-hint: "[branch-name]"
 ---
 
 ## Purpose

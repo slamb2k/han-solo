@@ -337,7 +337,8 @@ class HanSoloInstaller {
   async configureStatusLine() {
     // Determine settings file (use settings.local.json for local-only config)
     const settingsFile = path.join(this.state.installPath, 'settings.local.json');
-    const statusLinePath = path.join(this.state.installPath, 'status_lines', 'git-safety.sh');
+    // Use smart status line by default for automatic context-aware switching
+    const statusLinePath = path.join(this.state.installPath, 'status_lines', 'status-line-smart.sh');
     
     // Read existing settings or create new object
     let settings = {};
@@ -370,7 +371,8 @@ class HanSoloInstaller {
       chalk.cyan(this.state.installPath) + '\n\n';
     
     if (this.state.selectedComponents.includes('status_lines')) {
-      successMessage += chalk.green('✓ Status line configured in settings.local.json\n\n');
+      successMessage += chalk.green('✓ Smart status line configured (auto-switches based on context)\n');
+      successMessage += chalk.gray('  Use /status-line to switch modes manually\n\n');
     }
     
     successMessage += chalk.yellow.bold('Next Steps:\n') +

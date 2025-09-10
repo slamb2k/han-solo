@@ -1,3 +1,10 @@
+---
+name: /han-solo:scrub
+description: Comprehensive branch scrubbing tool that safely removes merged and orphaned branches
+requires_args: false
+argument-hint: "[--force] [--quiet] [--dry-run]"
+---
+
 # scrub
 
 Comprehensive branch scrubbing tool that safely removes merged and orphaned branches while preserving uncommitted work.

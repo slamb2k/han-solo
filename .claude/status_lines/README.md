@@ -2,6 +2,28 @@
 
 Status lines provide real-time information about your git repository state directly in your terminal prompt. They help prevent common workflow issues and keep you informed about your current work context.
 
+## 🧠 Smart Mode (NEW - Default)
+
+The smart status line automatically switches between different status lines based on your current context, giving you the right information at the right time.
+
+### Automatic Switching Logic
+- **Has open PR** → Shows `pr-health.sh` (CI and review status)
+- **On main branch** → Shows `git-safety.sh` (safety warnings)
+- **Recent commits** → Shows `work-session.sh` (productivity tracking)
+- **Large branch** → Shows `branch-metrics.sh` (size monitoring)
+- **Otherwise** → Shows `git-safety.sh` (general safety)
+
+### Manual Control
+Use the `/status-line` command to switch modes:
+```bash
+/status-line smart     # Enable auto-switching (default)
+/status-line safety    # Always show git safety
+/status-line work      # Always show work session
+/status-line pr        # Always show PR health
+/status-line metrics   # Always show branch metrics
+/status-line current   # Show current mode
+```
+
 ## Available Status Lines
 
 ### 🛡️ git-safety.sh
@@ -70,15 +92,18 @@ Status lines provide real-time information about your git repository state direc
 
 ## Installation
 
-### Using the Interactive Installer
+### Using the Interactive Installer (Recommended)
 
-The easiest way to install status lines is through the interactive installer:
+The easiest way to install status lines is through the NPX installer:
 
 ```bash
-./scripts/install-interactive.sh
+npx han-solo-installer
 ```
 
-Select "Status Line (git-safety)" from the components menu to install all status lines.
+Select "Status Lines" from the components menu. This will:
+- Install all 5 status line scripts
+- Configure smart mode by default (auto-switching)
+- Enable the `/status-line` command for manual switching
 
 ### Manual Installation
 
@@ -88,11 +113,15 @@ cp .claude/status_lines/*.sh ~/.claude/status_lines/
 chmod +x ~/.claude/status_lines/*.sh
 ```
 
-2. Configure in Claude settings (`~/.claude/settings.toml`):
-```toml
-[status_line]
-command = "~/.claude/status_lines/git-safety.sh"
-refresh_interval = 5
+2. Configure in Claude settings (`~/.claude/settings.local.json`):
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/status_lines/status-line-smart.sh",
+    "padding": 0
+  }
+}
 ```
 
 ## Configuration
@@ -106,26 +135,39 @@ Each status line can be configured with different refresh intervals:
 
 ## Switching Status Lines
 
-To switch between status lines, update your Claude settings:
+### Using the Command (Recommended)
+```bash
+/status-line smart     # Auto-switching (default)
+/status-line safety    # Git safety warnings
+/status-line work      # Work session tracking
+/status-line pr        # PR health monitoring
+/status-line metrics   # Branch size metrics
+```
 
-```toml
-# For work session tracking
-[status_line]
-command = "~/.claude/status_lines/work-session.sh"
-refresh_interval = 10
+### Manual Configuration
+To manually switch, update your Claude settings (`~/.claude/settings.local.json`):
 
-# For PR monitoring
-[status_line]
-command = "~/.claude/status_lines/pr-health.sh"
-refresh_interval = 15
-
-# For branch metrics
-[status_line]
-command = "~/.claude/status_lines/branch-metrics.sh"
-refresh_interval = 30
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/status_lines/work-session.sh",
+    "padding": 0
+  }
+}
 ```
 
 ## Features
+
+### 🧠 Smart Auto-Switching (NEW)
+The smart status line automatically detects your context and shows the most relevant information:
+- Working on a PR? See CI status and review approvals
+- On main branch? Get safety warnings
+- Actively coding? Track your productivity
+- Branch getting large? Monitor its size
+
+### 🎯 Manual Mode Selection (NEW)
+Use `/status-line` command to override smart mode and focus on specific information.
 
 ### Current Directory Display
 All status lines show the current working directory basename, making it easy to know which project you're in.

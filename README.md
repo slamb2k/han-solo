@@ -23,9 +23,21 @@ Solo development is like flying the Millennium Falcon - you need to move fast, m
 | Command | What It Does | When to Use |
 |---------|--------------|-------------|
 | `/ship` | Complete PR workflow with auto-merge | Ready to deploy your changes |
-| `/bootstrap` | Set up CI/CD and repository governance | Starting a new project |
 | `/fresh` | Start a clean feature branch | Beginning new work |
 | `/health` | Full repository diagnostic scan | Daily check or when issues arise |
+| `/scrub` | Clean up merged branches | After shipping or periodically |
+| `/status-line` | Switch status line modes | Customize terminal display |
+
+### 🆕 New Features
+
+#### 🧠 Smart Status Line
+The terminal status line now automatically switches based on your context:
+- **Has PR?** → Shows CI status and reviews
+- **On main?** → Shows safety warnings
+- **Coding?** → Shows productivity metrics
+- **Large branch?** → Shows size warnings
+
+Control with `/status-line [smart|safety|work|pr|metrics]`
 
 ## 🚀 Quick Start
 
@@ -155,6 +167,90 @@ Sets up professional-grade repository governance optimized for solo developers.
 - `--team`: Require human reviews (default: solo mode)
 - `--reviews <N>`: Number of required reviewers (default: 0 solo, 1 team)
 - `--hook <both|pre-commit|pre-push>`: Which hooks to install (default: both)
+
+### `/fresh` - Start Fresh Branch
+
+Creates a clean feature branch from the latest main, ensuring you never start with conflicts.
+
+#### What it does:
+- 📦 **Stashes** uncommitted work
+- 🔄 **Syncs** with origin/main
+- 🧹 **Cleans** working directory
+- 🌱 **Creates** new feature branch
+- 📤 **Restores** stashed work
+
+#### Usage:
+```bash
+# Auto-generated branch name
+/fresh
+
+# Custom branch name
+/fresh my-feature
+/fresh fix/bug-123
+```
+
+### `/health` - Repository Health Check
+
+Comprehensive diagnostic scan to detect issues before they become problems.
+
+#### What it shows:
+- 🌿 Current branch status and age
+- 📝 Uncommitted changes
+- 🔄 Sync status (ahead/behind/diverged)
+- 📦 Stashed changes
+- 🎯 Open PRs
+- 💯 Health score
+
+#### Usage:
+```bash
+/health
+```
+
+### `/scrub` - Branch Cleanup
+
+Safely removes merged and orphaned branches while preserving uncommitted work.
+
+#### What it does:
+- 🔍 **Detects** merged branches (including squash-merges)
+- 🗑️ **Removes** safe branches
+- ⚠️ **Prompts** for questionable branches
+- 📊 **Reports** cleanup summary
+
+#### Usage:
+```bash
+# Interactive mode (default)
+/scrub
+
+# Quiet mode (used by /ship)
+/scrub --quiet
+
+# Preview without deleting
+/scrub --dry-run
+```
+
+### `/status-line` - Status Line Control (NEW)
+
+Switch between different status line modes or enable smart auto-switching.
+
+#### Modes:
+- 🧠 **smart**: Auto-switches based on context (default)
+- 🛡️ **safety**: Git safety warnings
+- 💼 **work**: Work session tracking
+- 🎯 **pr**: PR and CI monitoring
+- 📊 **metrics**: Branch size metrics
+
+#### Usage:
+```bash
+# Enable smart mode
+/status-line smart
+
+# Switch to specific mode
+/status-line pr
+/status-line work
+
+# Check current mode
+/status-line current
+```
 
 ### `/ship` - Ship Your Code
 
