@@ -1,8 +1,8 @@
 ---
 name: /han-solo:status-line
-description: Switch between different status line modes or enable smart auto-switching
+description: Configure the Han-Solo status line for your terminal
 requires_args: false
-argument-hint: "[smart|safety|work|pr|metrics|current|help]"
+argument-hint: "[enable|disable|current|help]"
 allowed_tools:
   - Bash
   - Read
@@ -11,47 +11,39 @@ allowed_tools:
 ---
 
 ## Purpose
-Control which status line is displayed in your terminal. Choose between smart auto-switching mode or manually select a specific status line for your current workflow needs.
+Control the Han-Solo status line that displays important repository information in your terminal.
 
 ## Usage
 ```bash
-# Enable smart auto-switching (recommended)
-/status-line smart
+# Enable the status line
+/status-line enable
 
-# Manually select a specific status line
-/status-line safety    # Git safety warnings
-/status-line work      # Work session tracking
-/status-line pr        # PR and CI monitoring
-/status-line metrics   # Branch size metrics
+# Disable the status line
+/status-line disable
 
-# Show current status line
+# Show current status
 /status-line current
 
 # Show help
 /status-line help
 ```
 
-## Status Line Modes
+## Status Line Features
 
-### 🧠 Smart Mode (Default)
-Automatically switches between status lines based on context:
-- **Has open PR** → Shows PR health and CI status
-- **On main branch** → Shows safety warnings
-- **Recent commits** → Shows work session tracking
-- **Large branch** → Shows branch metrics
-- **Otherwise** → Shows git safety status
+### Han-Solo Status Line (`han-solo.sh`)
+Comprehensive status line showing:
+- **Current directory** (CWD basename)
+- **Branch name** with feature indicators
+- **Git statistics** (staged/modified/untracked files, lines added/removed)
+- **Sync status** with origin (ahead/behind/diverged)
+- **PR status** if one exists
+- **Model info** (Current Claude model: Opus 4.1, Sonnet 3.5, etc.)
+- **Context usage** with visual bar graph
+- **Safety warnings** when on main branch
 
-### 🛡️ Safety Mode
-Shows git safety warnings and sync status. Best for general development.
-
-### 💼 Work Mode
-Tracks your current coding session with productivity metrics.
-
-### 🎯 PR Mode
-Monitors PR status, CI checks, and review approvals.
-
-### 📊 Metrics Mode
-Displays branch statistics and size warnings.
+```bash
+$(~/.claude/status_lines/han-solo-minimal.sh)
+```
 
 ## Implementation
 ```bash
@@ -72,18 +64,11 @@ MODE="${1:-help}"
 SETTINGS_FILE=".claude/settings.local.json"
 
 # Status line paths
-STATUS_LINE_DIR=".claude/status_lines"
-SMART_LINE="$STATUS_LINE_DIR/status-line-smart.sh"
-SAFETY_LINE="$STATUS_LINE_DIR/git-safety.sh"
-WORK_LINE="$STATUS_LINE_DIR/work-session.sh"
-PR_LINE="$STATUS_LINE_DIR/pr-health.sh"
-METRICS_LINE="$STATUS_LINE_DIR/branch-metrics.sh"
+HAN_SOLO_FULL=".claude/status_lines/han-solo.sh"
+HAN_SOLO_MINIMAL=".claude/status_lines/han-solo-minimal.sh"
 
-# Function to update settings file
-update_status_line() {
-  local script_path="$1"
-  local mode_name="$2"
-  
+# Function to enable status line
+enable_status_line() {
   # Ensure settings file exists
   if [ ! -f "$SETTINGS_FILE" ]; then
     echo "{}" > "$SETTINGS_FILE"
@@ -92,7 +77,7 @@ update_status_line() {
   # Update the status line setting using a temp file
   local tmp_file=$(mktemp)
   if command -v jq &> /dev/null; then
-    jq --arg path "$script_path" '.statusLine = {"type": "command", "command": $path, "padding": 0}' "$SETTINGS_FILE" > "$tmp_file"
+    jq --arg path "$HAN_SOLO_FULL" '.statusLine = {"type": "command", "command": $path, "padding": 0}' "$SETTINGS_FILE" > "$tmp_file"
     mv "$tmp_file" "$SETTINGS_FILE"
   else
     # Fallback to simple replacement if jq is not available
@@ -100,7 +85,7 @@ update_status_line() {
 {
   "statusLine": {
     "type": "command",
-    "command": "$script_path",
+    "command": "$HAN_SOLO_FULL",
     "padding": 0
   }
 }
@@ -108,21 +93,38 @@ EOF
     mv "$tmp_file" "$SETTINGS_FILE"
   fi
   
-  echo -e "${GREEN}✅ Status line switched to: ${CYAN}$mode_name${NC}"
+  echo -e "${GREEN}✅ Han-Solo full status line enabled${NC}"
+  echo -e "${CYAN}Showing: CWD | Branch | Git stats | Model | Safety warnings${NC}"
 }
 
-# Show current status line
+# Function to disable status line
+disable_status_line() {
+  # Ensure settings file exists
+  if [ ! -f "$SETTINGS_FILE" ]; then
+    echo "{}" > "$SETTINGS_FILE"
+  fi
+  
+  # Remove the status line setting
+  local tmp_file=$(mktemp)
+  if command -v jq &> /dev/null; then
+    jq 'del(.statusLine)' "$SETTINGS_FILE" > "$tmp_file"
+    mv "$tmp_file" "$SETTINGS_FILE"
+  else
+    echo "{}" > "$SETTINGS_FILE"
+  fi
+  
+  echo -e "${YELLOW}Status line disabled${NC}"
+}
+
+# Show current status
 show_current() {
   if [ -f "$SETTINGS_FILE" ]; then
-    CURRENT=$(grep -oP '"command":\s*"[^"]*' "$SETTINGS_FILE" 2>/dev/null | cut -d'"' -f4 || echo "none")
-    case "$CURRENT" in
-      *smart*) echo -e "${CYAN}Current mode: ${GREEN}Smart (auto-switching)${NC}" ;;
-      *git-safety*) echo -e "${CYAN}Current mode: ${GREEN}Safety${NC}" ;;
-      *work-session*) echo -e "${CYAN}Current mode: ${GREEN}Work Session${NC}" ;;
-      *pr-health*) echo -e "${CYAN}Current mode: ${GREEN}PR Health${NC}" ;;
-      *branch-metrics*) echo -e "${CYAN}Current mode: ${GREEN}Branch Metrics${NC}" ;;
-      *) echo -e "${CYAN}Current mode: ${YELLOW}Unknown${NC}" ;;
-    esac
+    if grep -q '"statusLine"' "$SETTINGS_FILE" 2>/dev/null; then
+      echo -e "${CYAN}Status line: ${GREEN}Enabled${NC}"
+      echo -e "  Showing repository status information"
+    else
+      echo -e "${CYAN}Status line: ${YELLOW}Disabled${NC}"
+    fi
   else
     echo -e "${YELLOW}No status line configured${NC}"
   fi
@@ -130,50 +132,36 @@ show_current() {
 
 # Show help
 show_help() {
-  echo -e "${CYAN}Han-Solo Status Line Switcher${NC}"
+  echo -e "${CYAN}Han-Solo Status Line${NC}"
   echo ""
-  echo "Usage: /status-line [mode]"
+  echo "Usage: /status-line [command]"
   echo ""
-  echo "Modes:"
-  echo -e "  ${GREEN}smart${NC}    - 🧠 Auto-switch based on context (recommended)"
-  echo -e "  ${GREEN}safety${NC}   - 🛡️  Git safety warnings and sync status"
-  echo -e "  ${GREEN}work${NC}     - 💼 Work session tracking and productivity"
-  echo -e "  ${GREEN}pr${NC}       - 🎯 PR health and CI check monitoring"
-  echo -e "  ${GREEN}metrics${NC}  - 📊 Branch statistics and size metrics"
-  echo -e "  ${GREEN}current${NC}  - Show current status line mode"
+  echo "Commands:"
+  echo -e "  ${GREEN}enable${NC}   - Enable full Han-Solo status line"
+  echo -e "  ${GREEN}disable${NC}  - Disable status line"
+  echo -e "  ${GREEN}current${NC}  - Show current status"
   echo -e "  ${GREEN}help${NC}     - Show this help message"
   echo ""
-  echo "Smart mode automatically switches between status lines:"
-  echo "  • Open PR → PR health"
-  echo "  • On main → Safety warnings"
-  echo "  • Recent activity → Work session"
-  echo "  • Large branch → Branch metrics"
-  echo "  • Default → Git safety"
+  echo "Full status line (han-solo.sh) displays:"
+  echo "  • Current directory and branch"
+  echo "  • Git statistics (files, lines changed)"
+  echo "  • Sync status and PR info"
+  echo "  • Model indicator and safety warnings"
+  echo ""
+  echo "Minimal status line (han-solo-minimal.sh) provides:"
+  echo "  • Compact git safety info for integration"
+  echo "  • Use: \$(~/.claude/status_lines/han-solo-minimal.sh)"
 }
 
 # Main logic
 case "$MODE" in
-  smart)
-    update_status_line "$SMART_LINE" "Smart (auto-switching)"
-    echo -e "${CYAN}Smart mode will automatically switch based on your context.${NC}"
+  enable|on)
+    enable_status_line
     ;;
-  safety)
-    update_status_line "$SAFETY_LINE" "Git Safety"
-    echo -e "${CYAN}Showing git safety warnings and sync status.${NC}"
+  disable|off)
+    disable_status_line
     ;;
-  work)
-    update_status_line "$WORK_LINE" "Work Session"
-    echo -e "${CYAN}Tracking your coding session and productivity.${NC}"
-    ;;
-  pr)
-    update_status_line "$PR_LINE" "PR Health"
-    echo -e "${CYAN}Monitoring PR status and CI checks.${NC}"
-    ;;
-  metrics)
-    update_status_line "$METRICS_LINE" "Branch Metrics"
-    echo -e "${CYAN}Displaying branch statistics and size metrics.${NC}"
-    ;;
-  current)
+  current|status)
     show_current
     ;;
   help|*)
@@ -184,34 +172,28 @@ esac
 
 ## Examples
 
-### Smart Auto-Switching
+### Enable Status Line
 ```bash
-/status-line smart
-# Status line now automatically switches based on context
+/status-line enable
+# Han-Solo status information now visible in terminal
 ```
 
-### Focus on PR Work
+### Check Status
 ```bash
-/status-line pr
-# Always shows PR and CI status while working on feedback
+/status-line current
+# Shows whether status line is enabled or disabled
 ```
 
-### Track Productivity
+### Disable Temporarily
 ```bash
-/status-line work
-# Shows session duration and changes made
-```
-
-### Monitor Branch Size
-```bash
-/status-line metrics
-# Keep an eye on branch complexity before shipping
+/status-line disable
+# Status line hidden
 ```
 
 ## Success Indicators
 - Settings file updated successfully
-- Status line changes visible in terminal
-- Appropriate mode selected for current work
+- Status line appears/disappears in terminal
+- Repository status information visible when enabled
 
 ## Related Commands
 - `/fresh` - Start new work with clean branch
@@ -219,7 +201,7 @@ esac
 - `/health` - Check repository health
 
 ## Best Practices
-1. Use **smart mode** for general development
-2. Switch to **pr mode** when addressing PR feedback
-3. Use **work mode** for time tracking
-4. Check **metrics mode** before shipping large changes
+1. Keep status line **enabled** for safety awareness
+2. Provides constant visibility of branch state
+3. Helps prevent accidental commits to main
+4. Shows when you're out of sync with origin
