@@ -255,6 +255,8 @@ class HanSoloInstaller {
       ? path.join(require('os').homedir(), '.claude')
       : path.join(process.cwd(), '.claude');
 
+    // No need to ask about status line type anymore - just use han-solo.sh
+
     // Confirmation
     console.log();
     console.log(boxen(
@@ -354,19 +356,14 @@ class HanSoloInstaller {
     
     // Configure status line if component was selected
     if (this.state.selectedComponents.includes('status_lines')) {
-      const statusLinePath = path.join(this.state.installPath, 'status_lines', 'status-line-smart.sh');
+      const statusLinePath = path.join(this.state.installPath, 'status_lines', 'han-solo.sh');
       
-      // Only update if not already configured or if user is updating
-      if (!settings.statusLine || !settings.statusLine.command) {
-        settings.statusLine = {
-          type: 'command',
-          command: statusLinePath
-        };
-      }
-      // If statusLine exists but points to old version, update to smart version
-      else if (settings.statusLine.command && settings.statusLine.command.includes('git-safety.sh')) {
-        settings.statusLine.command = statusLinePath;
-      }
+      // Set the han-solo status line
+      settings.statusLine = {
+        type: 'command',
+        command: statusLinePath,
+        padding: 0
+      };
     }
     
     // Create and configure git safety hooks
@@ -554,8 +551,16 @@ ${gitCommitRules}`;
       chalk.cyan(this.state.installPath) + '\n\n';
     
     if (this.state.selectedComponents.includes('status_lines')) {
-      successMessage += chalk.green('✓ Smart status line configured (auto-switches based on context)\n');
-      successMessage += chalk.gray('  Use /status-line to switch modes manually\n\n');
+      if (this.state.statusLineType === 'minimal') {
+        successMessage += chalk.green('✓ Minimal status line installed\n');
+        successMessage += chalk.gray('  Integration: Add to your prompt with ');
+        successMessage += chalk.cyan('$(~/.claude/status_lines/han-solo-minimal.sh)\n');
+        successMessage += chalk.gray('  Returns: Git safety info in compact format\n\n');
+      } else {
+        successMessage += chalk.green('✓ Full Han-Solo status line configured\n');
+        successMessage += chalk.gray('  Shows: CWD | Branch | Git stats | Model | Safety warnings\n');
+        successMessage += chalk.gray('  Use /status-line to enable/disable\n\n');
+      }
     }
     
     successMessage += chalk.green('✓ Git safety features installed:\n');
