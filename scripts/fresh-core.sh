@@ -10,13 +10,15 @@ RED='\033[0;31m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display colorful figlet-style banner
-printf "${GREEN}dMMMMb  dMMMMMP dMP dMP dMP    dMMMMMP dMMMMMP .aMMMb dMMMMMMP dMP dMP dMMMMb  dMMMMMP${NC}\n"
-printf "${GREEN}   dMP dMP     dMP dMP dMP     dMP     dMP     dMP\"dMP   dMP   dMP dMP dMP.dMP dMP${NC}\n"
-printf "${CYAN}  dMP dMMMP   dMP dMP dMP     dMMMP   dMMMP   dMMMMMP   dMP   dMP dMP dMMMMK\" dMMMP${NC}\n"
-printf "${CYAN} dMP dMP     dMP.dMP.dMP     dMP     dMP     dMP dMP   dMP   dMP.aMP dMP\"AMF dMP${NC}\n"
-printf "${YELLOW}dMP dMMMMMP  VMMMPVMMP\"     dMP     dMMMMMP dMP dMP   dMP    VMMMP\" dMP dMP dMMMMMP${NC}\n"
-echo
+# Display colorful figlet-style banner only in TTY mode
+if [ -t 1 ]; then
+  printf "${GREEN}dMMMMb  dMMMMMP dMP dMP dMP    dMMMMMP dMMMMMP .aMMMb dMMMMMMP dMP dMP dMMMMb  dMMMMMP${NC}\n"
+  printf "${GREEN}   dMP dMP     dMP dMP dMP     dMP     dMP     dMP\"dMP   dMP   dMP dMP dMP.dMP dMP${NC}\n"
+  printf "${CYAN}  dMP dMMMP   dMP dMP dMP     dMMMP   dMMMP   dMMMMMP   dMP   dMP dMP dMMMMK\" dMMMP${NC}\n"
+  printf "${CYAN} dMP dMP     dMP.dMP.dMP     dMP     dMP     dMP dMP   dMP   dMP.aMP dMP\"AMF dMP${NC}\n"
+  printf "${YELLOW}dMP dMMMMMP  VMMMPVMMP\"     dMP     dMMMMMP dMP dMP   dMP    VMMMP\" dMP dMP dMMMMMP${NC}\n"
+  echo
+fi
 
 # Parse branch name argument
 BRANCH_NAME="${1:-feature/$(date +%Y-%m-%d-%H%M%S)}"
