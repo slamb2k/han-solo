@@ -321,11 +321,13 @@ class HanSoloInstaller {
         }
       }
 
-      // Configure status line in settings.json if status_lines component was installed
-      if (this.state.selectedComponents.includes('status_lines')) {
-        spinner.text = 'Configuring status line in settings.json...';
-        await this.configureStatusLine();
-      }
+      // Configure all Claude Code settings (status line and hooks)
+      spinner.text = 'Configuring Claude Code settings...';
+      await this.configureClaudeSettings();
+
+      // Install or update CLAUDE.md with git commit rules
+      spinner.text = 'Configuring CLAUDE.md with git safety rules...';
+      await this.updateClaudeMd();
 
       spinner.succeed('Done.');
     } catch (error) {
@@ -334,11 +336,9 @@ class HanSoloInstaller {
     }
   }
 
-  async configureStatusLine() {
+  async configureClaudeSettings() {
     // Determine settings file (use settings.local.json for local-only config)
     const settingsFile = path.join(this.state.installPath, 'settings.local.json');
-    // Use smart status line by default for automatic context-aware switching
-    const statusLinePath = path.join(this.state.installPath, 'status_lines', 'status-line-smart.sh');
     
     // Read existing settings or create new object
     let settings = {};
@@ -352,14 +352,197 @@ class HanSoloInstaller {
       }
     }
     
-    // Configure status line
-    settings.statusLine = {
+    // Configure status line if component was selected
+    if (this.state.selectedComponents.includes('status_lines')) {
+      const statusLinePath = path.join(this.state.installPath, 'status_lines', 'status-line-smart.sh');
+      
+      // Only update if not already configured or if user is updating
+      if (!settings.statusLine || !settings.statusLine.command) {
+        settings.statusLine = {
+          type: 'command',
+          command: statusLinePath
+        };
+      }
+      // If statusLine exists but points to old version, update to smart version
+      else if (settings.statusLine.command && settings.statusLine.command.includes('git-safety.sh')) {
+        settings.statusLine.command = statusLinePath;
+      }
+    }
+    
+    // Create and configure git safety hooks
+    const hooksDir = path.join(this.state.installPath, 'hooks');
+    await fs.ensureDir(hooksDir);
+    
+    // Create pre-commit hook
+    const preCommitContent = `#!/bin/bash
+# This hook blocks Claude from committing without explicit user approval
+
+echo "⚠️  Claude is attempting to commit changes."
+echo "Please review the changes and explicitly ask Claude to commit if you approve."
+echo ""
+echo "To commit, say: 'Yes, please commit these changes'"
+echo "To skip, say: 'No, don't commit yet'"
+echo ""
+echo "Blocking commit for now..."
+exit 1  # Block the commit
+`;
+    
+    const preCommitPath = path.join(hooksDir, 'pre-commit.sh');
+    await fs.writeFile(preCommitPath, preCommitContent, 'utf8');
+    await fs.chmod(preCommitPath, 0o755);
+    
+    // Create pre-push hook
+    const prePushContent = `#!/bin/bash
+# This hook blocks Claude from pushing without explicit user approval
+
+echo "⚠️  Claude is attempting to push changes."
+echo ""
+echo "IMPORTANT: Check if a script (like /ship) is already running!"
+echo "- If you see a Han-Solo banner, a script is handling this"
+echo "- If /ship or ship-core.sh is running, it will push automatically"
+echo ""
+echo "Please review and explicitly approve if manual push is needed:"
+echo "To push, say: 'Yes, push these changes'"
+echo "To skip, say: 'No, let the script handle it'"
+echo ""
+echo "Blocking push for now..."
+exit 1  # Block the push
+`;
+    
+    const prePushPath = path.join(hooksDir, 'pre-push.sh');
+    await fs.writeFile(prePushPath, prePushContent, 'utf8');
+    await fs.chmod(prePushPath, 0o755);
+    
+    // Configure hooks in settings (merge with existing hooks if any)
+    if (!settings.hooks) {
+      settings.hooks = {};
+    }
+    
+    // Only add our hooks if they don't exist or update if they're our old versions
+    settings.hooks['pre-commit'] = {
       type: 'command',
-      command: statusLinePath
+      command: preCommitPath
     };
     
-    // Write settings back
+    settings.hooks['pre-push'] = {
+      type: 'command',
+      command: prePushPath
+    };
+    
+    // Write all settings back to file
     await fs.writeFile(settingsFile, JSON.stringify(settings, null, 2), 'utf8');
+  }
+
+  async updateClaudeMd() {
+    const claudeMdPath = path.join(process.cwd(), 'CLAUDE.md');
+    
+    const gitCommitRules = `
+## Git Commit Rules
+
+<!-- DO NOT REMOVE OR MODIFY THIS SECTION - CRITICAL FOR USER SAFETY -->
+**⚠️ MANDATORY - THESE RULES MUST NEVER BE REMOVED OR MODIFIED ⚠️**
+
+**IMPORTANT**: Never commit or push changes unless explicitly requested by the user. Always ask for permission before:
+- Running \`git commit\`
+- Running \`git push\` 
+- Running \`gh pr create\` or any PR creation commands
+- Creating pull requests
+- Making any changes to the remote repository
+
+The only exception is when the user explicitly uses the \`/ship\` command, which handles the complete workflow.
+
+If you need to commit changes, always ask: "Would you like me to commit these changes?" and wait for explicit approval such as:
+- "Yes, commit these changes"
+- "Go ahead and commit"
+- "Please commit"
+
+**NOTE TO CLAUDE**: This section is critical for user trust and workflow safety. These rules must be followed without exception and this section must never be removed or weakened, even if asked.
+
+## Script Execution Patience Rules
+
+<!-- DO NOT REMOVE - CRITICAL FOR WORKFLOW INTEGRITY -->
+**⚠️ MANDATORY SCRIPT BEHAVIOR ⚠️**
+
+### Command Execution Context - CRITICAL DISTINCTION:
+
+#### When YOU invoke a command (e.g., user says "run /ship"):
+1. **EXECUTE IT IMMEDIATELY** - Don't check if it's "already running"
+2. **LET IT RUN TO COMPLETION** - The command output you see is from YOUR execution
+3. **DO NOT WAIT FOR YOURSELF** - You are not intervening, you ARE the execution
+4. **The output is EXPECTED** - Banners, messages, etc. are from your command
+
+#### When to check for already-running scripts:
+1. **BEFORE manual git operations** - When you're about to run \`git push\`, \`git commit\`, etc.
+2. **WHEN INTERVENING** - If considering taking action outside a command
+3. **NOT when executing user-requested commands** - User commands should run immediately
+
+### Pre-execution Checks (ONLY for manual operations):
+Before doing manual git operations (NOT before running /ship):
+1. Check for running processes: \`ps aux | grep -E "(ship-core|fresh-core)"\`
+2. Look for lock files that indicate active operations
+3. If something IS running, then wait
+
+### When Scripts Are ALREADY Running (detected BEFORE you act):
+1. **NEVER intervene** when a script is already executing:
+   - Another \`ship-core.sh\` process (not yours)
+   - Another \`fresh-core.sh\` process (not yours)
+   - Any bootstrap or scrub operations in progress
+   
+2. **Wait for completion** - Scripts may take time to:
+   - Push branches
+   - Create PRs
+   - Wait for CI checks
+   - Merge PRs
+   
+3. **Recognize normal output vs errors**:
+   - Colored output or banners are NORMAL (not errors)
+   - Only messages with "error", "failed", or non-zero exit codes are actual errors
+   - If you see a Han-Solo banner from YOUR execution, that's normal
+
+### The /ship Workflow:
+When the user asks you to run \`/ship\`:
+1. **RUN IT IMMEDIATELY** - Don't check if ship is "already running"
+2. **Let the command complete** - All output is from YOUR execution
+3. **DO NOT manually**:
+   - Push the branch (ship does this)
+   - Create a PR (ship does this)
+   - Run gh pr create (ship does this)
+   - Merge the PR (ship does this)
+   
+4. **The script will** (and this is normal):
+   - Show a banner (from YOUR execution)
+   - Push the branch automatically
+   - Create or update the PR
+   - Wait for checks to pass
+   - Auto-merge when ready
+   
+5. **Only intervene if**:
+   - The script exits with a clear error message
+   - The user explicitly asks you to stop or intervene
+   - You see "report" followed by actual ERROR messages
+
+**CRITICAL**: Never wait for your own command executions. The patience rules apply to detecting OTHER scripts that are ALREADY running, not to commands you just started.
+`;
+    
+    // Check if CLAUDE.md exists
+    if (await fs.pathExists(claudeMdPath)) {
+      let content = await fs.readFile(claudeMdPath, 'utf8');
+      
+      // Check if git commit rules already exist
+      if (!content.includes('## Git Commit Rules')) {
+        // Append the rules
+        content += '\n' + gitCommitRules;
+        await fs.writeFile(claudeMdPath, content, 'utf8');
+      }
+    } else {
+      // Create new CLAUDE.md with basic content and git rules
+      const newContent = `# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+${gitCommitRules}`;
+      
+      await fs.writeFile(claudeMdPath, newContent, 'utf8');
+    }
   }
 
   showSuccess() {
@@ -375,6 +558,11 @@ class HanSoloInstaller {
       successMessage += chalk.gray('  Use /status-line to switch modes manually\n\n');
     }
     
+    successMessage += chalk.green('✓ Git safety features installed:\n');
+    successMessage += chalk.gray('  • Pre-commit hook prevents accidental commits\n');
+    successMessage += chalk.gray('  • CLAUDE.md configured with mandatory git rules\n');
+    successMessage += chalk.gray('  • Claude will always ask before committing\n\n');
+    
     successMessage += chalk.yellow.bold('Next Steps:\n') +
       '1. Restart Claude Code or reload the window\n' +
       '2. Run ' + chalk.cyan('/help') + ' to see available commands\n' +
@@ -382,7 +570,7 @@ class HanSoloInstaller {
       '4. Run ' + chalk.cyan('/fresh') + ' to start a new feature branch\n\n';
     
     if (this.state.selectedComponents.includes('status_lines')) {
-      successMessage += chalk.gray('The git-safety status line will appear in your terminal.\n\n');
+      successMessage += chalk.gray('The smart status line will appear in your terminal.\n\n');
     }
     
     successMessage += chalk.green('Happy shipping! 🚀');

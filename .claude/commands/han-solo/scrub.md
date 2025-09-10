@@ -104,31 +104,10 @@ Delete this branch? (y/N): n
   • All squash-merged branches detected and cleaned
 ```
 
-## Invocation rule
-Always delegate to a general-purpose agent for execution.
+## Implementation
+For context efficiency, this command can be executed in two ways:
 
-## Instructions
-Execute the branch cleanup workflow with these steps:
-
-1. Parse command flags (--force, --quiet, --dry-run)
-2. Fetch latest remote state and prune deleted references
-3. Analyze all remote branches (except main/master)
-4. For each remote branch:
-   - Skip if has open PR
-   - Check if PR was merged
-   - Count unmerged commits
-   - Prompt user if questionable (unless --force or --quiet)
-   - Delete if safe or confirmed
-5. Analyze all local branches
-6. For each local branch:
-   - Check if fully merged
-   - Check for remote tracking
-   - Count unmerged commits
-   - Prompt if has local-only commits (unless --force or --quiet)
-   - Delete if safe or confirmed
-7. Generate comprehensive report
-
-## Implementation script
+### Option 1: Direct Script Execution (Faster)
 ```bash
 #!/bin/bash
 set -e
@@ -142,6 +121,19 @@ else
   exit 1
 fi
 ```
+
+### Option 2: Agent Delegation (More Context-Aware)
+When complex interaction is needed, delegate to a general-purpose agent with:
+- **subagent_type**: "general-purpose"
+- **description**: "Clean up merged branches"
+- **prompt**: Execute scrub-core.sh with all provided arguments
+
+The scrub-core.sh script will:
+1. Parse command flags (--force, --quiet, --dry-run)
+2. Fetch latest remote state and prune deleted references
+3. Analyze all branches for safe deletion
+4. Prompt for confirmation when needed
+5. Generate comprehensive cleanup report
 
 ## Allowed tools
 - Bash
