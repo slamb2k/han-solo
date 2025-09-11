@@ -14,12 +14,10 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display figlet-style banner (no colors)
-printf " .dMMMb  dMP dMP dMP dMMMMb      .aMMMb  dMP dMP dMMMMMP .aMMMb  dMP  dMP\n"
-printf "dMP\" VP dMP dMP amr dMP.dMP    dMP\"VMP dMP dMP dMP     dMP\"VMP dMP .dMP\n"
-printf " VMMMb  dMMMMMP dMP dMMMMP\"    dMP     dMMMMMP dMMMP   dMP     dMMMMK\"\n"
-printf "dMP dMP dMP dMP dMP dMP        dMP.aMP dMP dMP dMP     dMP.aMP dMP\"AMF\n"
-printf " VMMMP\" dMP dMP dMP dMP         VMMMP\" dMP dMP dMMMMMP  VMMMP\" dMP dMP\n"
+# Display banner
+printf "__       _  _ ___       _      _  _            \n"
+printf "(_   /\\  |_ |_  | \\_/   /  |_| |_ /  |/   \\\\ \\\\ \\\\ \n"
+printf "__) /--\\ |  |_  |  |    \\_ | | |_ \\_ |\\   / / /\n"
 echo
 
 # Emoji
