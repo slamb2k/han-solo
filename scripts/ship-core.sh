@@ -761,7 +761,13 @@ if git branch --merged "$DEFAULT" | grep -qx "  $CURR_BRANCH"; then
   git branch -d "$CURR_BRANCH" >/dev/null 2>&1 && note "🧹 Deleted local branch: $CURR_BRANCH"
 fi
 
-note "💡 Comprehensive branch cleanup will be handled by /scrub after completion"
+# Run comprehensive branch cleanup
+note "🧹 Running comprehensive branch cleanup..."
+if [ -f "./scripts/scrub-core.sh" ]; then
+  ./scripts/scrub-core.sh --quiet || warn "Branch cleanup encountered issues (non-critical)"
+else
+  warn "scrub-core.sh not found - skipping comprehensive cleanup"
+fi
 
 note "🏁 Ship complete! Your changes are in $DEFAULT."
 

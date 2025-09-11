@@ -40,7 +40,11 @@ is_squash_merged() {
   
   # Method 1: Check if all commits are cherry-picked/equivalent
   # git cherry returns '-' for commits that are equivalent in upstream
-  local UNMERGED_COUNT=$(git cherry "$BASE" "$BRANCH" 2>/dev/null | grep '^+' | wc -l | xargs || echo 0)
+  local UNMERGED_COUNT
+  UNMERGED_COUNT=$(git cherry "$BASE" "$BRANCH" 2>/dev/null | grep '^+' | wc -l)
+  UNMERGED_COUNT=${UNMERGED_COUNT:-0}
+  # Remove any whitespace or newlines
+  UNMERGED_COUNT=$(echo "$UNMERGED_COUNT" | tr -d '[:space:]')
   if [ "$UNMERGED_COUNT" -eq 0 ]; then
     return 0  # All commits are equivalent, branch is merged
   fi
