@@ -67,6 +67,54 @@ The repository follows a modular architecture optimized for Claude Code context 
 - The bootstrap process creates: Husky v10 hooks, GitHub Actions CI with pnpm caching, branch protection rules
 - Commands automatically collect context (repo name, branches, status) before delegating to subagents
 
+## Code Edit Verification Rules
+
+<!-- DO NOT REMOVE - CRITICAL FOR RELIABLE CODE MODIFICATIONS -->
+**⚠️ MANDATORY EDIT VERIFICATION PROCESS ⚠️**
+
+### When Making Code Changes:
+
+1. **Single File Edits**:
+   - Use the `Edit` tool for single changes to ensure reliability
+   - After each edit, verify with `git diff` to confirm changes were applied
+   - If changes weren't applied, retry with the Edit tool
+
+2. **Multiple File Edits**:
+   - Prefer multiple individual `Edit` operations over `MultiEdit`
+   - The MultiEdit tool may report success without applying changes
+   - Always verify each file after editing
+
+3. **Verification Steps** (REQUIRED after any edit):
+   ```bash
+   # Check specific file changes
+   git diff path/to/file
+   
+   # Or check all unstaged changes
+   git diff
+   
+   # Verify specific lines were modified
+   grep -n "expected text" path/to/file
+   ```
+
+4. **Common Edit Failures**:
+   - **Silent failures**: Tool reports success but no changes applied
+   - **Partial application**: Only some edits in MultiEdit are applied
+   - **Line ending issues**: Mismatch in line endings can cause failures
+   
+5. **Recovery Process**:
+   - If edits didn't apply, use individual Edit operations
+   - Read the file first to verify current content
+   - Apply changes one at a time
+   - Verify each change before proceeding
+
+6. **Best Practices**:
+   - Always read files before editing to understand current state
+   - Make focused, specific edits rather than large replacements
+   - Use `git diff` after EVERY edit operation
+   - Don't assume success based on tool output alone
+
+**NOTE TO CLAUDE**: These verification steps are critical for reliable code modifications. The MultiEdit tool has known issues with silent failures. Always verify changes were actually applied before proceeding or reporting completion to the user.
+
 ## Git Commit Rules
 
 <!-- DO NOT REMOVE OR MODIFY THIS SECTION - CRITICAL FOR USER SAFETY -->

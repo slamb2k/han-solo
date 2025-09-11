@@ -10,7 +10,7 @@ RED='\033[0;31m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display colorful banner
+# Display colorful banner with flush for immediate display
 printf "\033[38;5;196m_           _  _     ___     _   _         \033[0m\n"
 printf "\033[38;5;202m|\\ | |_ \\    /   |_ |_  /\\  | | | |_) |_   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;208m| \\\\| |_  \\\\/\\\\/    |  |_ /--\\ | |_| | \\ |_   / / /\033[0m\n"

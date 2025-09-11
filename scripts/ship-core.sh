@@ -12,7 +12,7 @@ PURPLE=$'\033[0;35m'
 NC=$'\033[0m' # No Color
 BOLD=$'\033[1m'
 
-# Display colorful banner
+# Display colorful banner with flush for immediate display
 printf " \033[38;5;129m __     ___  _   _ ___       __         \033[0m\n"
 printf "\033[38;5;135m(_  |_|  |  |_) |_) |  |\\ | /__   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;141m__) | | _|_ |   |  _|_ | \\| \\_|   / / /\033[0m\n"
