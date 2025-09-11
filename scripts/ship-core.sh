@@ -143,11 +143,16 @@ note "🌿 Default branch: $DEFAULT"
 
 # Fetch latest changes
 echo -e "\n${GREEN}Syncing with remote...${NC}"
-# Redirect all output to null and check status separately
-if git fetch --prune --tags >/dev/null 2>&1; then
+# Use timeout to prevent hanging, redirect output to avoid stderr issues
+if timeout 5 git fetch --prune --tags >/dev/null 2>&1; then
   debug "Successfully fetched from remote"
 else
-  warn "Failed to fetch from remote"
+  # Check if it was a timeout or actual failure
+  if [ $? -eq 124 ]; then
+    warn "Git fetch timed out - continuing anyway"
+  else
+    warn "Failed to fetch from remote"
+  fi
 fi
 
 # Get the current branch
