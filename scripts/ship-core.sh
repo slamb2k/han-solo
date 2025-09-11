@@ -143,7 +143,7 @@ note "🌿 Default branch: $DEFAULT"
 
 # Fetch latest changes
 echo -e "\n${GREEN}Syncing with remote...${NC}"
-git fetch --prune --tags || warn "Failed to fetch from remote"
+git fetch --prune --tags 2>&1 || warn "Failed to fetch from remote"
 
 # Get current branch
 CURR_BRANCH="$(git branch --show-current 2>/dev/null || true)"
