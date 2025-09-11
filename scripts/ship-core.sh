@@ -506,31 +506,8 @@ else
   PR_BODY_FILE="/tmp/explicit_body.md"
 fi
 
-# Push branch
-echo -e "\n${GREEN}Pushing to remote...${NC}"
-if git rev-parse --verify --quiet "origin/$CURR_BRANCH" >/dev/null; then
-  # Branch exists on remote, use force-with-lease for safety
-  if git push --force-with-lease origin "$CURR_BRANCH"; then
-    note "⬆️ Pushed with --force-with-lease (safe force)"
-  else
-    fail "Push failed (someone else may have pushed to this branch)"
-    report
-  fi
-else
-  # New branch, regular push
-  if git push -u origin "$CURR_BRANCH"; then
-    note "⬆️ Pushed new branch to origin"
-  else
-    fail "Failed to push branch"
-    report
-  fi
-fi
-
-# Check for existing PR and its state
-echo -e "\n${GREEN}Managing PR...${NC}"
-PR_EXISTS="$(gh pr list --head "$CURR_BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)"
-
-# Check if there's a merged PR for this branch
+# Check if there's already a merged PR for this branch BEFORE pushing
+echo -e "\n${GREEN}Checking PR status...${NC}"
 MERGED_PR="$(gh pr list --head "$CURR_BRANCH" --state merged --json number --jq '.[0].number' 2>/dev/null || true)"
 
 # If we have a merged PR but new commits, we need a new branch
@@ -550,18 +527,16 @@ if [ -n "$MERGED_PR" ]; then
       note "🔄 Creating new branch for follow-up changes: $NEW_BRANCH"
       
       git checkout -b "$NEW_BRANCH"
+      
+      # Save old branch name and switch to new one
+      OLD_BRANCH="$CURR_BRANCH"
       CURR_BRANCH="$NEW_BRANCH"
       
-      # Push the new branch
-      if git push origin "$NEW_BRANCH" --set-upstream >/dev/null 2>&1; then
-        note "📤 Pushed new branch to origin"
-      else
-        fail "Failed to push new branch"
-        report
-      fi
+      # Delete the old local branch to prevent confusion
+      git branch -d "$OLD_BRANCH" 2>/dev/null && note "🧹 Deleted local branch: $OLD_BRANCH" || true
       
-      # Clear PR_EXISTS since we're on a new branch
-      PR_EXISTS=""
+      # We'll push the new branch below, not the old one
+      note "📍 Will push to new branch $CURR_BRANCH instead of $OLD_BRANCH"
     else
       note "✅ No new commits since merge - nothing to ship!"
       git switch "$DEFAULT" >/dev/null 2>&1 || true
@@ -572,6 +547,30 @@ if [ -n "$MERGED_PR" ]; then
     fi
   fi
 fi
+
+# Push branch (now we know which branch to push)
+echo -e "\n${GREEN}Pushing to remote...${NC}"
+if git rev-parse --verify --quiet "origin/$CURR_BRANCH" >/dev/null; then
+  # Branch exists on remote, use force-with-lease for safety
+  if git push --force-with-lease origin "$CURR_BRANCH"; then
+    note "⬆️ Pushed with --force-with-lease (safe force)"
+  else
+    fail "Push failed (someone else may have pushed to this branch)"
+    report
+  fi
+else
+  # New branch, regular push
+  if git push -u origin "$CURR_BRANCH"; then
+    note "⬆️ Pushed new branch to origin"
+  else
+    fail "Failed to push branch"
+    report
+  fi
+fi
+
+# Check for existing PR (open state)
+echo -e "\n${GREEN}Managing PR...${NC}"
+PR_EXISTS="$(gh pr list --head "$CURR_BRANCH" --json number --jq '.[0].number' 2>/dev/null || true)"
 
 if [ -z "$PR_EXISTS" ]; then
   # Create new PR
