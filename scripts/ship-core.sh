@@ -138,34 +138,24 @@ fi
 note "📦 Repository: $OWNER_REPO"
 
 # Get default branch
-echo "DEBUG: Getting default branch..." >&2
 DEFAULT="$(git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p' || echo main)"
-echo "DEBUG: Default branch is: $DEFAULT" >&2
 note "🌿 Default branch: $DEFAULT"
 
 # Fetch latest changes
 echo -e "\n${GREEN}Syncing with remote...${NC}"
-echo "DEBUG: Starting git fetch..." >&2
 # Use timeout to prevent hanging, redirect output to avoid stderr issues
 timeout 5 git fetch --prune --tags >/dev/null 2>&1
 FETCH_EXIT=$?
-echo "DEBUG: Git fetch completed with exit code: $FETCH_EXIT" >&2
-echo "DEBUG: About to check fetch exit code..." >&2
 if [ $FETCH_EXIT -eq 0 ]; then
-  echo "DEBUG: Fetch succeeded, calling debug function..." >&2
   debug "Successfully fetched from remote"
-  echo "DEBUG: Debug function returned..." >&2
 elif [ $FETCH_EXIT -eq 124 ]; then
   warn "Git fetch timed out after 5 seconds - continuing anyway"
 else
   warn "Failed to fetch from remote (exit code: $FETCH_EXIT)"
 fi
-echo "DEBUG: Finished fetch status check..." >&2
 
-echo "DEBUG: Getting current branch..." >&2
 # Get the current branch
 CURR_BRANCH="$(git branch --show-current 2>/dev/null || true)"
-echo "DEBUG: Current branch is: $CURR_BRANCH" >&2
 debug "Current branch: $CURR_BRANCH"
 
 # Handle being on default branch - create feature branch
