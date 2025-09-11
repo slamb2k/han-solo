@@ -24,10 +24,10 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display colorful banner with flush for immediate display
-printf "\033[38;5;226m _     _           ___       __         \033[0m\n"
-printf "\033[38;5;220m/  |  |_  /\\  |\\ |  |  |\\ | /__   \\\\ \\\\ \\\\ \033[0m\n"
-printf "\033[38;5;214m\\_ |_ |_ /--\\ | \\| _|_ | \\| \\_|   / / /\033[0m\n"
+# Display colorful banner with gradient colors
+printf "\033[38;5;196m _    _   _   _   _ _   _  _       _       \033[0m\n"
+printf "\033[38;5;202m(_  / |_)|  ||_)|_) | |\\ |/__   _   _   _  \033[0m\n"
+printf "\033[38;5;208m__) \\_| \\|__||_)|_)_|_| \\|\\_|   /_  /_  /_ \033[0m\n"
 echo
 
 # Get default branch
