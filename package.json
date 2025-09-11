@@ -4,14 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"✅ Tests would happen here\"",
+    "test": "./tests/run-tests.sh all",
+    "test:quick": "./tests/run-tests.sh pre-commit",
+    "test:pre-push": "./tests/run-tests.sh pre-push",
+    "test:ci": "./tests/run-tests.sh ci",
+    "test:regression": "./tests/regression/no-orphaned-branches.test.sh",
     "prepare": "husky",
     "format": "echo \"🧹 Formatting would happen here\"",
     "format:check": "echo \"🧹 Format check would happen here\"",
     "lint": "echo \"🔎 Linting would happen here\"",
     "lint:fix": "echo \"🔎 Lint fix would happen here\"",
     "typecheck": "echo \"🧠 Typechecking would happen here\"",
-    "build": "echo \"🛠️ Building would happen here\""
+    "build": "echo \"🛠️ Building would happen here\"",
+    "validate:commands": "echo \"📋 Validating command definitions\""
   },
   "keywords": [],
   "author": "",

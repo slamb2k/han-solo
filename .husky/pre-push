@@ -3,6 +3,15 @@
 
 echo "🚀 Running pre-push checks..."
 
+# Run Han-Solo specific tests first (fast, < 10 seconds)
+if [ -f "./tests/run-tests.sh" ]; then
+  echo "🧪 Running Han-Solo test suite (pre-push mode)..."
+  ./tests/run-tests.sh pre-push || {
+    echo "❌ Pre-push tests failed. Fix issues before pushing."
+    exit 1
+  }
+fi
+
 # Detect Nx workspace (check for nx.json or proper Nx setup)
 if [ -f nx.json ] || [ -f angular.json ] || [ -f workspace.json ]; then
   echo "🎯 Using Nx affected for fast checks..."
