@@ -14,15 +14,11 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display colorful banner with flush for immediate display
+# Display colorful banner
 printf "\033[38;5;51m__       _  _ ___       _      _  _            \033[0m\n"
 printf "\033[38;5;87m(_   /\\  |_ |_  | \\_/   /  |_| |_ /  |/   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;123m__) /--\\ |  |_  |  |    \\_ | | |_ \\_ |\\   / / /\033[0m\n"
 echo
-# Flush stdout to ensure banner displays immediately
-exec 1>&1
-# Brief pause to let the user see the banner (0.3 seconds)
-sleep 0.3
 
 # Emoji
 CHECK="✅"
