@@ -13,7 +13,7 @@ NC=$'\033[0m' # No Color
 BOLD=$'\033[1m'
 
 # Display colorful banner
-printf "\033[38;5;129m __     ___  _   _ ___       __         \033[0m\n"
+printf " \033[38;5;129m __     ___  _   _ ___       __         \033[0m\n"
 printf "\033[38;5;135m(_  |_|  |  |_) |_) |  |\\ | /__   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;141m__) | | _|_ |   |  _|_ | \\| \\_|   / / /\033[0m\n"
 echo
@@ -27,7 +27,7 @@ declare -a ERR=()
 note() { INFO+=("$1"); echo -e "${GREEN}✓${NC} $1"; }
 warn() { WARN+=("$1"); echo -e "${YELLOW}⚠${NC} $1"; }
 fail() { ERR+=("$1"); echo -e "${RED}✗${NC} $1"; }
-debug() { [ "${DEBUG:-}" = "true" ] && echo -e "${BLUE}🔍${NC} $1"; }
+debug() { [ "${DEBUG:-}" = "true" ] && echo -e "${BLUE}🔍${NC} $1" || true; }
 
 # Final report function
 report() {
@@ -138,25 +138,34 @@ fi
 note "📦 Repository: $OWNER_REPO"
 
 # Get default branch
+echo "DEBUG: Getting default branch..." >&2
 DEFAULT="$(git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p' || echo main)"
+echo "DEBUG: Default branch is: $DEFAULT" >&2
 note "🌿 Default branch: $DEFAULT"
 
 # Fetch latest changes
 echo -e "\n${GREEN}Syncing with remote...${NC}"
+echo "DEBUG: Starting git fetch..." >&2
 # Use timeout to prevent hanging, redirect output to avoid stderr issues
-if timeout 5 git fetch --prune --tags >/dev/null 2>&1; then
+timeout 5 git fetch --prune --tags >/dev/null 2>&1
+FETCH_EXIT=$?
+echo "DEBUG: Git fetch completed with exit code: $FETCH_EXIT" >&2
+echo "DEBUG: About to check fetch exit code..." >&2
+if [ $FETCH_EXIT -eq 0 ]; then
+  echo "DEBUG: Fetch succeeded, calling debug function..." >&2
   debug "Successfully fetched from remote"
+  echo "DEBUG: Debug function returned..." >&2
+elif [ $FETCH_EXIT -eq 124 ]; then
+  warn "Git fetch timed out after 5 seconds - continuing anyway"
 else
-  # Check if it was a timeout or actual failure
-  if [ $? -eq 124 ]; then
-    warn "Git fetch timed out - continuing anyway"
-  else
-    warn "Failed to fetch from remote"
-  fi
+  warn "Failed to fetch from remote (exit code: $FETCH_EXIT)"
 fi
+echo "DEBUG: Finished fetch status check..." >&2
 
+echo "DEBUG: Getting current branch..." >&2
 # Get the current branch
 CURR_BRANCH="$(git branch --show-current 2>/dev/null || true)"
+echo "DEBUG: Current branch is: $CURR_BRANCH" >&2
 debug "Current branch: $CURR_BRANCH"
 
 # Handle being on default branch - create feature branch
@@ -212,12 +221,16 @@ if [ "$STAGED" = "true" ]; then
     git diff --stat
   fi
   
-  # Confirmation prompt
-  echo -e "\n${YELLOW}Continue with shipping staged changes only? [Y/n]:${NC} "
-  read -r CONFIRM
-  if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
-    fail "Ship cancelled by user"
-    report
+  # Confirmation prompt only in interactive mode
+  if [ -t 0 ]; then
+    echo -e "\n${YELLOW}Continue with shipping staged changes only? [Y/n]:${NC} "
+    read -r CONFIRM
+    if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
+      fail "Ship cancelled by user"
+      report
+    fi
+  else
+    echo -e "\n${GREEN}Auto-confirming (non-interactive mode)${NC}"
   fi
   
   # Stash unstaged changes if any exist
@@ -241,12 +254,16 @@ else
     echo -e "${YELLOW}Will commit and ship ALL changes:${NC}"
     git status --short
     
-    # Confirmation prompt
-    echo -e "\n${YELLOW}Continue with shipping ALL changes? [Y/n]:${NC} "
-    read -r CONFIRM
-    if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
-      fail "Ship cancelled by user"
-      report
+    # Confirmation prompt only in interactive mode
+    if [ -t 0 ]; then
+      echo -e "\n${YELLOW}Continue with shipping ALL changes? [Y/n]:${NC} "
+      read -r CONFIRM
+      if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
+        fail "Ship cancelled by user"
+        report
+      fi
+    else
+      echo -e "\n${GREEN}Auto-confirming (non-interactive mode)${NC}"
     fi
     
     echo -e "\n${GREEN}Committing ALL uncommitted changes...${NC}"
