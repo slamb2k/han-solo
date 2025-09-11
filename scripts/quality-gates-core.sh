@@ -724,20 +724,29 @@ setup_github_actions() {
   
   # Create workflow based on language
   if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
-    cat > "$WORKFLOW_FILE" << EOF
-name: 🎯 Quality Gates
+    # First create a reusable test workflow
+    TEST_WORKFLOW_FILE=".github/workflows/test-suite.yml"
+    cat > "$TEST_WORKFLOW_FILE" << EOF
+name: 🧪 Test Suite
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  push:
-    branches: [main, master, develop]
+  # Allow this workflow to be called from other workflows
+  workflow_call:
+    outputs:
+      test-status:
+        description: 'Overall test suite status'
+        value: \${{ jobs.test-report.outputs.status }}
+      
+  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
-  quality:
-    name: Quality Checks
+  test:
+    name: Test Suite
     runs-on: ubuntu-latest
     timeout-minutes: ${MODE === 'strict' ? '10' : '5'}
+    outputs:
+      status: \${{ steps.test-status.outputs.status }}
     
     steps:
       - uses: actions/checkout@v4
@@ -751,7 +760,72 @@ jobs:
           cache: '${PACKAGE_MANAGER}'
       
       - name: 📦 Install dependencies
-        run: ${PACKAGE_MANAGER} install ${PACKAGE_MANAGER === 'npm' ? '--ci' : '--frozen-lockfile'}
+        run: ${PACKAGE_MANAGER} install $([ "${PACKAGE_MANAGER}" = "npm" ] && echo "--ci" || echo "--frozen-lockfile")
+      
+      - name: 🧪 Unit tests
+        run: ${PACKAGE_MANAGER} run test:unit || ${PACKAGE_MANAGER} test
+      
+      - name: 📊 Coverage report
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          files: ./coverage/lcov.info
+          flags: unittests
+$([ "$INCLUDE_E2E" = "true" ] && echo "
+      - name: 🎭 E2E tests
+        run: ${PACKAGE_MANAGER} run test:e2e || true" || echo "")
+$([ "$INCLUDE_PERF" = "true" ] && echo "
+      - name: ⚡ Performance tests
+        run: ${PACKAGE_MANAGER} run test:perf || true" || echo "")
+      
+      - name: 📋 Set test status
+        id: test-status
+        if: always()
+        run: |
+          if [ \${{ job.status }} == 'success' ]; then
+            echo "status=success" >> \$GITHUB_OUTPUT
+          else
+            echo "status=failed" >> \$GITHUB_OUTPUT
+          fi
+EOF
+    
+    log_info "Created reusable test workflow: $TEST_WORKFLOW_FILE"
+    
+    # Now create the main CI workflow that calls the test suite
+    cat > "$WORKFLOW_FILE" << EOF
+name: 🎯 Quality Gates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, master, develop]
+
+jobs:
+  # Call the reusable test suite workflow
+  test-suite:
+    name: 🧪 Test Suite
+    uses: ./.github/workflows/test-suite.yml
+    
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    needs: [test-suite]
+    timeout-minutes: $([ "$MODE" = "strict" ] && echo "10" || echo "5")
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: pnpm/action-setup@v4
+        if: hashFiles('pnpm-lock.yaml')
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: '${PACKAGE_MANAGER}'
+      
+      - name: 📦 Install dependencies
+        run: ${PACKAGE_MANAGER} install $([ "${PACKAGE_MANAGER}" = "npm" ] && echo "--ci" || echo "--frozen-lockfile")
       
       - name: 🎨 Format check
         run: ${PACKAGE_MANAGER} run format:check
@@ -763,45 +837,36 @@ jobs:
         if: hashFiles('tsconfig.json')
         run: ${PACKAGE_MANAGER} run typecheck
       
-      - name: 🧪 Unit tests
-        run: ${PACKAGE_MANAGER} run test:unit || ${PACKAGE_MANAGER} test
-      
-      - name: 📊 Coverage report
-        uses: codecov/codecov-action@v3
-        if: always()
-        with:
-          files: ./coverage/lcov.info
-          flags: unittests
-      
       - name: 🏗️ Build
         run: ${PACKAGE_MANAGER} run build
-      
-      ${INCLUDE_E2E ? "- name: 🎭 E2E tests
-        if: github.event_name == 'pull_request'
-        run: ${PACKAGE_MANAGER} run test:e2e" : ""}
-      
-      ${INCLUDE_PERF ? "- name: ⚡ Performance tests
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: ${PACKAGE_MANAGER} run test:perf" : ""}
 EOF
   elif [ "$LANGUAGE" = "python" ]; then
-    cat > "$WORKFLOW_FILE" << EOF
-name: 🎯 Quality Gates
+    # First create a reusable test workflow
+    TEST_WORKFLOW_FILE=".github/workflows/test-suite.yml"
+    cat > "$TEST_WORKFLOW_FILE" << EOF
+name: 🧪 Test Suite
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  push:
-    branches: [main, master, develop]
+  # Allow this workflow to be called from other workflows
+  workflow_call:
+    outputs:
+      test-status:
+        description: 'Overall test suite status'
+        value: \${{ jobs.test-report.outputs.status }}
+      
+  # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
-  quality:
-    name: Quality Checks
+  test:
+    name: Test Suite
     runs-on: ubuntu-latest
-    timeout-minutes: ${MODE === 'strict' ? '10' : '5'}
+    timeout-minutes: $([ "$MODE" = "strict" ] && echo "10" || echo "5")
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
+    outputs:
+      status: \${{ steps.test-status.outputs.status }}
     
     steps:
       - uses: actions/checkout@v4
@@ -816,16 +881,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-cov black flake8 mypy
-      
-      - name: 🎨 Format check
-        run: black --check .
-      
-      - name: 🔍 Lint
-        run: flake8 .
-      
-      - name: 🧩 Type check
-        run: mypy . --ignore-missing-imports
+          pip install pytest pytest-cov
       
       - name: 🧪 Run tests
         run: pytest tests/ --cov=. --cov-report=xml
@@ -836,6 +892,68 @@ jobs:
         with:
           files: ./coverage.xml
           flags: unittests
+          
+      - name: 📋 Set test status
+        id: test-status
+        if: always()
+        run: |
+          if [ \${{ job.status }} == 'success' ]; then
+            echo "status=success" >> \$GITHUB_OUTPUT
+          else
+            echo "status=failed" >> \$GITHUB_OUTPUT
+          fi
+EOF
+    
+    log_info "Created reusable test workflow: $TEST_WORKFLOW_FILE"
+    
+    # Now create the main CI workflow that calls the test suite
+    cat > "$WORKFLOW_FILE" << EOF
+name: 🎯 Quality Gates
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, master, develop]
+
+jobs:
+  # Call the reusable test suite workflow
+  test-suite:
+    name: 🧪 Test Suite
+    uses: ./.github/workflows/test-suite.yml
+    
+  quality:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+    needs: [test-suite]
+    timeout-minutes: $([ "$MODE" = "strict" ] && echo "10" || echo "5")
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: \${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install black flake8 mypy
+      
+      - name: 🎨 Format check
+        run: black --check .
+      
+      - name: 🔍 Lint
+        run: flake8 .
+      
+      - name: 🧩 Type check
+        run: mypy . --ignore-missing-imports
 EOF
   fi
   

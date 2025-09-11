@@ -1,10 +1,14 @@
 name: 🧪 Test Suite
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-  push:
-    branches: [main]
+  # Allow this workflow to be called from other workflows (like CI)
+  workflow_call:
+    outputs:
+      test-status:
+        description: 'Overall test suite status'
+        value: ${{ jobs.test-report.outputs.status }}
+      
+  # Allow manual trigger
   workflow_dispatch:
 
 jobs:
@@ -154,6 +158,8 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     needs: [quick-checks, regression-tests, integration-tests, performance-tests]
+    outputs:
+      status: ${{ steps.final-status.outputs.status }}
     steps:
       - uses: actions/checkout@v4
       
@@ -200,13 +206,16 @@ jobs:
           echo "- ✅ Performance benchmarks" >> $GITHUB_STEP_SUMMARY
           
       - name: 🚦 Set Final Status
+        id: final-status
         run: |
           if [ "${{ needs.quick-checks.result }}" != "success" ] || \
              [ "${{ needs.regression-tests.result }}" != "success" ] || \
              [ "${{ needs.integration-tests.result }}" != "success" ] || \
              [ "${{ needs.performance-tests.result }}" != "success" ]; then
             echo "❌ Some tests failed"
+            echo "status=failed" >> $GITHUB_OUTPUT
             exit 1
           else
             echo "✅ All tests passed"
+            echo "status=success" >> $GITHUB_OUTPUT
           fi
