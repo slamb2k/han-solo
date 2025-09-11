@@ -55,7 +55,7 @@ fail_check() {
 
 # Helper function for auto-fixing
 auto_fix() {
-    if [ "$AUTO_FIX" = true ]; then
+    if [[ "${AUTO_FIX}" = true ]]; then
         echo -e "${YELLOW}  🔧 Auto-fixing: $1${NC}"
         eval "$2"
         return 0
@@ -68,29 +68,29 @@ auto_fix() {
 # 1. Check if on main branch
 echo -e "${BOLD}1. Branch Check${NC}"
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
-    fail_check "  ${STOP} You're on $CURRENT_BRANCH branch!"
+if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; then
+    fail_check "  ${STOP} You're on ${CURRENT_BRANCH} branch!"
     
     # Check for uncommitted changes
-    if [ -n "$(git status --porcelain)" ]; then
+    if [[ -n "$(git status --porcelain)" ]]; then
         echo -e "  ${INFO} You have uncommitted changes"
         if auto_fix "Creating feature branch with your changes" \
                    "git checkout -b feature/$(date +%Y%m%d-%H%M%S) && CREATED_BRANCH=true"; then
             CREATED_BRANCH=true
             CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-            echo -e "  ${CHECK} Moved to branch: ${GREEN}$CURRENT_BRANCH${NC}"
+            echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
             IS_SAFE=true
         fi
     else
         # Check for unpushed commits
-        UNPUSHED=$(git rev-list HEAD ^origin/"$CURRENT_BRANCH" 2>/dev/null | wc -l || echo "0")
-        if [ "$UNPUSHED" -gt 0 ]; then
-            echo -e "  ${CROSS} You have $UNPUSHED unpushed commits on main!"
+        UNPUSHED=$(git rev-list HEAD ^origin/"${CURRENT_BRANCH}" 2>/dev/null | wc -l || echo "0")
+        if [[ "${UNPUSHED}" -gt 0 ]]; then
+            echo -e "  ${CROSS} You have ${UNPUSHED} unpushed commits on main!"
             if auto_fix "Creating feature branch with your commits" \
                        "git checkout -b feature/$(date +%Y%m%d-%H%M%S) && CREATED_BRANCH=true"; then
                 CREATED_BRANCH=true
                 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-                echo -e "  ${CHECK} Moved to branch: ${GREEN}$CURRENT_BRANCH${NC}"
+                echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
                 IS_SAFE=true
             fi
         else
@@ -99,23 +99,23 @@ if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
         fi
     fi
 else
-    echo -e "  ${CHECK} On feature branch: ${GREEN}$CURRENT_BRANCH${NC}"
+    echo -e "  ${CHECK} On feature branch: ${GREEN}${CURRENT_BRANCH}${NC}"
 fi
 echo ""
 
 # 2. Check for branch conflicts
 echo -e "${BOLD}2. Branch Conflict Check${NC}"
-UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo "")
-if [ -n "$UPSTREAM" ]; then
+UPSTREAM=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo "")
+if [[ -n "${UPSTREAM}" ]]; then
     LOCAL=$(git rev-parse HEAD)
-    REMOTE=$(git rev-parse "$UPSTREAM" 2>/dev/null || echo "")
-    BASE=$(git merge-base HEAD "$UPSTREAM" 2>/dev/null || echo "")
+    REMOTE=$(git rev-parse "${UPSTREAM}" 2>/dev/null || echo "")
+    BASE=$(git merge-base HEAD "${UPSTREAM}" 2>/dev/null || echo "")
     
-    if [ "$LOCAL" != "$REMOTE" ] && [ "$LOCAL" != "$BASE" ] && [ "$REMOTE" != "$BASE" ]; then
+    if [[ "${LOCAL}" != "${REMOTE}" ]] && [[ "${LOCAL}" != "${BASE}" ]] && [[ "${REMOTE}" != "${BASE}" ]]; then
         fail_check "  ${STOP} Branch has diverged from $UPSTREAM!"
         echo -e "  ${THINK} This usually means the branch was already merged"
         echo -e "  ${INFO} Consider creating a fresh branch"
-        if [ "$AUTO_FIX" = true ] && [ "$CREATED_BRANCH" = false ]; then
+        if [[ "${AUTO_FIX}" = true ]] && [[ "${CREATED_BRANCH}" = false ]]; then
             echo -e "  ${YELLOW}Creating fresh branch...${NC}"
             git checkout main 2>/dev/null || git checkout master
             git pull origin main 2>/dev/null || git pull origin master
@@ -133,23 +133,23 @@ echo ""
 
 # 3. Check if branch was already merged
 echo -e "${BOLD}3. Already Merged Check${NC}"
-if [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
+if [[ "${CURRENT_BRANCH}" != "main" ]] && [[ "${CURRENT_BRANCH}" != "master" ]]; then
     # Check against main/master
     MAIN_BRANCH="main"
     if ! git show-ref --verify --quiet refs/remotes/origin/main; then
         MAIN_BRANCH="master"
     fi
     
-    MERGED=$(git branch -r --merged origin/"$MAIN_BRANCH" 2>/dev/null | grep "origin/$CURRENT_BRANCH" || true)
-    if [ -n "$MERGED" ]; then
-        fail_check "  ${STOP} This branch was already merged to $MAIN_BRANCH!"
+    MERGED=$(git branch -r --merged origin/"${MAIN_BRANCH}" 2>/dev/null | grep "origin/${CURRENT_BRANCH}" || true)
+    if [[ -n "${MERGED}" ]]; then
+        fail_check "  ${STOP} This branch was already merged to ${MAIN_BRANCH}!"
         echo -e "  ${THINK} You're trying to ship from an already-merged branch"
         echo -e "  ${INFO} Create a new branch for new work"
-        if [ "$AUTO_FIX" = true ]; then
+        if [[ "${AUTO_FIX}" = true ]]; then
             echo -e "  ${YELLOW}Creating new branch...${NC}"
             NEW_BRANCH="feature/new-$(date +%Y%m%d-%H%M%S)"
-            git checkout -b "$NEW_BRANCH"
-            echo -e "  ${CHECK} Created branch: ${GREEN}$NEW_BRANCH${NC}"
+            git checkout -b "${NEW_BRANCH}"
+            echo -e "  ${CHECK} Created branch: ${GREEN}${NEW_BRANCH}${NC}"
             IS_SAFE=true
         fi
     else
@@ -162,9 +162,9 @@ echo ""
 
 # 4. Check for uncommitted changes
 echo -e "${BOLD}4. Uncommitted Changes Check${NC}"
-if [ -n "$(git status --porcelain)" ]; then
+if [[ -n "$(git status --porcelain)" ]]; then
     CHANGE_COUNT=$(git status --porcelain | wc -l)
-    echo -e "  ${INFO} Found ${YELLOW}$CHANGE_COUNT${NC} uncommitted file(s)"
+    echo -e "  ${INFO} Found ${YELLOW}${CHANGE_COUNT}${NC} uncommitted file(s)"
     echo -e "  ${INFO} /ship will commit these for you"
     git status --short | head -5 | sed 's/^/    /'
 else
@@ -181,24 +181,24 @@ fi
 
 # Check last fetch time
 FETCH_HEAD=".git/FETCH_HEAD"
-if [ -f "$FETCH_HEAD" ]; then
+if [[ -f "${FETCH_HEAD}" ]]; then
     if [[ "$OSTYPE" == "darwin"* ]]; then
-        LAST_FETCH=$(stat -f "%m" "$FETCH_HEAD")
+        LAST_FETCH=$(stat -f "%m" "${FETCH_HEAD}")
     else
-        LAST_FETCH=$(stat -c "%Y" "$FETCH_HEAD")
+        LAST_FETCH=$(stat -c "%Y" "${FETCH_HEAD}")
     fi
     CURRENT_TIME=$(date +%s)
     HOURS_AGO=$(( (CURRENT_TIME - LAST_FETCH) / 3600 ))
     
-    if [ $HOURS_AGO -gt 24 ]; then
-        echo -e "  ${WARN} Repository data is ${YELLOW}$HOURS_AGO hours${NC} old"
+    if [[ ${HOURS_AGO} -gt 24 ]]; then
+        echo -e "  ${WARN} Repository data is ${YELLOW}${HOURS_AGO} hours${NC} old"
         if auto_fix "Fetching latest changes" "git fetch origin"; then
             echo -e "  ${CHECK} Fetched latest changes"
         else
             fail_check "  ${CROSS} Repository is stale"
         fi
     else
-        echo -e "  ${CHECK} Repository is up to date ($HOURS_AGO hours old)"
+        echo -e "  ${CHECK} Repository is up to date (${HOURS_AGO} hours old)"
     fi
 else
     echo -e "  ${INFO} Unable to determine freshness"
@@ -220,7 +220,7 @@ echo ""
 echo -e "${BOLD}7. Safeguards Check${NC}"
 
 # Check for .gitignore
-if [ ! -f .gitignore ]; then
+if [[ ! -f .gitignore ]]; then
     echo -e "  ${WARN} No .gitignore file found"
 fi
 
@@ -234,7 +234,7 @@ for pattern in "${SENSITIVE_PATTERNS[@]}"; do
     fi
 done
 
-if [ "$FOUND_SENSITIVE" = false ]; then
+if [[ "${FOUND_SENSITIVE}" = false ]]; then
     echo -e "  ${CHECK} No obvious sensitive files staged"
 fi
 echo ""
@@ -245,10 +245,10 @@ echo -e "${BOLD}${CYAN}                    Verdict${NC}"
 echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
-if [ "$IS_SAFE" = true ]; then
+if [[ "${IS_SAFE}" = true ]]; then
     echo -e "${BOLD}${GREEN}  ${GO} SAFE TO SHIP!${NC}"
     echo ""
-    echo -e "  Current branch: ${GREEN}$CURRENT_BRANCH${NC}"
+    echo -e "  Current branch: ${GREEN}${CURRENT_BRANCH}${NC}"
     echo -e "  Ready to run: ${BOLD}/ship${NC}"
     echo ""
     echo -e "  ${INFO} After shipping, run: ${GREEN}./scripts/post-ship-cleanup.sh${NC}"
@@ -264,7 +264,7 @@ fi
 echo -e "${BOLD}${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 # Exit code
-if [ "$IS_SAFE" = true ]; then
+if [[ "${IS_SAFE}" = true ]]; then
     exit 0
 else
     exit 1
