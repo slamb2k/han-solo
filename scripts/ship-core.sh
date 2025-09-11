@@ -143,9 +143,19 @@ note "🌿 Default branch: $DEFAULT"
 
 # Fetch latest changes
 echo -e "\n${GREEN}Syncing with remote...${NC}"
-git fetch --prune --tags 2>&1 || warn "Failed to fetch from remote"
+# Use timeout to prevent hanging, redirect output to avoid stderr issues
+if timeout 5 git fetch --prune --tags >/dev/null 2>&1; then
+  debug "Successfully fetched from remote"
+else
+  # Check if it was a timeout or actual failure
+  if [ $? -eq 124 ]; then
+    warn "Git fetch timed out - continuing anyway"
+  else
+    warn "Failed to fetch from remote"
+  fi
+fi
 
-# Get current branch
+# Get the current branch
 CURR_BRANCH="$(git branch --show-current 2>/dev/null || true)"
 debug "Current branch: $CURR_BRANCH"
 
