@@ -23,6 +23,8 @@ echo
 # Configuration
 MODE="${1:-balanced}"
 VERBOSE="${VERBOSE:-false}"
+UPDATE_PLACEHOLDERS="${UPDATE_PLACEHOLDERS:-false}"
+PRESERVE_CUSTOM="${PRESERVE_CUSTOM:-false}"
 
 # Detection results
 LANGUAGE=""
@@ -32,7 +34,9 @@ TEST_FRAMEWORK=""
 HAS_TYPESCRIPT=false
 HAS_EXISTING_TESTS=false
 HAS_EXISTING_CI=false
+HAS_BOOTSTRAP_PLACEHOLDERS=false
 PROJECT_TYPE=""
+CODEBASE_EVOLUTION=""
 
 # Mode settings
 COVERAGE_THRESHOLD=60
@@ -87,6 +91,107 @@ log_section() {
   echo
   echo -e "${BOLD}${CYAN}$1${NC}"
   echo -e "${CYAN}$(printf '%.0s─' {1..50})${NC}"
+}
+
+# Check for bootstrap placeholders
+check_bootstrap_placeholders() {
+  if [ -f ".github/workflows/ci.yml" ]; then
+    if grep -q "PLACEHOLDER:" .github/workflows/ci.yml 2>/dev/null; then
+      HAS_BOOTSTRAP_PLACEHOLDERS=true
+      log_info "Found bootstrap placeholders in CI workflow"
+      
+      # List placeholders found
+      echo -e "${CYAN}  Placeholders detected:${NC}"
+      grep "PLACEHOLDER:" .github/workflows/ci.yml | sed 's/.*PLACEHOLDER:/  - /' | sort -u
+      return 0
+    fi
+  fi
+  return 1
+}
+
+# Detect codebase evolution
+detect_evolution() {
+  local changes=()
+  
+  # Check if project structure changed
+  if [ -d "packages" ] && [ ! -f "lerna.json" ] && [ ! -f "pnpm-workspace.yaml" ]; then
+    changes+=("Potential monorepo structure without configuration")
+  fi
+  
+  # Check if Dockerfile exists but no container CI
+  if [ -f "Dockerfile" ] && [ -f ".github/workflows/ci.yml" ]; then
+    if ! grep -q "docker" .github/workflows/ci.yml 2>/dev/null; then
+      changes+=("Docker support available but not in CI")
+    fi
+  fi
+  
+  # Check if test directories exist but no test config
+  if [ -d "tests" ] || [ -d "__tests__" ] || [ -d "test" ]; then
+    if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
+      if ! grep -q '"test"' package.json 2>/dev/null; then
+        changes+=("Test directories exist but no test script")
+      fi
+    fi
+  fi
+  
+  # Check if deployment configs exist
+  if [ -f "vercel.json" ] || [ -f "netlify.toml" ]; then
+    changes+=("Deployment configuration found")
+  fi
+  
+  if [ ${#changes[@]} -gt 0 ]; then
+    CODEBASE_EVOLUTION="evolved"
+    log_warn "Detected codebase evolution since bootstrap:"
+    for change in "${changes[@]}"; do
+      echo -e "  ${YELLOW}→${NC} $change"
+    done
+    return 0
+  fi
+  
+  return 1
+}
+
+# Present options for major changes
+present_evolution_options() {
+  echo
+  echo -e "${BOLD}${YELLOW}🔄 Significant Project Evolution Detected${NC}"
+  echo
+  echo "Your project has evolved since the initial bootstrap."
+  echo "How would you like to proceed?"
+  echo
+  echo -e "${CYAN}1)${NC} ${BOLD}Full Rebuild${NC} (Recommended)"
+  echo "   - Recreate workflows from scratch based on current structure"
+  echo "   - Ensures optimal configuration for current codebase"
+  echo
+  echo -e "${CYAN}2)${NC} ${BOLD}Incremental Update${NC}"
+  echo "   - Update only the changed components"
+  echo "   - Preserves most existing configurations"
+  echo
+  echo -e "${CYAN}3)${NC} ${BOLD}Fill Placeholders Only${NC}"
+  echo "   - Only replace PLACEHOLDER markers"
+  echo "   - Minimal changes to existing setup"
+  echo
+  
+  read -p "Please choose an option (1/2/3): " choice
+  
+  case "$choice" in
+    1)
+      UPDATE_MODE="rebuild"
+      log_info "Full rebuild selected"
+      ;;
+    2)
+      UPDATE_MODE="incremental"
+      log_info "Incremental update selected"
+      ;;
+    3)
+      UPDATE_MODE="placeholders-only"
+      log_info "Placeholder filling only selected"
+      ;;
+    *)
+      UPDATE_MODE="placeholders-only"
+      log_warn "Invalid choice, defaulting to placeholder filling only"
+      ;;
+  esac
 }
 
 # Detection functions
@@ -709,11 +814,136 @@ EOF
   fi
 }
 
+# Fill placeholders in existing CI workflow
+fill_workflow_placeholders() {
+  local ci_file=".github/workflows/ci.yml"
+  
+  if [ ! -f "$ci_file" ]; then
+    return 1
+  fi
+  
+  log_section "🔧 Filling Bootstrap Placeholders"
+  
+  # Check if test-suite placeholder exists
+  if grep -q "PLACEHOLDER:TEST-SUITE" "$ci_file"; then
+    log_info "Adding test-suite job to workflow"
+    
+    # Create test-suite workflow first
+    create_test_suite_workflow
+    
+    # Add test-suite job reference
+    sed -i '/PLACEHOLDER:TEST-SUITE/,+1d' "$ci_file"
+    sed -i '/^jobs:/a\
+  test-suite:\
+    name: "🧪 Test Suite"\
+    uses: ./.github/workflows/test-suite.yml\
+  ' "$ci_file"
+    
+    # Update build dependencies if placeholder exists
+    if grep -q "PLACEHOLDER:BUILD-DEPENDENCIES" "$ci_file"; then
+      sed -i 's/needs: \[format, lint, typecheck\]/needs: [test-suite, format, lint, typecheck]/' "$ci_file"
+      sed -i '/PLACEHOLDER:BUILD-DEPENDENCIES/d' "$ci_file"
+    fi
+  fi
+  
+  # Fill command placeholders based on detected tools
+  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
+    # Format command
+    if grep -q "PLACEHOLDER:FORMAT-COMMAND" "$ci_file"; then
+      sed -i '/PLACEHOLDER:FORMAT-COMMAND/d' "$ci_file"
+      sed -i 's/run: pnpm run format:check --if-present || pnpm run format --if-present/run: pnpm run format:check/' "$ci_file"
+    fi
+    
+    # Lint command
+    if grep -q "PLACEHOLDER:LINT-COMMAND" "$ci_file"; then
+      sed -i '/PLACEHOLDER:LINT-COMMAND/d' "$ci_file"
+      sed -i 's/run: pnpm run lint --if-present/run: pnpm run lint/' "$ci_file"
+    fi
+    
+    # Typecheck command
+    if [ "$HAS_TYPESCRIPT" = true ] && grep -q "PLACEHOLDER:TYPECHECK-COMMAND" "$ci_file"; then
+      sed -i '/PLACEHOLDER:TYPECHECK-COMMAND/d' "$ci_file"
+      sed -i 's/run: pnpm run typecheck --if-present/run: pnpm run typecheck/' "$ci_file"
+    fi
+    
+    # Build command
+    if grep -q "PLACEHOLDER:BUILD-COMMAND" "$ci_file"; then
+      sed -i '/PLACEHOLDER:BUILD-COMMAND/d' "$ci_file"
+      sed -i 's/run: pnpm run build --if-present/run: pnpm run build/' "$ci_file"
+    fi
+  fi
+  
+  log_info "Placeholders filled successfully"
+}
+
+# Create reusable test suite workflow
+create_test_suite_workflow() {
+  local test_file=".github/workflows/test-suite.yml"
+  
+  if [ -f "$test_file" ]; then
+    log_warn "test-suite.yml already exists, skipping"
+    return
+  fi
+  
+  log_info "Creating reusable test-suite workflow"
+  
+  cat > "$test_file" << 'EOF'
+name: 🧪 Test Suite
+
+on:
+  workflow_call:
+    outputs:
+      test-status:
+        description: 'Overall test suite status'
+        value: ${{ jobs.test.outputs.status }}
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      status: ${{ steps.test-status.outputs.status }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        if: hashFiles('pnpm-lock.yaml')
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: 🧪 Run tests
+        run: pnpm test
+        
+      - name: 📋 Set test status
+        id: test-status
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+EOF
+}
+
 # Create GitHub Actions workflow
 setup_github_actions() {
   log_section "🔄 Setting up GitHub Actions CI/CD"
   
   mkdir -p .github/workflows
+  
+  # Check for placeholders first
+  if [ "$HAS_BOOTSTRAP_PLACEHOLDERS" = true ]; then
+    fill_workflow_placeholders
+    return
+  fi
   
   # Determine workflow filename
   WORKFLOW_FILE=".github/workflows/quality-gates.yml"
@@ -1155,10 +1385,20 @@ generate_report() {
 main() {
   echo -e "${BOLD}${CYAN}Starting Quality Gates Setup...${NC}"
   
+  # Check for bootstrap placeholders first
+  check_bootstrap_placeholders
+  
   # Run detection
   detect_language
   detect_package_manager
   detect_existing_setup
+  
+  # Check for codebase evolution
+  if [ "$HAS_BOOTSTRAP_PLACEHOLDERS" = false ]; then
+    if detect_evolution; then
+      present_evolution_options
+    fi
+  fi
   
   # Validate detection
   if [ "$LANGUAGE" = "unknown" ]; then

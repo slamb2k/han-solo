@@ -174,18 +174,26 @@ tests/
 This command delegates to the quality-gates-guardian agent for comprehensive setup.
 
 When invoked, use the Task tool with:
-- **subagent_type**: "quality-setup"
+- **subagent_type**: "quality-gates-guardian"
 - **description**: "Set up quality gates"
 - **prompt**: Include the mode (--minimal, --balanced, or --strict) and ask the agent to:
-  1. Analyze the codebase to detect languages and frameworks
-  2. Set up appropriate testing frameworks with real tests (no placeholders)
-  3. Configure linting and formatting tools
-  4. Update Husky hooks for pre-commit and pre-push validation
-  5. Create or enhance GitHub Actions workflows
-  6. Ensure all "echo" placeholder scripts are replaced with real commands
-  7. Provide a comprehensive report of changes
+  1. Check for existing bootstrap setup and placeholders
+  2. Analyze the codebase to detect languages and frameworks
+  3. Detect any evolution since bootstrap was run
+  4. Fill workflow placeholders or update existing workflows
+  5. Set up appropriate testing frameworks with real tests (no placeholders)
+  6. Configure linting and formatting tools
+  7. Update Husky hooks for pre-commit and pre-push validation
+  8. Create or enhance GitHub Actions workflows
+  9. If major changes detected, present options to the user
+  10. Ensure all "echo" placeholder scripts are replaced with real commands
+  11. Provide a comprehensive report of changes
 
-The agent will handle all the complex logic for detecting and configuring the appropriate tools for the user's specific tech stack.
+The agent will handle all the complex logic for:
+- Detecting and filling bootstrap placeholders
+- Identifying codebase evolution requiring user decisions
+- Configuring the appropriate tools for the user's specific tech stack
+- Maintaining consistency with bootstrap patterns
 
 ## Success Metrics
 
