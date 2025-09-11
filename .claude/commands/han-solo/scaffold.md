@@ -1,8 +1,8 @@
 ---
 name: /han-solo:scaffold
-description: "Intelligently scaffold your repository with modular DevOps workflows, branch protection, and release automation"
+description: "Intelligently scaffold your repository with modular DevOps workflows, testing, and release automation"
 requires_args: false
-argument-hint: "[--refresh | --minimal | --full]"
+argument-hint: "[--testing | --release | --refresh | --minimal | --full]"
 allowed-tools:
   - Task
 ---
@@ -16,8 +16,14 @@ Create a flexible, maintainable DevOps foundation using modular, reusable workfl
 
 ## Usage
 ```bash
-# Initial scaffold - full analysis and setup
+# Initial scaffold - basic DevOps infrastructure
 /scaffold
+
+# Configure testing in reusable-test.yml
+/scaffold --testing
+
+# Configure releases in reusable-release.yml
+/scaffold --release
 
 # Refresh existing scaffold with detected changes
 /scaffold --refresh
@@ -25,17 +31,32 @@ Create a flexible, maintainable DevOps foundation using modular, reusable workfl
 # Minimal setup - essentials only
 /scaffold --minimal
 
-# Full setup - all features
+# Full setup - scaffold + testing + release
 /scaffold --full
 ```
 
 ## What It Does
 
-### 1. **Project Analysis** (via scaffold-agent)
+### Base Mode (no arguments)
+**Project Analysis** (via scaffold-agent)
 - Detects languages, frameworks, and build tools
 - Identifies project type (library, application, monorepo)
-- Discovers existing CI/CD configurations
-- Analyzes testing frameworks and deployment targets
+- Creates modular workflow structure
+- Sets up branch protection and repository settings
+
+### Testing Mode (--testing)
+**Test Configuration** (via scaffold-agent + scaffold-test.sh)
+- Detects test frameworks (Jest, Vitest, pytest, etc.)
+- Identifies test types (unit, integration, e2e)
+- Analyzes coverage tools and requirements
+- Configures reusable-test.yml with actual implementation
+
+### Release Mode (--release)
+**Release Configuration** (via scaffold-agent + scaffold-release.sh)
+- Detects deployment targets (npm, Docker, cloud)
+- Identifies versioning strategies
+- Analyzes release requirements
+- Configures reusable-release.yml with actual implementation
 
 ### 2. **Interactive Planning**
 - Presents analysis findings
@@ -146,7 +167,8 @@ jobs:
 
 ### Test Workflow
 - Initially a placeholder
-- Will be implemented by `/test-setup` command
+- Configured by `/scaffold --testing`
+- Detects and integrates existing test frameworks
 
 ### Build Workflow
 - Actual implementation based on build tools
@@ -154,24 +176,63 @@ jobs:
 
 ### Release Workflow
 - Initially a placeholder
-- Will be implemented by `/release-setup` command
+- Configured by `/scaffold --release`
+- Supports npm, Docker, GitHub releases, cloud deployments
 
 ## Implementation Details
 
 Uses the Task tool with:
 - **subagent_type**: "scaffold-agent"
 - **description**: "Scaffold repository"
-- **prompt**: Includes mode and asks agent to:
-  1. Analyze the codebase thoroughly
+- **prompt**: Includes mode (base/testing/release) and asks agent to:
+  1. Analyze the codebase for the specific mode
   2. Present findings to user
   3. Offer appropriate options
   4. Get user confirmation
-  5. Delegate to scaffold-core.sh for execution
-  6. Create modular, reusable workflows
-  7. Report what was created
+  5. Delegate to appropriate script:
+     - scaffold-core.sh (base infrastructure)
+     - scaffold-test.sh (testing configuration)
+     - scaffold-release.sh (release configuration)
+  6. Update reusable workflows as needed
+  7. Report what was created/modified
+
+## Modes of Operation
+
+### Standard Scaffold
+```bash
+/scaffold
+```
+Creates base infrastructure with placeholder test/release workflows.
+
+### Testing Configuration
+```bash
+/scaffold --testing
+```
+Analyzes testing needs and configures reusable-test.yml:
+- Unit test runners
+- Integration test setup
+- Coverage reporting
+- Test matrices (OS, versions)
+
+### Release Configuration
+```bash
+/scaffold --release
+```
+Analyzes deployment needs and configures reusable-release.yml:
+- NPM publishing
+- Docker image building
+- GitHub releases
+- Cloud deployments
+
+### Full Setup
+```bash
+/scaffold --full
+```
+Runs all three modes sequentially:
+1. Base scaffold
+2. Testing configuration
+3. Release configuration
 
 ## Related Commands
-- `/test-setup` - Configure the test workflow
-- `/release-setup` - Configure the release workflow
 - `/quality-gates` - Add additional quality checks
 - `/ship` - Ship code through the scaffold
