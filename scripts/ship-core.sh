@@ -143,9 +143,14 @@ note "🌿 Default branch: $DEFAULT"
 
 # Fetch latest changes
 echo -e "\n${GREEN}Syncing with remote...${NC}"
-git fetch --prune --tags 2>&1 || warn "Failed to fetch from remote"
+# Redirect all output to null and check status separately
+if git fetch --prune --tags >/dev/null 2>&1; then
+  debug "Successfully fetched from remote"
+else
+  warn "Failed to fetch from remote"
+fi
 
-# Get current branch
+# Get the current branch
 CURR_BRANCH="$(git branch --show-current 2>/dev/null || true)"
 debug "Current branch: $CURR_BRANCH"
 
