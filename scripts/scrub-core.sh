@@ -25,7 +25,7 @@ NC='\033[0m'
 BOLD='\033[1m'
 
 # Display colorful banner with flush for immediate display
-printf "\033[38;5;226m_     _           ___       __         \033[0m\n"
+printf "\033[38;5;226m _     _           ___       __         \033[0m\n"
 printf "\033[38;5;220m/  |  |_  /\\  |\\ |  |  |\\ | /__   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;214m\\_ |_ |_ /--\\ | \\| _|_ | \\| \\_|   / / /\033[0m\n"
 echo
@@ -89,10 +89,15 @@ PRESERVED=0
 PRESERVED_BRANCHES=()
 
 # Clean up remote branches
-REMOTE_COUNT=$(git branch -r | grep -v HEAD | grep -v main | grep -v master | wc -l)
+REMOTE_BRANCHES=$(git branch -r | grep -v HEAD | grep -v main | grep -v master || true)
+REMOTE_COUNT=0
+if [ -n "$REMOTE_BRANCHES" ]; then
+  REMOTE_COUNT=$(echo "$REMOTE_BRANCHES" | wc -l)
+fi
 echo "✓ Found $REMOTE_COUNT remote branches to check"
 
-for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); do
+if [ -n "$REMOTE_BRANCHES" ]; then
+  for branch in $REMOTE_BRANCHES; do
   BRANCH_NAME="${branch#origin/}"
   
   # Check PR status
@@ -118,7 +123,7 @@ for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); d
         else
           git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1 && {
             echo -e "${GREEN}🗑️ Deleted squash-merged remote: $BRANCH_NAME (PR #$MERGED_PR)${NC}"
-            ((REMOTE_DELETED++))
+            REMOTE_DELETED=$((REMOTE_DELETED + 1))
           }
         fi
         continue
@@ -133,13 +138,13 @@ for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); d
         else
           git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1 && {
             echo -e "${RED}🗑️ Force deleted: $BRANCH_NAME (PR #$MERGED_PR, $UNMERGED commits lost!)${NC}"
-            ((REMOTE_DELETED++))
+            REMOTE_DELETED=$((REMOTE_DELETED + 1))
           }
         fi
       elif [ "$QUIET" = true ]; then
         # Skip in quiet mode
         PRESERVED_BRANCHES+=("$BRANCH_NAME ($UNMERGED commits)")
-        ((PRESERVED++))
+        PRESERVED=$((PRESERVED + 1))
       else
         # Ask user
         echo -e "\n${YELLOW}⚠️ Branch $BRANCH_NAME has $UNMERGED unmerged commit(s) but PR #$MERGED_PR was merged${NC}"
@@ -154,13 +159,13 @@ for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); d
           else
             git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1 && {
               echo -e "${GREEN}🗑️ Deleted: $BRANCH_NAME${NC}"
-              ((REMOTE_DELETED++))
+              REMOTE_DELETED=$((REMOTE_DELETED + 1))
             }
           fi
         else
           echo -e "${BLUE}⏭️ Preserved $BRANCH_NAME${NC}"
           PRESERVED_BRANCHES+=("$BRANCH_NAME ($UNMERGED commits)")
-          ((PRESERVED++))
+          PRESERVED=$((PRESERVED + 1))
         fi
       fi
     else
@@ -170,18 +175,24 @@ for branch in $(git branch -r | grep -v HEAD | grep -v main | grep -v master); d
       else
         git push origin --delete "$BRANCH_NAME" >/dev/null 2>&1 && {
           echo -e "${GREEN}🗑️ Deleted orphaned remote: $BRANCH_NAME (PR #$MERGED_PR)${NC}"
-          ((REMOTE_DELETED++))
+          REMOTE_DELETED=$((REMOTE_DELETED + 1))
         }
       fi
     fi
   fi
-done
+  done
+fi
 
 # Clean up local branches
-LOCAL_COUNT=$(git branch | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master | wc -l)
+LOCAL_BRANCHES=$(git branch | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master || true)
+LOCAL_COUNT=0
+if [ -n "$LOCAL_BRANCHES" ]; then
+  LOCAL_COUNT=$(echo "$LOCAL_BRANCHES" | wc -l)
+fi
 echo "✓ Found $LOCAL_COUNT local branches to check"
 
-for branch in $(git branch | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master); do
+if [ -n "$LOCAL_BRANCHES" ]; then
+  for branch in $LOCAL_BRANCHES; do
   BRANCH_NAME="$(echo "$branch" | xargs)"
   
   # Check if fully merged
@@ -192,7 +203,7 @@ for branch in $(git branch | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master
     else
       git branch -d "$BRANCH_NAME" >/dev/null 2>&1 && {
         echo -e "${GREEN}🧹 Deleted local branch: $BRANCH_NAME${NC}"
-        ((LOCAL_DELETED++))
+        LOCAL_DELETED=$((LOCAL_DELETED + 1))
       }
     fi
   else
@@ -209,7 +220,7 @@ for branch in $(git branch | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master
         else
           git branch -D "$BRANCH_NAME" >/dev/null 2>&1 && {
             echo -e "${GREEN}🧹 Deleted squash-merged local: $BRANCH_NAME${NC}"
-            ((LOCAL_DELETED++))
+            LOCAL_DELETED=$((LOCAL_DELETED + 1))
           }
         fi
         continue
@@ -224,7 +235,7 @@ for branch in $(git branch | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master
         else
           git branch -D "$BRANCH_NAME" >/dev/null 2>&1 && {
             echo -e "${RED}🗑️ Force deleted local: $BRANCH_NAME ($UNMERGED commits lost!)${NC}"
-            ((LOCAL_DELETED++))
+            LOCAL_DELETED=$((LOCAL_DELETED + 1))
           }
         fi
       elif [ "$QUIET" = false ]; then
@@ -240,21 +251,22 @@ for branch in $(git branch | grep -v "^\*" | grep -v "$DEFAULT" | grep -v master
           else
             git branch -D "$BRANCH_NAME" >/dev/null 2>&1 && {
               echo -e "${GREEN}🗑️ Deleted local: $BRANCH_NAME${NC}"
-              ((LOCAL_DELETED++))
+              LOCAL_DELETED=$((LOCAL_DELETED + 1))
             }
           fi
         else
           echo -e "${BLUE}⏭️ Preserved $BRANCH_NAME${NC}"
           PRESERVED_BRANCHES+=("$BRANCH_NAME (local, $UNMERGED commits)")
-          ((PRESERVED++))
+          PRESERVED=$((PRESERVED + 1))
         fi
       else
         PRESERVED_BRANCHES+=("$BRANCH_NAME (local, $UNMERGED commits)")
-        ((PRESERVED++))
+        PRESERVED=$((PRESERVED + 1))
       fi
     fi
   fi
-done
+  done
+fi
 
 # Report summary
 echo -e "\n${GREEN}📊 Cleanup Summary:${NC}"
