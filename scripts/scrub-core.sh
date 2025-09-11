@@ -24,12 +24,10 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display figlet-style banner (no colors)
-printf " .aMMMb  dMP     dMMMMMP .aMMMb  dMMMMb  dMP dMMMMb  .aMMMMP\n"
-printf "dMP\"VMP dMP     dMP     dMP\"dMP dMP dMP amr dMP dMP dMP\"\n"
-printf "dMP     dMP     dMMMP   dMMMMMP dMP dMP dMP dMP dMP dMP MMP\"\n"
-printf "dMP.aMP dMP     dMP     dMP dMP dMP dMP dMP dMP dMP dMP.dMP\n"
-printf " VMMMP\" dMMMMMP dMMMMMP dMP dMP dMP dMP dMP dMP dMP  VMMMP\"\n"
+# Display banner
+printf "_     _           ___       __         \n"
+printf "/  |  |_  /\\  |\\ |  |  |\\ | /__   \\\\ \\\\ \\\\ \n"
+printf "\\_ |_ |_ /--\\ | \\| _|_ | \\| \\_|   / / /\n"
 echo
 
 # Get default branch

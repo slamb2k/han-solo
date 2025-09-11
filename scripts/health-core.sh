@@ -27,12 +27,10 @@ FIRE="🔥"
 HEALTH_SCORE=100
 ISSUES_FOUND=0
 
-# Display figlet-style banner (no colors)
-printf "dMP dMP dMMMMMP .aMMMb  dMP     dMMMMMMP dMP dMP     .aMMMb  dMP dMP dMMMMMP .aMMMb  dMP  dMP\n"
-printf "dMP dMP dMP     dMP\"dMP dMP        dMP   dMP dMP    dMP\"VMP dMP dMP dMP     dMP\"VMP dMP .dMP\n"
-printf "dMMMMMP dMMMP   dMMMMMP dMP        dMP   dMMMMMP    dMP     dMMMMMP dMMMP   dMP     dMMMMK\"\n"
-printf "dMP dMP dMP     dMP dMP dMP        dMP   dMP dMP    dMP.aMP dMP dMP dMP     dMP.aMP dMP\"AMF\n"
-printf "dMP dMP dMMMMMP dMP dMP dMMMMMP    dMP   dMP dMP     VMMMP\" dMP dMP dMMMMMP  VMMMP\" dMP dMP\n"
+# Display banner
+printf "_        ___       _      _  _            \n"
+printf "|_| |_  /\\  |  | |_|   /  |_| |_ /  |/   \\\\ \\\\ \\\\ \n"
+printf "| | |_ /--\\ |_ | | |   \\_ | | |_ \\_ |\\   / / /\n"
 echo
 
 # Function to reduce health score

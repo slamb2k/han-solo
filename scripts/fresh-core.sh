@@ -10,12 +10,10 @@ RED='\033[0;31m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display figlet-style banner (no colors)
-printf "dMMMMb  dMMMMMP dMP dMP dMP    dMMMMMP dMMMMMP .aMMMb dMMMMMMP dMP dMP dMMMMb  dMMMMMP\n"
-printf "   dMP dMP     dMP dMP dMP     dMP     dMP     dMP\"dMP   dMP   dMP dMP dMP.dMP dMP\n"
-printf "  dMP dMMMP   dMP dMP dMP     dMMMP   dMMMP   dMMMMMP   dMP   dMP dMP dMMMMK\" dMMMP\n"
-printf " dMP dMP     dMP.dMP.dMP     dMP     dMP     dMP dMP   dMP   dMP.aMP dMP\"AMF dMP\n"
-printf "dMP dMMMMMP  VMMMPVMMP\"     dMP     dMMMMMP dMP dMP   dMP    VMMMP\" dMP dMP dMMMMMP\n"
+# Display banner
+printf "_           _  _     ___     _   _         \n"
+printf "|\\ | |_ \\    /   |_ |_  /\\  | | | |_) |_   \\\\ \\\\ \\\\ \n"
+printf "| \\\\| |_  \\\\/\\\\/    |  |_ /--\\ | |_| | \\ |_   / / /\n"
 echo
 
 # Parse branch name argument
