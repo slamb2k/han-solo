@@ -13,7 +13,7 @@ NC=$'\033[0m' # No Color
 BOLD=$'\033[1m'
 
 # Display colorful banner
-printf "\033[38;5;129m __     ___  _   _ ___       __         \033[0m\n"
+printf " \033[38;5;129m __     ___  _   _ ___       __         \033[0m\n"
 printf "\033[38;5;135m(_  |_|  |  |_) |_) |  |\\ | /__   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;141m__) | | _|_ |   |  _|_ | \\| \\_|   / / /\033[0m\n"
 echo
@@ -27,7 +27,7 @@ declare -a ERR=()
 note() { INFO+=("$1"); echo -e "${GREEN}✓${NC} $1"; }
 warn() { WARN+=("$1"); echo -e "${YELLOW}⚠${NC} $1"; }
 fail() { ERR+=("$1"); echo -e "${RED}✗${NC} $1"; }
-debug() { [ "${DEBUG:-}" = "true" ] && echo -e "${BLUE}🔍${NC} $1"; }
+debug() { [ "${DEBUG:-}" = "true" ] && echo -e "${BLUE}🔍${NC} $1" || true; }
 
 # Final report function
 report() {
@@ -144,15 +144,14 @@ note "🌿 Default branch: $DEFAULT"
 # Fetch latest changes
 echo -e "\n${GREEN}Syncing with remote...${NC}"
 # Use timeout to prevent hanging, redirect output to avoid stderr issues
-if timeout 5 git fetch --prune --tags >/dev/null 2>&1; then
+timeout 5 git fetch --prune --tags >/dev/null 2>&1
+FETCH_EXIT=$?
+if [ $FETCH_EXIT -eq 0 ]; then
   debug "Successfully fetched from remote"
+elif [ $FETCH_EXIT -eq 124 ]; then
+  warn "Git fetch timed out after 5 seconds - continuing anyway"
 else
-  # Check if it was a timeout or actual failure
-  if [ $? -eq 124 ]; then
-    warn "Git fetch timed out - continuing anyway"
-  else
-    warn "Failed to fetch from remote"
-  fi
+  warn "Failed to fetch from remote (exit code: $FETCH_EXIT)"
 fi
 
 # Get the current branch
@@ -212,12 +211,16 @@ if [ "$STAGED" = "true" ]; then
     git diff --stat
   fi
   
-  # Confirmation prompt
-  echo -e "\n${YELLOW}Continue with shipping staged changes only? [Y/n]:${NC} "
-  read -r CONFIRM
-  if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
-    fail "Ship cancelled by user"
-    report
+  # Confirmation prompt only in interactive mode
+  if [ -t 0 ]; then
+    echo -e "\n${YELLOW}Continue with shipping staged changes only? [Y/n]:${NC} "
+    read -r CONFIRM
+    if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
+      fail "Ship cancelled by user"
+      report
+    fi
+  else
+    echo -e "\n${GREEN}Auto-confirming (non-interactive mode)${NC}"
   fi
   
   # Stash unstaged changes if any exist
@@ -241,12 +244,16 @@ else
     echo -e "${YELLOW}Will commit and ship ALL changes:${NC}"
     git status --short
     
-    # Confirmation prompt
-    echo -e "\n${YELLOW}Continue with shipping ALL changes? [Y/n]:${NC} "
-    read -r CONFIRM
-    if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
-      fail "Ship cancelled by user"
-      report
+    # Confirmation prompt only in interactive mode
+    if [ -t 0 ]; then
+      echo -e "\n${YELLOW}Continue with shipping ALL changes? [Y/n]:${NC} "
+      read -r CONFIRM
+      if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
+        fail "Ship cancelled by user"
+        report
+      fi
+    else
+      echo -e "\n${GREEN}Auto-confirming (non-interactive mode)${NC}"
     fi
     
     echo -e "\n${GREEN}Committing ALL uncommitted changes...${NC}"
