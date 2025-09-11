@@ -115,8 +115,47 @@ done
 if [ "$CHECK_MODE" = "true" ]; then
   if [ -f "./scripts/ship-check.sh" ]; then
     echo -e "${BLUE}Running pre-ship safety check...${NC}"
+    
+    # Temporarily disable errexit to capture exit code
+    set +e
     ./scripts/ship-check.sh "$@"
-    exit $?
+    CHECK_RESULT=$?
+    set -e
+    
+    if [ $CHECK_RESULT -ne 0 ]; then
+      echo -e "\n${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+      echo -e "${YELLOW}                Resolution Steps${NC}"
+      echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+      
+      # Check if on main branch
+      CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+      if [ "$CURRENT_BRANCH" = "main" ] || [ "$CURRENT_BRANCH" = "master" ]; then
+        echo -e "\n${BOLD}Issue: You're on the main branch${NC}"
+        echo -e "\n${GREEN}Resolution Options:${NC}"
+        echo -e "  1. Create a feature branch: ${CYAN}/fresh feature-name${NC}"
+        echo -e "     Then run: ${CYAN}/ship${NC}"
+        echo -e "\n  2. Let ship create a branch: ${CYAN}/ship --branch-name feature-name${NC}"
+        echo -e "\n  ℹ️  Recommended: Use option 1 for cleaner workflow${NC}"
+      fi
+      
+      # Check for merge conflicts
+      if git status --porcelain | grep -q "^UU"; then
+        echo -e "\n${BOLD}Issue: Merge conflicts detected${NC}"
+        echo -e "\n${GREEN}Resolution:${NC}"
+        echo -e "  1. Resolve conflicts in the marked files"
+        echo -e "  2. Stage resolved files: ${CYAN}git add <files>${NC}"
+        echo -e "  3. Continue shipping: ${CYAN}/ship${NC}"
+      fi
+      
+      echo -e "\n${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+      echo -e "\nℹ️  After resolving issues, run ${CYAN}/ship${NC} to continue"
+    else
+      echo -e "\n${GREEN}✅ All checks passed! Ready to ship.${NC}"
+      echo -e "ℹ️  Run ${CYAN}/ship${NC} to proceed"
+    fi
+    
+    # Always exit 0 for check mode - it's informational
+    exit 0
   else
     warn "ship-check.sh not found, skipping safety check"
   fi
