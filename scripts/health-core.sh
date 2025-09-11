@@ -32,10 +32,6 @@ printf "\033[38;5;46m_        ___       _      _  _            \033[0m\n"
 printf "\033[38;5;82m|_| |_  /\\  |  | |_|   /  |_| |_ /  |/   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;118m| | |_ /--\\ |_ | | |   \\_ | | |_ \\_ |\\   / / /\033[0m\n"
 echo
-# Flush stdout to ensure banner displays immediately
-exec 1>&1
-# Brief pause to let the user see the banner (0.3 seconds)
-sleep 0.3
 
 # Function to reduce health score
 reduce_health() {

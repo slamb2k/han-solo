@@ -17,10 +17,6 @@ printf " \033[38;5;129m __     ___  _   _ ___       __         \033[0m\n"
 printf "\033[38;5;135m(_  |_|  |  |_) |_) |  |\\ | /__   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;141m__) | | _|_ |   |  _|_ | \\| \\_|   / / /\033[0m\n"
 echo
-# Flush stdout to ensure banner displays immediately
-exec 1>&1
-# Brief pause to let the user see the banner (0.5 seconds)
-sleep 0.5
 
 # Report arrays - initialize as empty arrays
 declare -a INFO=()

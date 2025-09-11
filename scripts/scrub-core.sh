@@ -29,10 +29,6 @@ printf "\033[38;5;226m_     _           ___       __         \033[0m\n"
 printf "\033[38;5;220m/  |  |_  /\\  |\\ |  |  |\\ | /__   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;214m\\_ |_ |_ /--\\ | \\| _|_ | \\| \\_|   / / /\033[0m\n"
 echo
-# Flush stdout to ensure banner displays immediately
-exec 1>&1
-# Brief pause to let the user see the banner (0.3 seconds)
-sleep 0.3
 
 # Get default branch
 DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo 'main')

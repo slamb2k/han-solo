@@ -15,10 +15,6 @@ printf "\033[38;5;196m_           _  _     ___     _   _         \033[0m\n"
 printf "\033[38;5;202m|\\ | |_ \\    /   |_ |_  /\\  | | | |_) |_   \\\\ \\\\ \\\\ \033[0m\n"
 printf "\033[38;5;208m| \\\\| |_  \\\\/\\\\/    |  |_ /--\\ | |_| | \\ |_   / / /\033[0m\n"
 echo
-# Flush stdout to ensure banner displays immediately
-exec 1>&1
-# Brief pause to let the user see the banner (0.3 seconds)
-sleep 0.3
 
 # Parse branch name argument
 BRANCH_NAME="${1:-feature/$(date +%Y-%m-%d-%H%M%S)}"
