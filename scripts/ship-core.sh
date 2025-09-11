@@ -12,10 +12,10 @@ PURPLE=$'\033[0;35m'
 NC=$'\033[0m' # No Color
 BOLD=$'\033[1m'
 
-# Display banner
-printf "__     ___  _   _ ___       __         \n"
-printf "(_  |_|  |  |_) |_) |  |\\ | /__   \\\\ \\\\ \\\\ \n"
-printf "__) | | _|_ |   |  _|_ | \\| \\_|   / / /\n"
+# Display colorful banner
+printf "\033[38;5;129m__     ___  _   _ ___       __         \033[0m\n"
+printf "\033[38;5;135m(_  |_|  |  |_) |_) |  |\\ | /__   \\\\ \\\\ \\\\ \033[0m\n"
+printf "\033[38;5;141m__) | | _|_ |   |  _|_ | \\| \\_|   / / /\033[0m\n"
 echo
 
 # Report arrays - initialize as empty arrays

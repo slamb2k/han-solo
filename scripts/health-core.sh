@@ -27,10 +27,10 @@ FIRE="🔥"
 HEALTH_SCORE=100
 ISSUES_FOUND=0
 
-# Display banner
-printf "_        ___       _      _  _            \n"
-printf "|_| |_  /\\  |  | |_|   /  |_| |_ /  |/   \\\\ \\\\ \\\\ \n"
-printf "| | |_ /--\\ |_ | | |   \\_ | | |_ \\_ |\\   / / /\n"
+# Display colorful banner
+printf "\033[38;5;46m_        ___       _      _  _            \033[0m\n"
+printf "\033[38;5;82m|_| |_  /\\  |  | |_|   /  |_| |_ /  |/   \\\\ \\\\ \\\\ \033[0m\n"
+printf "\033[38;5;118m| | |_ /--\\ |_ | | |   \\_ | | |_ \\_ |\\   / / /\033[0m\n"
 echo
 
 # Function to reduce health score
