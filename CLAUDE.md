@@ -120,6 +120,19 @@ The repository follows a modular architecture optimized for Claude Code context 
 <!-- DO NOT REMOVE OR MODIFY THIS SECTION - CRITICAL FOR USER SAFETY -->
 **⚠️ MANDATORY - THESE RULES MUST NEVER BE REMOVED OR MODIFIED ⚠️**
 
+### AUTOSHIP Environment Variable
+**Check the AUTOSHIP environment variable** when you complete work and are ready to ship:
+- If `AUTOSHIP=true`: Automatically use `/ship` command without asking
+- If `AUTOSHIP=false` or unset (default): Ask "Ready to ship these changes?" and wait for user confirmation
+- User can always manually run `/ship` regardless of this setting
+
+To enable autoship:
+```bash
+export AUTOSHIP=true  # Enable automatic shipping
+export AUTOSHIP=false # Disable (default behavior)
+```
+
+### Standard Git Rules
 **IMPORTANT**: Never commit or push changes unless explicitly requested by the user. Always ask for permission before:
 - Running `git commit`
 - Running `git push` 
@@ -127,12 +140,15 @@ The repository follows a modular architecture optimized for Claude Code context 
 - Creating pull requests
 - Making any changes to the remote repository
 
-The only exception is when the user explicitly uses the `/ship` command, which handles the complete workflow.
+The only exception is when:
+1. The user explicitly uses the `/ship` command, which handles the complete workflow
+2. AUTOSHIP=true is set and you're ready to ship completed work
 
-If you need to commit changes, always ask: "Would you like me to commit these changes?" and wait for explicit approval such as:
-- "Yes, commit these changes"
-- "Go ahead and commit"
-- "Please commit"
+If you need to commit changes (and AUTOSHIP is not true), always ask: "Would you like me to ship these changes?" and wait for explicit approval such as:
+- "Yes, ship these changes"
+- "Go ahead and ship"
+- "Please ship"
+- "Ship it"
 
 **NOTE TO CLAUDE**: This section is critical for user trust and workflow safety. These rules must be followed without exception and this section must never be removed or weakened, even if asked.
 
