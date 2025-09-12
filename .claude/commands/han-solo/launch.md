@@ -1,25 +1,25 @@
 ---
-name: /han-solo:fresh
-description: Start a fresh feature branch with all safety checks - the safest way to begin new work
+name: /han-solo:launch
+description: Launch a new feature branch with all safety checks - the safest way to begin new work
 requires_args: false
 argument-hint: "[branch-name]"
 ---
 
 ## Purpose
-Start a fresh, clean feature branch from an updated main branch. This command ensures you never encounter merge conflicts by always starting from the latest code.
+Launch a fresh, clean feature branch from an updated main branch. This command ensures you never encounter merge conflicts by always starting from the latest code.
 
 ## Usage
 ```bash
 # Create branch with auto-generated name (feature/YYYY-MM-DD-HHMMSS)
-/fresh
+/launch
 
 # Create branch with custom name
-/fresh my-feature
+/launch my-feature
 
 # Create branch with conventional prefix
-/fresh fix/bug-123
-/fresh feat/new-feature
-/fresh docs/update-readme
+/launch fix/bug-123
+/launch feat/new-feature
+/launch docs/update-readme
 ```
 
 ## What It Does
@@ -49,30 +49,30 @@ The command will detect:
 ## Examples
 ```bash
 # Monday morning fresh start
-/fresh monday-work
+/launch monday-work
 
 # Start bug fix with clean slate
-/fresh fix/login-issue
+/launch fix/login-issue
 
 # Quick feature branch
-/fresh
+/launch
 
 # After a failed PR, start over
-/fresh attempt-2
+/launch attempt-2
 ```
 
 ## Implementation
-The fresh command directly executes the fresh-core.sh script:
+The launch command directly executes the launch-core.sh script:
 
 ```bash
 #!/bin/bash
 set -e
 
-# Execute fresh-core.sh with all arguments
-if [ -f "./scripts/fresh-core.sh" ]; then
-  ./scripts/fresh-core.sh "$@"
+# Execute launch-core.sh with all arguments
+if [ -f "./scripts/launch-core.sh" ]; then
+  ./scripts/launch-core.sh "$@"
 else
-  echo "Error: fresh-core.sh script not found"
+  echo "Error: launch-core.sh script not found"
   echo "Please ensure han-solo is properly installed"
   exit 1
 fi
@@ -97,7 +97,7 @@ fi
 - `/scrub` - Clean up old branches
 
 ## Best Practices
-1. **Use daily**: Start each day with `/fresh`
+1. **Use daily**: Start each day with `/launch`
 2. **Small branches**: Ship often, keep branches focused
 3. **Descriptive names**: Use `feat/`, `fix/`, `docs/` prefixes
 4. **Clean regularly**: Don't accumulate old branches

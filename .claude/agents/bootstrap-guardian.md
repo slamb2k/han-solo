@@ -17,7 +17,7 @@ You are "bootstrap-guardian", a focused ops agent for repository bootstrapping w
 - **Approvals**: 0 (solo mode - PRs required but no human review needed)
 - **Branch**: Auto-detected origin default (fallback to `main`)
 - **Hooks**: Install both `pre-commit` and `pre-push`
-- **Required checks**: 🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build
+- **Required checks**: 🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build, plus comprehensive test suite
 - **Repo toggles**: Auto-merge = on, Auto-delete merged branches = on
 
 ## Environment Variables & Flags
@@ -153,7 +153,8 @@ note "👤 Mode: $([ "$SOLO" = true ] && echo 'Solo (fast-path)' || echo 'Team (
 note "🪝 Hook installation: $HOOK"
 
 # Define required check contexts (emoji names match CI job names exactly)
-REQ_CONTEXTS='["🧹 Format","🔎 Lint","🧠 Typecheck","🛠️ Build"]'
+# Including test suite checks for comprehensive validation
+REQ_CONTEXTS='["🧹 Format","🔎 Lint","🧠 Typecheck","🛠️ Build","🧪 Test Suite / 🔍 Quick Checks","🧪 Test Suite / 🔄 Regression Tests","🧪 Test Suite / 🔗 Integration Tests (ubuntu-latest)","🧪 Test Suite / 🔗 Integration Tests (macos-latest)","🧪 Test Suite / ⚡ Performance Tests","🧪 Test Suite / 📊 Test Report"]'
 
 # ----- Repository Settings (do this early) -----
 echo -e "\n${GREEN}Configuring repository settings...${NC}"
@@ -326,6 +327,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # PLACEHOLDER:TEST-SUITE
+  # quality-gates-guardian will insert test-suite job here if tests are detected
+  
   format:
     name: "🧹 Format"
     runs-on: ubuntu-latest
@@ -338,6 +342,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: "Check formatting ✨"
+        # PLACEHOLDER:FORMAT-COMMAND - quality-gates will update based on detected formatter
         run: pnpm run format:check --if-present || pnpm run format --if-present
 
   lint:
@@ -352,6 +357,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: "Run linting 🧪"
+        # PLACEHOLDER:LINT-COMMAND - quality-gates will update based on detected linter
         run: pnpm run lint --if-present
 
   typecheck:
@@ -366,11 +372,13 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: "Type checking 🧩"
+        # PLACEHOLDER:TYPECHECK-COMMAND - quality-gates will update based on detected type system
         run: pnpm run typecheck --if-present
 
   build:
     name: "🛠️ Build"
     runs-on: ubuntu-latest
+    # PLACEHOLDER:BUILD-DEPENDENCIES - quality-gates will update if test-suite is added
     needs: [format, lint, typecheck]
     outputs:
       project-type: $PROJECT_TYPE
@@ -384,6 +392,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - name: "Building project 🏗️"
+        # PLACEHOLDER:BUILD-COMMAND - quality-gates will update based on detected build tool
         run: pnpm run build --if-present
       - name: "Upload build artifacts"
         if: success()
@@ -689,7 +698,7 @@ if ! git diff --cached --quiet; then
   git commit -m "chore: bootstrap repo governance 🚀
 
 - Branch protection with strict checks (solo mode: $REVIEWS reviews)
-- Required checks: 🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build
+- Required checks: 🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build, plus comprehensive test suite
 - Auto-merge and auto-delete branches enabled
 - Husky hooks configured: $HOOK
 - CI workflow with PR-only triggers and deployment ($DEPLOY_TARGET)
@@ -710,7 +719,7 @@ This PR sets up repository governance with modern CI/CD and deployment automatio
 
 ### Changes
 - 🏗️ CI workflow with:
-  - Emoji-named jobs (🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build)
+  - Emoji-named jobs (🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build) + comprehensive test suite
   - PR-only triggers (no feature branch noise)
   - Smart deployment detection: **$DEPLOY_TARGET** strategy
   - GitHub releases for automated deployments
@@ -841,7 +850,7 @@ fi
 if echo "$REQ_CONTEXTS" | gh api -X PUT \
   "repos/${OWNER_REPO}/branches/${BRANCH}/protection/required_status_checks/contexts" \
   --input - >/dev/null 2>&1; then
-  note "✅ Required checks configured: 🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build"
+  note "✅ Required checks configured: 🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build + Test Suite"
 else
   fail "Failed to set required check contexts"
 fi

@@ -196,7 +196,7 @@ esac
 - Repository status information visible when enabled
 
 ## Related Commands
-- `/fresh` - Start new work with clean branch
+- `/launch` - Start new work with clean branch
 - `/ship` - Ship your changes
 - `/health` - Check repository health
 

@@ -13,16 +13,14 @@ NC='\033[0m'
 BOLD='\033[1m'
 
 # Display colorful banner
-printf "${MAGENTA} ___       _   _  _          ___      _           ${NC}\n"
-printf "${CYAN}/ _ \\ _  _| |_| |(_)_ _ _  _ / __|__ _| |_ ___ ___ ${NC}\n"
-printf "${BLUE}\\_, | || | '_| || |  _| || | \\__ \\/ _\` |  _/ -_|_-< ${NC}\n"
-printf "${GREEN}  /_/\\_,_|_| |_||_|_| \\_, | |___/\\__,_|\\__\\___/__/ ${NC}\n"
-printf "${GREEN}                      |__/                          ${NC}\n"
-echo
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${SCRIPT_DIR}/block-text.sh" -s "QUALITY GATES"
 
 # Configuration
 MODE="${1:-balanced}"
 VERBOSE="${VERBOSE:-false}"
+UPDATE_PLACEHOLDERS="${UPDATE_PLACEHOLDERS:-false}"
+PRESERVE_CUSTOM="${PRESERVE_CUSTOM:-false}"
 
 # Detection results
 LANGUAGE=""
@@ -32,7 +30,9 @@ TEST_FRAMEWORK=""
 HAS_TYPESCRIPT=false
 HAS_EXISTING_TESTS=false
 HAS_EXISTING_CI=false
+HAS_BOOTSTRAP_PLACEHOLDERS=false
 PROJECT_TYPE=""
+CODEBASE_EVOLUTION=""
 
 # Mode settings
 COVERAGE_THRESHOLD=60
@@ -41,7 +41,7 @@ INCLUDE_E2E=false
 INCLUDE_PERF=false
 
 # Apply mode settings
-case "$MODE" in
+case "${MODE}" in
   --minimal|minimal)
     MODE="minimal"
     COVERAGE_THRESHOLD=0
@@ -89,17 +89,118 @@ log_section() {
   echo -e "${CYAN}$(printf '%.0s─' {1..50})${NC}"
 }
 
+# Check for bootstrap placeholders
+check_bootstrap_placeholders() {
+  if [[ -f ".github/workflows/ci.yml" ]]; then
+    if grep -q "PLACEHOLDER:" .github/workflows/ci.yml 2>/dev/null; then
+      HAS_BOOTSTRAP_PLACEHOLDERS=true
+      log_info "Found bootstrap placeholders in CI workflow"
+      
+      # List placeholders found
+      echo -e "${CYAN}  Placeholders detected:${NC}"
+      grep "PLACEHOLDER:" .github/workflows/ci.yml | sed 's/.*PLACEHOLDER:/  - /' | sort -u
+      return 0
+    fi
+  fi
+  return 1
+}
+
+# Detect codebase evolution
+detect_evolution() {
+  local changes=()
+  
+  # Check if project structure changed
+  if [[ -d "packages" ]] && [[ ! -f "lerna.json" ]] && [[ ! -f "pnpm-workspace.yaml" ]]; then
+    changes+=("Potential monorepo structure without configuration")
+  fi
+  
+  # Check if Dockerfile exists but no container CI
+  if [[ -f "Dockerfile" ]] && [[ -f ".github/workflows/ci.yml" ]]; then
+    if ! grep -q "docker" .github/workflows/ci.yml 2>/dev/null; then
+      changes+=("Docker support available but not in CI")
+    fi
+  fi
+  
+  # Check if test directories exist but no test config
+  if [[ -d "tests" ]] || [[ -d "__tests__" ]] || [[ -d "test" ]]; then
+    if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
+      if ! grep -q '"test"' package.json 2>/dev/null; then
+        changes+=("Test directories exist but no test script")
+      fi
+    fi
+  fi
+  
+  # Check if deployment configs exist
+  if [[ -f "vercel.json" ]] || [[ -f "netlify.toml" ]]; then
+    changes+=("Deployment configuration found")
+  fi
+  
+  if [[ ${#changes[@]} -gt 0 ]]; then
+    CODEBASE_EVOLUTION="evolved"
+    log_warn "Detected codebase evolution since bootstrap:"
+    for change in "${changes[@]}"; do
+      echo -e "  ${YELLOW}→${NC} $change"
+    done
+    return 0
+  fi
+  
+  return 1
+}
+
+# Present options for major changes
+present_evolution_options() {
+  echo
+  echo -e "${BOLD}${YELLOW}🔄 Significant Project Evolution Detected${NC}"
+  echo
+  echo "Your project has evolved since the initial bootstrap."
+  echo "How would you like to proceed?"
+  echo
+  echo -e "${CYAN}1)${NC} ${BOLD}Full Rebuild${NC} (Recommended)"
+  echo "   - Recreate workflows from scratch based on current structure"
+  echo "   - Ensures optimal configuration for current codebase"
+  echo
+  echo -e "${CYAN}2)${NC} ${BOLD}Incremental Update${NC}"
+  echo "   - Update only the changed components"
+  echo "   - Preserves most existing configurations"
+  echo
+  echo -e "${CYAN}3)${NC} ${BOLD}Fill Placeholders Only${NC}"
+  echo "   - Only replace PLACEHOLDER markers"
+  echo "   - Minimal changes to existing setup"
+  echo
+  
+  read -p "Please choose an option (1/2/3): " choice
+  
+  case "$choice" in
+    1)
+      UPDATE_MODE="rebuild"
+      log_info "Full rebuild selected"
+      ;;
+    2)
+      UPDATE_MODE="incremental"
+      log_info "Incremental update selected"
+      ;;
+    3)
+      UPDATE_MODE="placeholders-only"
+      log_info "Placeholder filling only selected"
+      ;;
+    *)
+      UPDATE_MODE="placeholders-only"
+      log_warn "Invalid choice, defaulting to placeholder filling only"
+      ;;
+  esac
+}
+
 # Detection functions
 detect_language() {
   log_section "🔍 Detecting Language & Framework"
   
   # Check for Node.js/JavaScript/TypeScript
-  if [ -f "package.json" ]; then
+  if [[ -f "package.json" ]]; then
     LANGUAGE="javascript"
     log_info "Found package.json - Node.js project detected"
     
     # Check for TypeScript
-    if [ -f "tsconfig.json" ] || grep -q '"typescript"' package.json 2>/dev/null; then
+    if [[ -f "tsconfig.json" ]] || grep -q '"typescript"' package.json 2>/dev/null; then
       HAS_TYPESCRIPT=true
       LANGUAGE="typescript"
       log_info "TypeScript configuration found"
@@ -133,11 +234,11 @@ detect_language() {
     fi
     
   # Check for Python
-  elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
+  elif [[ -f "requirements.txt" ]] || [[ -f "pyproject.toml" ]] || [[ -f "setup.py" ]]; then
     LANGUAGE="python"
     log_info "Python project detected"
     
-    if [ -f "manage.py" ] || grep -q "django" requirements.txt 2>/dev/null; then
+    if [[ -f "manage.py" ]] || grep -q "django" requirements.txt 2>/dev/null; then
       FRAMEWORK="django"
       PROJECT_TYPE="fullstack"
       log_info "Django framework detected"
@@ -156,23 +257,23 @@ detect_language() {
     fi
     
   # Check for Go
-  elif [ -f "go.mod" ]; then
+  elif [[ -f "go.mod" ]]; then
     LANGUAGE="go"
     FRAMEWORK="go"
     PROJECT_TYPE="backend"
     log_info "Go project detected"
     
   # Check for Rust
-  elif [ -f "Cargo.toml" ]; then
+  elif [[ -f "Cargo.toml" ]]; then
     LANGUAGE="rust"
     FRAMEWORK="rust"
     PROJECT_TYPE="backend"
     log_info "Rust project detected"
     
   # Check for Ruby
-  elif [ -f "Gemfile" ]; then
+  elif [[ -f "Gemfile" ]]; then
     LANGUAGE="ruby"
-    if [ -f "config/application.rb" ]; then
+    if [[ -f "config/application.rb" ]]; then
       FRAMEWORK="rails"
       PROJECT_TYPE="fullstack"
       log_info "Ruby on Rails project detected"
@@ -189,25 +290,25 @@ detect_language() {
 }
 
 detect_package_manager() {
-  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
-    if [ -f "pnpm-lock.yaml" ]; then
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
+    if [[ -f "pnpm-lock.yaml" ]]; then
       PACKAGE_MANAGER="pnpm"
       log_info "Package manager: pnpm"
-    elif [ -f "yarn.lock" ]; then
+    elif [[ -f "yarn.lock" ]]; then
       PACKAGE_MANAGER="yarn"
       log_info "Package manager: yarn"
-    elif [ -f "package-lock.json" ]; then
+    elif [[ -f "package-lock.json" ]]; then
       PACKAGE_MANAGER="npm"
       log_info "Package manager: npm"
     else
       PACKAGE_MANAGER="npm"
       log_info "Package manager: npm (default)"
     fi
-  elif [ "$LANGUAGE" = "python" ]; then
-    if [ -f "Pipfile" ]; then
+  elif [[ "${LANGUAGE}" = "python" ]]; then
+    if [[ -f "Pipfile" ]]; then
       PACKAGE_MANAGER="pipenv"
       log_info "Package manager: pipenv"
-    elif [ -f "poetry.lock" ]; then
+    elif [[ -f "poetry.lock" ]]; then
       PACKAGE_MANAGER="poetry"
       log_info "Package manager: poetry"
     else
@@ -219,23 +320,23 @@ detect_package_manager() {
 
 detect_existing_setup() {
   # Check for existing tests
-  if [ -d "tests" ] || [ -d "test" ] || [ -d "__tests__" ] || [ -d "spec" ]; then
+  if [[ -d "tests" ]] || [[ -d "test" ]] || [[ -d "__tests__" ]] || [[ -d "spec" ]]; then
     HAS_EXISTING_TESTS=true
     log_info "Existing test directory found"
   fi
   
   # Check for existing CI
-  if [ -f ".github/workflows/ci.yml" ] || [ -f ".github/workflows/test.yml" ] || [ -f ".gitlab-ci.yml" ] || [ -f ".circleci/config.yml" ]; then
+  if [[ -f ".github/workflows/ci.yml" ]] || [[ -f ".github/workflows/test.yml" ]] || [[ -f ".gitlab-ci.yml" ]] || [[ -f ".circleci/config.yml" ]]; then
     HAS_EXISTING_CI=true
     log_info "Existing CI configuration found"
   fi
   
   # Check for test framework
-  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
-    if [ -f "jest.config.js" ] || [ -f "jest.config.ts" ] || grep -q '"jest"' package.json 2>/dev/null; then
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
+    if [[ -f "jest.config.js" ]] || [[ -f "jest.config.ts" ]] || grep -q '"jest"' package.json 2>/dev/null; then
       TEST_FRAMEWORK="jest"
       log_info "Jest test framework detected"
-    elif [ -f "vitest.config.js" ] || [ -f "vitest.config.ts" ] || grep -q '"vitest"' package.json 2>/dev/null; then
+    elif [[ -f "vitest.config.js" ]] || [[ -f "vitest.config.ts" ]] || grep -q '"vitest"' package.json 2>/dev/null; then
       TEST_FRAMEWORK="vitest"
       log_info "Vitest test framework detected"
     elif grep -q '"mocha"' package.json 2>/dev/null; then
@@ -250,8 +351,8 @@ setup_javascript_quality() {
   log_section "📦 Setting up JavaScript/TypeScript Quality Gates"
   
   # Determine test framework
-  if [ -z "$TEST_FRAMEWORK" ]; then
-    if [ "$FRAMEWORK" = "nextjs" ] || [ "$FRAMEWORK" = "react" ]; then
+  if [[ -z "${TEST_FRAMEWORK}" ]]; then
+    if [[ "${FRAMEWORK}" = "nextjs" ]] || [[ "${FRAMEWORK}" = "react" ]]; then
       TEST_FRAMEWORK="jest"
       log_info "Selected Jest for React/Next.js testing"
     else
@@ -262,15 +363,15 @@ setup_javascript_quality() {
   
   # Create test directories
   mkdir -p tests/unit tests/integration
-  if [ "$INCLUDE_E2E" = true ]; then
+  if [[ "${INCLUDE_E2E}" = true ]]; then
     mkdir -p tests/e2e
   fi
-  if [ "$INCLUDE_PERF" = true ]; then
+  if [[ "${INCLUDE_PERF}" = true ]]; then
     mkdir -p tests/performance
   fi
   
   # Generate Jest config if needed
-  if [ "$TEST_FRAMEWORK" = "jest" ] && [ ! -f "jest.config.js" ]; then
+  if [[ "${TEST_FRAMEWORK}" = "jest" ]] && [[ ! -f "jest.config.js" ]]; then
     cat > jest.config.js << EOF
 /** @type {import('jest').Config} */
 module.exports = {
@@ -308,7 +409,7 @@ EOF
   fi
   
   # Generate Vitest config if needed
-  if [ "$TEST_FRAMEWORK" = "vitest" ] && [ ! -f "vitest.config.js" ] && [ ! -f "vitest.config.ts" ]; then
+  if [[ "${TEST_FRAMEWORK}" = "vitest" ]] && [[ ! -f "vitest.config.js" ]] && [[ ! -f "vitest.config.ts" ]]; then
     cat > vitest.config.js << EOF
 import { defineConfig } from 'vitest/config';
 
@@ -340,8 +441,8 @@ EOF
   fi
   
   # Create test setup file
-  if [ ! -f "tests/setup.js" ]; then
-    if [ "$FRAMEWORK" = "react" ]; then
+  if [[ ! -f "tests/setup.js" ]]; then
+    if [[ "${FRAMEWORK}" = "react" ]]; then
       cat > tests/setup.js << 'EOF'
 // Test setup file
 import '@testing-library/jest-dom';
@@ -371,36 +472,36 @@ EOF
   fi
   
   # Create .eslintrc.js if not exists
-  if [ ! -f ".eslintrc.js" ] && [ ! -f ".eslintrc.json" ]; then
+  if [[ ! -f ".eslintrc.js" ]] && [[ ! -f ".eslintrc.json" ]]; then
     # Determine browser environment
     BROWSER_ENV="true"
-    if [ "$PROJECT_TYPE" = "backend" ]; then
+    if [[ "${PROJECT_TYPE}" = "backend" ]]; then
       BROWSER_ENV="false"
     fi
     
     # Determine jest environment
     JEST_ENV="false"
-    if [ "$TEST_FRAMEWORK" = "jest" ]; then
+    if [[ "${TEST_FRAMEWORK}" = "jest" ]]; then
       JEST_ENV="true"
     fi
     
     # Build extends array
     EXTENDS="'eslint:recommended',"
-    if [ "$HAS_TYPESCRIPT" = true ]; then
-      EXTENDS="$EXTENDS 'plugin:@typescript-eslint/recommended',"
+    if [[ "${HAS_TYPESCRIPT}" = true ]]; then
+      EXTENDS="${EXTENDS} 'plugin:@typescript-eslint/recommended',"
     fi
-    if [ "$FRAMEWORK" = "react" ]; then
-      EXTENDS="$EXTENDS 'plugin:react/recommended', 'plugin:react-hooks/recommended',"
+    if [[ "${FRAMEWORK}" = "react" ]]; then
+      EXTENDS="${EXTENDS} 'plugin:react/recommended', 'plugin:react-hooks/recommended',"
     fi
-    if [ "$FRAMEWORK" = "nextjs" ]; then
-      EXTENDS="$EXTENDS 'next/core-web-vitals',"
+    if [[ "${FRAMEWORK}" = "nextjs" ]]; then
+      EXTENDS="${EXTENDS} 'next/core-web-vitals',"
     fi
-    EXTENDS="$EXTENDS 'prettier'"
+    EXTENDS="${EXTENDS} 'prettier'"
     
     # Determine console rule
     CONSOLE_RULE="'warn'"
     UNUSED_RULE="'warn'"
-    if [ "$MODE" = "strict" ]; then
+    if [[ "${MODE}" = "strict" ]]; then
       CONSOLE_RULE="'error'"
       UNUSED_RULE="'error'"
     fi
@@ -409,17 +510,17 @@ EOF
 module.exports = {
   root: true,
   env: {
-    browser: $BROWSER_ENV,
+    browser: ${BROWSER_ENV},
     node: true,
     es2021: true,
-    jest: $JEST_ENV
+    jest: ${JEST_ENV}
   },
   extends: [
-    $EXTENDS
+    ${EXTENDS}
   ],
 EOF
     
-    if [ "$HAS_TYPESCRIPT" = true ]; then
+    if [[ "${HAS_TYPESCRIPT}" = true ]]; then
       cat >> .eslintrc.js << EOF
   parser: '@typescript-eslint/parser',
 EOF
@@ -431,7 +532,7 @@ EOF
     sourceType: 'module'
 EOF
     
-    if [ "$FRAMEWORK" = "react" ] || [ "$FRAMEWORK" = "nextjs" ]; then
+    if [[ "${FRAMEWORK}" = "react" ]] || [[ "${FRAMEWORK}" = "nextjs" ]]; then
       cat >> .eslintrc.js << EOF
 ,
     ecmaFeatures: { jsx: true }
@@ -442,7 +543,7 @@ EOF
   },
 EOF
     
-    if [ "$HAS_TYPESCRIPT" = true ]; then
+    if [[ "${HAS_TYPESCRIPT}" = true ]]; then
       cat >> .eslintrc.js << EOF
   plugins: ['@typescript-eslint'],
 EOF
@@ -450,13 +551,13 @@ EOF
     
     cat >> .eslintrc.js << EOF
   rules: {
-    'no-console': $CONSOLE_RULE,
+    'no-console': ${CONSOLE_RULE},
     'no-debugger': 'error',
-    'no-unused-vars': $UNUSED_RULE
+    'no-unused-vars': ${UNUSED_RULE}
 EOF
     
-    if [ "$HAS_TYPESCRIPT" = true ]; then
-      if [ "$MODE" = "strict" ]; then
+    if [[ "${HAS_TYPESCRIPT}" = true ]]; then
+      if [[ "${MODE}" = "strict" ]]; then
         cat >> .eslintrc.js << EOF
 ,
     '@typescript-eslint/no-explicit-any': 'error',
@@ -479,7 +580,7 @@ EOF
   fi
   
   # Create .prettierrc if not exists
-  if [ ! -f ".prettierrc" ] && [ ! -f ".prettierrc.json" ]; then
+  if [[ ! -f ".prettierrc" ]] && [[ ! -f ".prettierrc.json" ]]; then
     cat > .prettierrc << EOF
 {
   "semi": true,
@@ -497,7 +598,7 @@ EOF
   fi
   
   # Update TypeScript config for strict mode if needed
-  if [ "$HAS_TYPESCRIPT" = true ] && [ "$MODE" = "strict" ] && [ -f "tsconfig.json" ]; then
+  if [[ "${HAS_TYPESCRIPT}" = true ]] && [[ "${MODE}" = "strict" ]] && [[ -f "tsconfig.json" ]]; then
     # This would need more sophisticated JSON editing in real implementation
     log_info "TypeScript strict mode would be enabled (requires JSON editing)"
   fi
@@ -509,7 +610,7 @@ setup_python_quality() {
   
   # Create test directories
   mkdir -p tests/unit tests/integration
-  if [ "$INCLUDE_E2E" = true ]; then
+  if [[ "${INCLUDE_E2E}" = true ]]; then
     mkdir -p tests/e2e
   fi
   
@@ -547,7 +648,7 @@ EOF
   log_info "Created .flake8"
   
   # Create pyproject.toml sections for tools
-  if [ ! -f "pyproject.toml" ]; then
+  if [[ ! -f "pyproject.toml" ]]; then
     cat > pyproject.toml << EOF
 [tool.black]
 line-length = 100
@@ -573,7 +674,7 @@ setup_husky_hooks() {
   log_section "🪝 Setting up Git Hooks with Husky"
   
   # Initialize Husky if not already done
-  if [ ! -d ".husky" ]; then
+  if [[ ! -d ".husky" ]]; then
     npx husky init 2>/dev/null || npm exec --yes -- husky init
     log_info "Initialized Husky"
   fi
@@ -588,7 +689,7 @@ echo "🚀 Running pre-commit checks..."
 # Fast checks only (< 1 second target)
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR)
 
-if [ -n "$STAGED_FILES" ]; then
+if [[ -n "${STAGED_FILES}" ]]; then
   # Run formatters on staged files
   if command -v npx >/dev/null 2>&1; then
     npx lint-staged 2>/dev/null || true
@@ -620,14 +721,14 @@ START_TIME=$(date +%s)
 check_time() {
   CURRENT_TIME=$(date +%s)
   ELAPSED=$((CURRENT_TIME - START_TIME))
-  if [ $ELAPSED -gt 10 ]; then
+  if [[ ${ELAPSED} -gt 10 ]]; then
     echo "⚠️  Pre-push checks taking too long (${ELAPSED}s)"
     echo "   Consider running with --no-verify to skip"
   fi
 }
 
 # Run quality checks based on detected language
-if [ -f "package.json" ]; then
+if [[ -f "package.json" ]]; then
   # JavaScript/TypeScript checks
   echo "📦 Running JavaScript quality checks..."
   
@@ -646,7 +747,7 @@ if [ -f "package.json" ]; then
   }
   check_time
   
-elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
+elif [[ -f "requirements.txt" ]] || [[ -f "pyproject.toml" ]]; then
   # Python checks
   echo "🐍 Running Python quality checks..."
   
@@ -666,7 +767,7 @@ elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
   fi
   check_time
   
-elif [ -f "go.mod" ]; then
+elif [[ -f "go.mod" ]]; then
   # Go checks
   echo "🐹 Running Go quality checks..."
   
@@ -688,8 +789,8 @@ EOF
   log_info "Created pre-push hook"
   
   # Create lint-staged config if JavaScript project
-  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
-    if [ ! -f ".lintstagedrc.json" ]; then
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
+    if [[ ! -f ".lintstagedrc.json" ]]; then
       cat > .lintstagedrc.json << EOF
 {
   "*.{js,jsx,ts,tsx}": [
@@ -709,24 +810,149 @@ EOF
   fi
 }
 
+# Fill placeholders in existing CI workflow
+fill_workflow_placeholders() {
+  local ci_file=".github/workflows/ci.yml"
+  
+  if [[ ! -f "$ci_file" ]]; then
+    return 1
+  fi
+  
+  log_section "🔧 Filling Bootstrap Placeholders"
+  
+  # Check if test-suite placeholder exists
+  if grep -q "PLACEHOLDER:TEST-SUITE" "$ci_file"; then
+    log_info "Adding test-suite job to workflow"
+    
+    # Create test-suite workflow first
+    create_test_suite_workflow
+    
+    # Add test-suite job reference
+    sed -i '/PLACEHOLDER:TEST-SUITE/,+1d' "$ci_file"
+    sed -i '/^jobs:/a\
+  test-suite:\
+    name: "🧪 Test Suite"\
+    uses: ./.github/workflows/test-suite.yml\
+  ' "$ci_file"
+    
+    # Update build dependencies if placeholder exists
+    if grep -q "PLACEHOLDER:BUILD-DEPENDENCIES" "$ci_file"; then
+      sed -i 's/needs: \[format, lint, typecheck\]/needs: [test-suite, format, lint, typecheck]/' "$ci_file"
+      sed -i '/PLACEHOLDER:BUILD-DEPENDENCIES/d' "$ci_file"
+    fi
+  fi
+  
+  # Fill command placeholders based on detected tools
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
+    # Format command
+    if grep -q "PLACEHOLDER:FORMAT-COMMAND" "$ci_file"; then
+      sed -i '/PLACEHOLDER:FORMAT-COMMAND/d' "$ci_file"
+      sed -i 's/run: pnpm run format:check --if-present || pnpm run format --if-present/run: pnpm run format:check/' "$ci_file"
+    fi
+    
+    # Lint command
+    if grep -q "PLACEHOLDER:LINT-COMMAND" "$ci_file"; then
+      sed -i '/PLACEHOLDER:LINT-COMMAND/d' "$ci_file"
+      sed -i 's/run: pnpm run lint --if-present/run: pnpm run lint/' "$ci_file"
+    fi
+    
+    # Typecheck command
+    if [[ "${HAS_TYPESCRIPT}" = true ]] && grep -q "PLACEHOLDER:TYPECHECK-COMMAND" "$ci_file"; then
+      sed -i '/PLACEHOLDER:TYPECHECK-COMMAND/d' "$ci_file"
+      sed -i 's/run: pnpm run typecheck --if-present/run: pnpm run typecheck/' "$ci_file"
+    fi
+    
+    # Build command
+    if grep -q "PLACEHOLDER:BUILD-COMMAND" "$ci_file"; then
+      sed -i '/PLACEHOLDER:BUILD-COMMAND/d' "$ci_file"
+      sed -i 's/run: pnpm run build --if-present/run: pnpm run build/' "$ci_file"
+    fi
+  fi
+  
+  log_info "Placeholders filled successfully"
+}
+
+# Create reusable test suite workflow
+create_test_suite_workflow() {
+  local test_file=".github/workflows/test-suite.yml"
+  
+  if [[ -f "$test_file" ]]; then
+    log_warn "test-suite.yml already exists, skipping"
+    return
+  fi
+  
+  log_info "Creating reusable test-suite workflow"
+  
+  cat > "$test_file" << 'EOF'
+name: 🧪 Test Suite
+
+on:
+  workflow_call:
+    outputs:
+      test-status:
+        description: 'Overall test suite status'
+        value: ${ jobs.test.outputs.status }
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      status: ${ steps.test-status.outputs.status }
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        if: hashFiles('pnpm-lock.yaml')
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      
+      - name: 📦 Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: 🧪 Run tests
+        run: pnpm test
+        
+      - name: 📋 Set test status
+        id: test-status
+        if: always()
+        run: |
+          if [[ ${ job.status } == 'success' ]]; then
+            echo "status=success" >> ${GITHUB_OUTPUT}
+          else
+            echo "status=failed" >> ${GITHUB_OUTPUT}
+          fi
+EOF
+}
+
 # Create GitHub Actions workflow
 setup_github_actions() {
   log_section "🔄 Setting up GitHub Actions CI/CD"
   
   mkdir -p .github/workflows
   
+  # Check for placeholders first
+  if [[ "${HAS_BOOTSTRAP_PLACEHOLDERS}" = true ]]; then
+    fill_workflow_placeholders
+    return
+  fi
+  
   # Determine workflow filename
   WORKFLOW_FILE=".github/workflows/quality-gates.yml"
-  if [ "$HAS_EXISTING_CI" = true ]; then
+  if [[ "${HAS_EXISTING_CI}" = true ]]; then
     WORKFLOW_FILE=".github/workflows/quality-gates.yml"
     log_warn "Existing CI found, creating separate quality-gates.yml"
   fi
   
   # Create workflow based on language
-  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
     # First create a reusable test workflow
     TEST_WORKFLOW_FILE=".github/workflows/test-suite.yml"
-    cat > "$TEST_WORKFLOW_FILE" << EOF
+    cat > "${TEST_WORKFLOW_FILE}" << EOF
 name: 🧪 Test Suite
 
 on:
@@ -735,7 +961,7 @@ on:
     outputs:
       test-status:
         description: 'Overall test suite status'
-        value: \${{ jobs.test-report.outputs.status }}
+        value: \${ jobs.test-report.outputs.status }
       
   # Allow manual trigger
   workflow_dispatch:
@@ -746,7 +972,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: ${MODE === 'strict' ? '10' : '5'}
     outputs:
-      status: \${{ steps.test-status.outputs.status }}
+      status: \${ steps.test-status.outputs.status }
     
     steps:
       - uses: actions/checkout@v4
@@ -771,10 +997,10 @@ jobs:
         with:
           files: ./coverage/lcov.info
           flags: unittests
-$([ "$INCLUDE_E2E" = "true" ] && echo "
+$([ "${INCLUDE_E2E}" = "true" ] && echo "
       - name: 🎭 E2E tests
         run: ${PACKAGE_MANAGER} run test:e2e || true" || echo "")
-$([ "$INCLUDE_PERF" = "true" ] && echo "
+$([ "${INCLUDE_PERF}" = "true" ] && echo "
       - name: ⚡ Performance tests
         run: ${PACKAGE_MANAGER} run test:perf || true" || echo "")
       
@@ -782,17 +1008,17 @@ $([ "$INCLUDE_PERF" = "true" ] && echo "
         id: test-status
         if: always()
         run: |
-          if [ \${{ job.status }} == 'success' ]; then
-            echo "status=success" >> \$GITHUB_OUTPUT
+          if [[ \${ job.status } == 'success' ]]; then
+            echo "status=success" >> \${GITHUB_OUTPUT}
           else
-            echo "status=failed" >> \$GITHUB_OUTPUT
+            echo "status=failed" >> \${GITHUB_OUTPUT}
           fi
 EOF
     
-    log_info "Created reusable test workflow: $TEST_WORKFLOW_FILE"
+    log_info "Created reusable test workflow: ${TEST_WORKFLOW_FILE}"
     
     # Now create the main CI workflow that calls the test suite
-    cat > "$WORKFLOW_FILE" << EOF
+    cat > "${WORKFLOW_FILE}" << EOF
 name: 🎯 Quality Gates
 
 on:
@@ -811,7 +1037,7 @@ jobs:
     name: Quality Checks
     runs-on: ubuntu-latest
     needs: [test-suite]
-    timeout-minutes: $([ "$MODE" = "strict" ] && echo "10" || echo "5")
+    timeout-minutes: $([ "${MODE}" = "strict" ] && echo "10" || echo "5")
     
     steps:
       - uses: actions/checkout@v4
@@ -840,10 +1066,10 @@ jobs:
       - name: 🏗️ Build
         run: ${PACKAGE_MANAGER} run build
 EOF
-  elif [ "$LANGUAGE" = "python" ]; then
+  elif [[ "${LANGUAGE}" = "python" ]]; then
     # First create a reusable test workflow
     TEST_WORKFLOW_FILE=".github/workflows/test-suite.yml"
-    cat > "$TEST_WORKFLOW_FILE" << EOF
+    cat > "${TEST_WORKFLOW_FILE}" << EOF
 name: 🧪 Test Suite
 
 on:
@@ -852,7 +1078,7 @@ on:
     outputs:
       test-status:
         description: 'Overall test suite status'
-        value: \${{ jobs.test-report.outputs.status }}
+        value: \${ jobs.test-report.outputs.status }
       
   # Allow manual trigger
   workflow_dispatch:
@@ -861,12 +1087,12 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
-    timeout-minutes: $([ "$MODE" = "strict" ] && echo "10" || echo "5")
+    timeout-minutes: $([ "${MODE}" = "strict" ] && echo "10" || echo "5")
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10", "3.11"]
     outputs:
-      status: \${{ steps.test-status.outputs.status }}
+      status: \${ steps.test-status.outputs.status }
     
     steps:
       - uses: actions/checkout@v4
@@ -874,7 +1100,7 @@ jobs:
       - name: 🐍 Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: \${{ matrix.python-version }}
+          python-version: \${ matrix.python-version }
           cache: 'pip'
       
       - name: 📦 Install dependencies
@@ -897,17 +1123,17 @@ jobs:
         id: test-status
         if: always()
         run: |
-          if [ \${{ job.status }} == 'success' ]; then
-            echo "status=success" >> \$GITHUB_OUTPUT
+          if [[ \${ job.status } == 'success' ]]; then
+            echo "status=success" >> \${GITHUB_OUTPUT}
           else
-            echo "status=failed" >> \$GITHUB_OUTPUT
+            echo "status=failed" >> \${GITHUB_OUTPUT}
           fi
 EOF
     
-    log_info "Created reusable test workflow: $TEST_WORKFLOW_FILE"
+    log_info "Created reusable test workflow: ${TEST_WORKFLOW_FILE}"
     
     # Now create the main CI workflow that calls the test suite
-    cat > "$WORKFLOW_FILE" << EOF
+    cat > "${WORKFLOW_FILE}" << EOF
 name: 🎯 Quality Gates
 
 on:
@@ -926,7 +1152,7 @@ jobs:
     name: Quality Checks
     runs-on: ubuntu-latest
     needs: [test-suite]
-    timeout-minutes: $([ "$MODE" = "strict" ] && echo "10" || echo "5")
+    timeout-minutes: $([ "${MODE}" = "strict" ] && echo "10" || echo "5")
     strategy:
       matrix:
         python-version: ["3.10", "3.11"]
@@ -937,7 +1163,7 @@ jobs:
       - name: 🐍 Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: \${{ matrix.python-version }}
+          python-version: \${ matrix.python-version }
           cache: 'pip'
       
       - name: 📦 Install dependencies
@@ -957,12 +1183,12 @@ jobs:
 EOF
   fi
   
-  log_info "Created GitHub Actions workflow: $WORKFLOW_FILE"
+  log_info "Created GitHub Actions workflow: ${WORKFLOW_FILE}"
 }
 
 # Update package.json scripts
 update_package_json_scripts() {
-  if [ "$LANGUAGE" != "javascript" ] && [ "$LANGUAGE" != "typescript" ]; then
+  if [[ "${LANGUAGE}" != "javascript" ]] && [[ "${LANGUAGE}" != "typescript" ]]; then
     return
   fi
   
@@ -997,7 +1223,7 @@ EOF
 create_sample_tests() {
   log_section "🧪 Creating Sample Tests"
   
-  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
     # Create sample unit test
     cat > tests/unit/example.test.js << 'EOF'
 describe('Example Test Suite', () => {
@@ -1017,7 +1243,7 @@ describe('Example Test Suite', () => {
 EOF
     log_info "Created sample JavaScript test"
     
-    if [ "$FRAMEWORK" = "react" ]; then
+    if [[ "${FRAMEWORK}" = "react" ]]; then
       cat > tests/unit/component.test.jsx << 'EOF'
 import { render, screen, fireEvent } from '@testing-library/react';
 
@@ -1044,7 +1270,7 @@ EOF
       log_info "Created sample React component test"
     fi
     
-  elif [ "$LANGUAGE" = "python" ]; then
+  elif [[ "${LANGUAGE}" = "python" ]]; then
     # Create sample Python test
     cat > tests/unit/test_example.py << 'EOF'
 import pytest
@@ -1095,11 +1321,11 @@ generate_report() {
   echo
   
   echo -e "${BOLD}📋 Configuration Summary:${NC}"
-  echo -e "  Language: ${CYAN}$LANGUAGE${NC}"
-  echo -e "  Framework: ${CYAN}$FRAMEWORK${NC}"
-  echo -e "  Package Manager: ${CYAN}$PACKAGE_MANAGER${NC}"
-  echo -e "  Test Framework: ${CYAN}$TEST_FRAMEWORK${NC}"
-  echo -e "  Mode: ${CYAN}$MODE${NC}"
+  echo -e "  Language: ${CYAN}${LANGUAGE}${NC}"
+  echo -e "  Framework: ${CYAN}${FRAMEWORK}${NC}"
+  echo -e "  Package Manager: ${CYAN}${PACKAGE_MANAGER}${NC}"
+  echo -e "  Test Framework: ${CYAN}${TEST_FRAMEWORK}${NC}"
+  echo -e "  Mode: ${CYAN}${MODE}${NC}"
   echo -e "  Coverage Threshold: ${CYAN}${COVERAGE_THRESHOLD}%${NC}"
   echo
   
@@ -1125,15 +1351,15 @@ generate_report() {
   
   echo -e "${BOLD}📚 Next Steps:${NC}"
   echo "  1. Install dependencies:"
-  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
-    echo "     ${CYAN}$PACKAGE_MANAGER install${NC}"
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
+    echo "     ${CYAN}${PACKAGE_MANAGER} install${NC}"
     echo
     echo "  2. Run tests:"
-    echo "     ${CYAN}$PACKAGE_MANAGER test${NC}"
+    echo "     ${CYAN}${PACKAGE_MANAGER} test${NC}"
     echo
     echo "  3. Check all quality gates:"
-    echo "     ${CYAN}$PACKAGE_MANAGER run quality${NC}"
-  elif [ "$LANGUAGE" = "python" ]; then
+    echo "     ${CYAN}${PACKAGE_MANAGER} run quality${NC}"
+  elif [[ "${LANGUAGE}" = "python" ]]; then
     echo "     ${CYAN}pip install -r requirements-dev.txt${NC}"
     echo
     echo "  2. Run tests:"
@@ -1155,20 +1381,30 @@ generate_report() {
 main() {
   echo -e "${BOLD}${CYAN}Starting Quality Gates Setup...${NC}"
   
+  # Check for bootstrap placeholders first
+  check_bootstrap_placeholders
+  
   # Run detection
   detect_language
   detect_package_manager
   detect_existing_setup
   
+  # Check for codebase evolution
+  if [[ "${HAS_BOOTSTRAP_PLACEHOLDERS}" = false ]]; then
+    if detect_evolution; then
+      present_evolution_options
+    fi
+  fi
+  
   # Validate detection
-  if [ "$LANGUAGE" = "unknown" ]; then
+  if [[ "${LANGUAGE}" = "unknown" ]]; then
     log_error "Could not detect project language/framework"
     echo "Please ensure you're in a project root with package.json, requirements.txt, go.mod, etc."
     exit 1
   fi
   
   # Setup based on language
-  case "$LANGUAGE" in
+  case "${LANGUAGE}" in
     javascript|typescript)
       setup_javascript_quality
       update_package_json_scripts
@@ -1183,7 +1419,7 @@ main() {
       log_warn "Rust quality gates setup not yet implemented"
       ;;
     *)
-      log_error "Unsupported language: $LANGUAGE"
+      log_error "Unsupported language: ${LANGUAGE}"
       exit 1
       ;;
   esac
@@ -1198,4 +1434,3 @@ main() {
 }
 
 # Run main function
-main

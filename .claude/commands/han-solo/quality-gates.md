@@ -64,7 +64,15 @@ Establish a multi-layered quality assurance system that provides fast feedback a
 - **Security audit**: Comprehensive vulnerability scanning
 - **Release preparation**: Version bumping, changelog
 
-### 3. Framework-Specific Configurations
+### 3. Workflow Configuration
+
+#### Reusable Test Workflow
+- **Updates**: `.github/workflows/reusable-test.yml`
+- **Configures**: Actual test implementation based on detected frameworks
+- **Sets up**: Test matrices, coverage thresholds, and framework-specific commands
+- **Replaces**: Placeholders with real test execution
+
+### 4. Framework-Specific Configurations
 
 #### JavaScript/TypeScript
 - **Testing**: Jest or Vitest with React Testing Library
@@ -94,13 +102,16 @@ Establish a multi-layered quality assurance system that provides fast feedback a
 - **Security**: cargo-audit for dependencies
 - **CI**: GitHub Actions with cargo caching
 
-### 4. Files Created/Modified
+### 5. Files Created/Modified
+
+#### Workflow Files
+- `.github/workflows/reusable-test.yml` - Test workflow with actual implementation
+- `.github/workflows/ci.yml` - Updates test job if needed
 
 #### Configuration Files
 - `.prettierrc` - Formatting rules
 - `.eslintrc.js` - Linting configuration
 - `tsconfig.json` - TypeScript settings (enhanced)
-- `.github/workflows/quality-gates.yml` - CI workflow
 - `jest.config.js` or `vitest.config.js` - Test configuration
 - `.husky/pre-commit` - Fast checks
 - `.husky/pre-push` - Comprehensive validation
@@ -174,18 +185,28 @@ tests/
 This command delegates to the quality-gates-guardian agent for comprehensive setup.
 
 When invoked, use the Task tool with:
-- **subagent_type**: "quality-setup"
+- **subagent_type**: "quality-gates-guardian"
 - **description**: "Set up quality gates"
 - **prompt**: Include the mode (--minimal, --balanced, or --strict) and ask the agent to:
-  1. Analyze the codebase to detect languages and frameworks
-  2. Set up appropriate testing frameworks with real tests (no placeholders)
-  3. Configure linting and formatting tools
-  4. Update Husky hooks for pre-commit and pre-push validation
-  5. Create or enhance GitHub Actions workflows
-  6. Ensure all "echo" placeholder scripts are replaced with real commands
-  7. Provide a comprehensive report of changes
+  1. Check for existing bootstrap/scaffold setup and placeholders
+  2. Analyze the codebase to detect languages and frameworks
+  3. Detect any evolution since bootstrap/scaffold was run
+  4. Update `.github/workflows/reusable-test.yml` with actual test implementation
+  5. Fill workflow placeholders or update existing workflows
+  6. Set up appropriate testing frameworks with real tests (no placeholders)
+  7. Configure linting and formatting tools
+  8. Update Husky hooks for pre-commit and pre-push validation
+  9. Create or enhance GitHub Actions workflows
+  10. If major changes detected, present options to the user
+  11. Ensure all "echo" placeholder scripts are replaced with real commands
+  12. Use scaffold-tests.sh script to configure reusable-test.yml
+  13. Provide a comprehensive report of changes
 
-The agent will handle all the complex logic for detecting and configuring the appropriate tools for the user's specific tech stack.
+The agent will handle all the complex logic for:
+- Detecting and filling bootstrap placeholders
+- Identifying codebase evolution requiring user decisions
+- Configuring the appropriate tools for the user's specific tech stack
+- Maintaining consistency with bootstrap patterns
 
 ## Success Metrics
 

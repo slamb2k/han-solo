@@ -13,9 +13,8 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 # Display colorful banner
-printf "\033[38;5;201m__  __      __  ___ ___  _           \033[0m\n"
-printf "\033[38;5;207m|_) |_)   |_) |_ (_  /  | | |_   \\\\ \\\\ \\\\ \033[0m\n"
-printf "\033[38;5;213m|   | \\   | \\ |_ __) \\_ |_| |_   / / /\033[0m\n"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${SCRIPT_DIR}/block-text.sh" -s "PR RESCUE"
 echo
 
 # Parse arguments
@@ -62,8 +61,8 @@ analyze_pr() {
     local conclusion=$(echo "$check" | jq -r '.conclusion')
     local status=$(echo "$check" | jq -r '.status')
     
-    if [ "$status" = "COMPLETED" ]; then
-      if [ "$conclusion" = "SUCCESS" ] || [ "$conclusion" = "SKIPPED" ]; then
+    if [[ "$status" = "COMPLETED" ]]; then
+      if [[ "$conclusion" = "SUCCESS" ]] || [[ "$conclusion" = "SKIPPED" ]]; then
         echo -e "    ✅ $name: ${GREEN}$conclusion${NC}"
       else
         echo -e "    ❌ $name: ${RED}$conclusion${NC}"
@@ -89,28 +88,28 @@ analyze_pr() {
   local issues=()
   local solutions=()
   
-  if [ "$auto_merge" = "null" ]; then
+  if [[ "$auto_merge" = "null" ]]; then
     issues+=("Auto-merge is not enabled")
     solutions+=("Enable auto-merge: gh pr merge $pr_num --auto --squash")
   fi
   
-  if [ "$merge_status" = "BEHIND" ]; then
+  if [[ "$merge_status" = "BEHIND" ]]; then
     issues+=("Branch is behind main")
     solutions+=("Update branch: gh pr merge $pr_num --rebase || git checkout <branch> && git rebase origin/main && git push --force-with-lease")
   fi
   
-  if [ "$merge_status" = "CONFLICTING" ]; then
+  if [[ "$merge_status" = "CONFLICTING" ]]; then
     issues+=("Branch has merge conflicts")
     solutions+=("Resolve conflicts manually, then push")
   fi
   
-  if [ "$all_checks_passed" = false ] && [ -n "$failed_checks" ]; then
+  if [[ "$all_checks_passed" = false ]] && [[ -n "$failed_checks" ]]; then
     issues+=("Some checks failed:$failed_checks")
     solutions+=("Fix failing checks or use --force flag to merge anyway")
   fi
   
-  if [ ${#issues[@]} -eq 0 ] && [ "$all_checks_passed" = true ] && [ "$mergeable" = "MERGEABLE" ]; then
-    if [ "$auto_merge" = "null" ]; then
+  if [[ ${#issues[@]} -eq 0 ]] && [[ "$all_checks_passed" = true ]] && [[ "$mergeable" = "MERGEABLE" ]]; then
+    if [[ "$auto_merge" = "null" ]]; then
       issues+=("PR is ready but auto-merge was never enabled")
       solutions+=("Enable auto-merge now")
     else
@@ -120,7 +119,7 @@ analyze_pr() {
   fi
   
   # Display issues
-  if [ ${#issues[@]} -gt 0 ]; then
+  if [[ ${#issues[@]} -gt 0 ]]; then
     echo -e "${YELLOW}  Issues Found:${NC}"
     for issue in "${issues[@]}"; do
       echo -e "    • $issue"
@@ -130,7 +129,7 @@ analyze_pr() {
   fi
   
   # Display solutions
-  if [ ${#solutions[@]} -gt 0 ]; then
+  if [[ ${#solutions[@]} -gt 0 ]]; then
     echo
     echo -e "${BOLD}💡 Recommended Actions:${NC}"
     local i=1
@@ -209,7 +208,7 @@ force_merge() {
 }
 
 # Main logic
-case "$MODE" in
+case "${MODE}" in
   analyze)
     # Get all open PRs
     echo -e "${BOLD}${BLUE}🔍 Analyzing all open PRs...${NC}"
@@ -217,7 +216,7 @@ case "$MODE" in
     
     pr_numbers=$(gh pr list --state open --json number --jq '.[].number')
     
-    if [ -z "$pr_numbers" ]; then
+    if [[ -z "$pr_numbers" ]]; then
       echo -e "${GREEN}✨ No open PRs found!${NC}"
       exit 0
     fi
@@ -238,34 +237,34 @@ case "$MODE" in
     ;;
     
   enable-auto-merge)
-    if [ -z "$PR_NUMBER" ]; then
+    if [[ -z "${PR_NUMBER}" ]]; then
       echo -e "${RED}Error: PR number required${NC}"
       echo "Usage: $0 enable-auto-merge <PR#>"
       exit 1
     fi
-    enable_auto_merge "$PR_NUMBER"
+    enable_auto_merge "${PR_NUMBER}"
     ;;
     
   update-branch)
-    if [ -z "$PR_NUMBER" ]; then
+    if [[ -z "${PR_NUMBER}" ]]; then
       echo -e "${RED}Error: PR number required${NC}"
       echo "Usage: $0 update-branch <PR#>"
       exit 1
     fi
-    update_branch "$PR_NUMBER"
+    update_branch "${PR_NUMBER}"
     ;;
     
   force-merge)
-    if [ -z "$PR_NUMBER" ]; then
+    if [[ -z "${PR_NUMBER}" ]]; then
       echo -e "${RED}Error: PR number required${NC}"
       echo "Usage: $0 force-merge <PR#>"
       exit 1
     fi
-    force_merge "$PR_NUMBER"
+    force_merge "${PR_NUMBER}"
     ;;
     
   *)
-    echo -e "${RED}Unknown mode: $MODE${NC}"
+    echo -e "${RED}Unknown mode: ${MODE}${NC}"
     echo "Available modes: analyze, enable-auto-merge, update-branch, force-merge"
     exit 1
     ;;
