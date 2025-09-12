@@ -395,7 +395,7 @@ update_package_scripts() {
 main() {
   # Display colorful banner
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  "$SCRIPT_DIR/block-text.sh" -s "SCAFFOLDING TESTS"
+  "${SCRIPT_DIR}/block-text.sh" -s "SCAFFOLDING TESTS"
   
   log_section "📋 Configuration Summary"
   echo "  Language: $LANGUAGE"

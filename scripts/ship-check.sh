@@ -75,9 +75,8 @@ if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; t
     if [[ -n "${status_output}" ]]; then
         echo -e "  ${INFO} You have uncommitted changes"
         timestamp="$(date +%Y%m%d-%H%M%S)"
-        auto_fix "Creating feature branch with your changes" \
-                   "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"
-        if [[ $? -eq 0 ]]; then
+        if auto_fix "Creating feature branch with your changes" \
+                   "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"; then
             CREATED_BRANCH=true
             CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
             echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
@@ -89,9 +88,8 @@ if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; t
         if [[ "${UNPUSHED}" -gt 0 ]]; then
             echo -e "  ${CROSS} You have ${UNPUSHED} unpushed commits on main!"
             timestamp="$(date +%Y%m%d-%H%M%S)"
-            auto_fix "Creating feature branch with your commits" \
-                       "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"
-            if [[ $? -eq 0 ]]; then
+            if auto_fix "Creating feature branch with your commits" \
+                       "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"; then
                 CREATED_BRANCH=true
                 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
                 echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
@@ -189,7 +187,7 @@ fi
 # Check last fetch time
 FETCH_HEAD=".git/FETCH_HEAD"
 if [[ -f "${FETCH_HEAD}" ]]; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then
+    if [[ "${OSTYPE}" == "darwin"* ]]; then
         LAST_FETCH=$(stat -f "%m" "${FETCH_HEAD}")
     else
         LAST_FETCH=$(stat -c "%Y" "${FETCH_HEAD}")
@@ -235,9 +233,9 @@ fi
 SENSITIVE_PATTERNS=(".env.local" ".env.production" "*.pem" "*.key" "credentials" "secret")
 FOUND_SENSITIVE=false
 for pattern in "${SENSITIVE_PATTERNS[@]}"; do
-    if git ls-files | grep -q "$pattern"; then
+    if git ls-files | grep -q "${pattern}"; then
         FOUND_SENSITIVE=true
-        echo -e "  ${WARN} Possible sensitive file: $pattern"
+        echo -e "  ${WARN} Possible sensitive file: ${pattern}"
     fi
 done
 

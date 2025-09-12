@@ -12,7 +12,7 @@ BOLD='\033[1m'
 
 # Display colorful banner
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"$SCRIPT_DIR/block-text.sh" -s "LAUNCHING"
+"${SCRIPT_DIR}/block-text.sh" -s "LAUNCHING"
 
 # Parse branch name argument
 BRANCH_NAME="${1:-feature/$(date +%Y-%m-%d-%H%M%S)}"

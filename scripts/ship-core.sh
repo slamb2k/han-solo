@@ -14,7 +14,7 @@ BOLD=$'\033[1m'
 
 # Display colorful banner
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"$SCRIPT_DIR/block-text.sh" -s "SHIPPING"
+"${SCRIPT_DIR}/block-text.sh" -s "SHIPPING"
 echo
 
 # Report arrays - initialize as empty arrays

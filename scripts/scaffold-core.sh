@@ -511,7 +511,7 @@ setup_branch_protection() {
 main() {
   # Display colorful banner
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  "$SCRIPT_DIR/block-text.sh" -s "SCAFFOLDING"
+  "${SCRIPT_DIR}/block-text.sh" -s "SCAFFOLDING"
   
   # Create workflows if requested
   if [ "$CREATE_WORKFLOWS" = "true" ]; then

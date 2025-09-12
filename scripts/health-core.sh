@@ -29,7 +29,7 @@ ISSUES_FOUND=0
 
 # Display colorful banner
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"$SCRIPT_DIR/block-text.sh" -s "HEALTH CHECK"
+"${SCRIPT_DIR}/block-text.sh" -s "HEALTH CHECK"
 echo
 
 # Function to reduce health score
