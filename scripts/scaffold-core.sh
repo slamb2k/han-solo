@@ -66,7 +66,7 @@ create_lint_workflow() {
   
   mkdir -p .github/workflows
   
-  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
     cat > .github/workflows/reusable-lint.yml << 'EOF'
 name: Lint
 on:
@@ -96,27 +96,27 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ inputs.node-version }}
-          cache: ${{ inputs.package-manager }}
+          node-version: ${ inputs.node-version }
+          cache: ${ inputs.package-manager }
           
       - name: 📚 Install dependencies
         run: |
-          if [ "${{ inputs.package-manager }}" = "npm" ]; then
+          if [[ "${ inputs.package-manager }" = "npm" ]]; then
             npm ci
-          elif [ "${{ inputs.package-manager }}" = "pnpm" ]; then
+          elif [[ "${ inputs.package-manager }" = "pnpm" ]]; then
             pnpm install --frozen-lockfile
           else
             yarn install --frozen-lockfile
           fi
           
       - name: 🧹 Run Prettier check
-        run: ${{ inputs.package-manager }} run format:check || true
+        run: ${ inputs.package-manager } run format:check || true
         continue-on-error: true
         
       - name: 🔍 Run ESLint
-        run: ${{ inputs.package-manager }} run lint
+        run: ${ inputs.package-manager } run lint
 EOF
-  elif [ "$LANGUAGE" = "python" ]; then
+  elif [[ "${LANGUAGE}" = "python" ]]; then
     cat > .github/workflows/reusable-lint.yml << 'EOF'
 name: Lint
 on:
@@ -138,7 +138,7 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: ${ inputs.python-version }
           
       - name: 📚 Install dependencies
         run: |
@@ -171,18 +171,18 @@ on:
     outputs:
       coverage:
         description: 'Test coverage percentage'
-        value: ${{ jobs.test.outputs.coverage }}
+        value: ${ jobs.test.outputs.coverage }
       test-results:
         description: 'Test results summary'
-        value: ${{ jobs.test.outputs.results }}
+        value: ${ jobs.test.outputs.results }
 
 jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
     outputs:
-      coverage: ${{ steps.test.outputs.coverage }}
-      results: ${{ steps.test.outputs.results }}
+      coverage: ${ steps.test.outputs.coverage }
+      results: ${ steps.test.outputs.results }
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -191,16 +191,16 @@ jobs:
         id: test
         run: |
           echo "::notice::Test workflow is a placeholder. Configure with /test-setup command"
-          echo "coverage=0" >> $GITHUB_OUTPUT
-          echo "results=pending" >> $GITHUB_OUTPUT
+          echo "coverage=0" >> ${GITHUB_OUTPUT}
+          echo "results=pending" >> ${GITHUB_OUTPUT}
           
       - name: 📊 Test Summary
         run: |
-          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Test execution will be configured by the /test-setup command." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "This is a placeholder workflow that ensures the CI pipeline structure is in place." >> $GITHUB_STEP_SUMMARY
+          echo "## 🧪 Test Results" >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "Test execution will be configured by the /test-setup command." >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "This is a placeholder workflow that ensures the CI pipeline structure is in place." >> ${GITHUB_STEP_SUMMARY}
 EOF
 }
 
@@ -208,7 +208,7 @@ EOF
 create_build_workflow() {
   log_info "Creating reusable build workflow"
   
-  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
     cat > .github/workflows/reusable-build.yml << 'EOF'
 name: Build
 on:
@@ -229,14 +229,14 @@ on:
     outputs:
       artifact-name:
         description: 'Name of uploaded artifact'
-        value: ${{ jobs.build.outputs.artifact-name }}
+        value: ${ jobs.build.outputs.artifact-name }
 
 jobs:
   build:
     name: Build Project
     runs-on: ubuntu-latest
     outputs:
-      artifact-name: ${{ steps.upload.outputs.artifact-name }}
+      artifact-name: ${ steps.upload.outputs.artifact-name }
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -248,28 +248,28 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ inputs.node-version }}
-          cache: ${{ inputs.package-manager }}
+          node-version: ${ inputs.node-version }
+          cache: ${ inputs.package-manager }
           
       - name: 📚 Install dependencies
         run: |
-          if [ "${{ inputs.package-manager }}" = "npm" ]; then
+          if [[ "${ inputs.package-manager }" = "npm" ]]; then
             npm ci
-          elif [ "${{ inputs.package-manager }}" = "pnpm" ]; then
+          elif [[ "${ inputs.package-manager }" = "pnpm" ]]; then
             pnpm install --frozen-lockfile
           else
             yarn install --frozen-lockfile
           fi
           
       - name: 🔨 Build project
-        run: ${{ inputs.package-manager }} run build
+        run: ${ inputs.package-manager } run build
         
       - name: 📦 Upload artifacts
         id: upload
         if: inputs.upload-artifacts && success()
         uses: actions/upload-artifact@v4
         with:
-          name: build-${{ github.sha }}
+          name: build-${ github.sha }
           path: |
             dist/
             build/
@@ -280,16 +280,16 @@ jobs:
           
       - name: 📊 Build Summary
         run: |
-          echo "## 🏗️ Build Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ✅ Success" >> $GITHUB_STEP_SUMMARY
-          echo "- **Node Version**: ${{ inputs.node-version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Package Manager**: ${{ inputs.package-manager }}" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ inputs.upload-artifacts }}" = "true" ]; then
-            echo "- **Artifacts**: Uploaded as build-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "## 🏗️ Build Results" >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Status**: ✅ Success" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Node Version**: ${ inputs.node-version }" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Package Manager**: ${ inputs.package-manager }" >> ${GITHUB_STEP_SUMMARY}
+          if [[ "${ inputs.upload-artifacts }" = "true" ]]; then
+            echo "- **Artifacts**: Uploaded as build-${ github.sha }" >> ${GITHUB_STEP_SUMMARY}
           fi
 EOF
-  elif [ "$LANGUAGE" = "python" ]; then
+  elif [[ "${LANGUAGE}" = "python" ]]; then
     cat > .github/workflows/reusable-build.yml << 'EOF'
 name: Build
 on:
@@ -315,7 +315,7 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ inputs.python-version }}
+          python-version: ${ inputs.python-version }
           
       - name: 📚 Install dependencies
         run: |
@@ -330,7 +330,7 @@ jobs:
         if: inputs.upload-artifacts && success()
         uses: actions/upload-artifact@v4
         with:
-          name: python-dist-${{ github.sha }}
+          name: python-dist-${ github.sha }
           path: dist/
           retention-days: 7
 EOF
@@ -360,7 +360,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
+    environment: ${ inputs.environment }
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -371,15 +371,15 @@ jobs:
           
       - name: 📊 Release Summary
         run: |
-          echo "## 🚀 Release Configuration Needed" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The release workflow is currently a placeholder." >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Use the \`/release-setup\` command to configure:" >> $GITHUB_STEP_SUMMARY
-          echo "- NPM publishing" >> $GITHUB_STEP_SUMMARY
-          echo "- Docker image publishing" >> $GITHUB_STEP_SUMMARY
-          echo "- GitHub releases" >> $GITHUB_STEP_SUMMARY
-          echo "- Deployment to cloud providers" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Release Configuration Needed" >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "The release workflow is currently a placeholder." >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "Use the \`/release-setup\` command to configure:" >> ${GITHUB_STEP_SUMMARY}
+          echo "- NPM publishing" >> ${GITHUB_STEP_SUMMARY}
+          echo "- Docker image publishing" >> ${GITHUB_STEP_SUMMARY}
+          echo "- GitHub releases" >> ${GITHUB_STEP_SUMMARY}
+          echo "- Deployment to cloud providers" >> ${GITHUB_STEP_SUMMARY}
 EOF
 }
 
@@ -398,7 +398,7 @@ on:
 
 # Cancel in-progress runs for the same branch
 concurrency:
-  group: \${{ github.workflow }}-\${{ github.event.pull_request.number || github.ref }}
+  group: \${ github.workflow }-\${ github.event.pull_request.number || github.ref }
   cancel-in-progress: true
 
 jobs:
@@ -407,7 +407,7 @@ jobs:
     uses: ./.github/workflows/reusable-lint.yml
     with:
       node-version: '20'
-      package-manager: '$PACKAGE_MANAGER'
+      package-manager: '${PACKAGE_MANAGER}'
   
   test:
     name: 🧪 Test
@@ -419,7 +419,7 @@ jobs:
     uses: ./.github/workflows/reusable-build.yml
     with:
       node-version: '20'
-      package-manager: '$PACKAGE_MANAGER'
+      package-manager: '${PACKAGE_MANAGER}'
       upload-artifacts: true
   
   release:
@@ -434,17 +434,17 @@ EOF
 
 # Setup Husky hooks
 setup_husky() {
-  if [ "$SETUP_HUSKY" != "true" ]; then
+  if [[ "${SETUP_HUSKY}" != "true" ]]; then
     return
   fi
   
   log_section "🪝 Setting up Husky hooks"
   
   # Install Husky
-  if [ "$PACKAGE_MANAGER" = "npm" ]; then
+  if [[ "${PACKAGE_MANAGER}" = "npm" ]]; then
     npm install --save-dev husky lint-staged
     npx husky init
-  elif [ "$PACKAGE_MANAGER" = "pnpm" ]; then
+  elif [[ "${PACKAGE_MANAGER}" = "pnpm" ]]; then
     pnpm add -D husky lint-staged
     pnpm exec husky init
   else
@@ -476,7 +476,7 @@ EOF
 
 # Setup branch protection
 setup_branch_protection() {
-  if [ "$SETUP_PROTECTION" != "true" ]; then
+  if [[ "${SETUP_PROTECTION}" != "true" ]]; then
     return
   fi
   
@@ -492,7 +492,7 @@ setup_branch_protection() {
   # Create branch protection
   gh api -X PUT "repos/${OWNER}/${REPO_NAME}/branches/main/protection" \
     -f required_status_checks[strict]=true \
-    -f required_status_checks[contexts]="$REQUIRED_CHECKS" \
+    -f required_status_checks[contexts]="${REQUIRED_CHECKS}" \
     -f enforce_admins=false \
     -f required_pull_request_reviews[required_approving_review_count]=0 \
     -f required_pull_request_reviews[dismiss_stale_reviews]=true \
@@ -514,7 +514,7 @@ main() {
   "${SCRIPT_DIR}/block-text.sh" -s "SCAFFOLDING"
   
   # Create workflows if requested
-  if [ "$CREATE_WORKFLOWS" = "true" ]; then
+  if [[ "${CREATE_WORKFLOWS}" = "true" ]]; then
     log_section "📁 Creating reusable workflows"
     create_lint_workflow
     create_test_workflow
@@ -550,4 +550,3 @@ main() {
 }
 
 # Run main function
-main "$@"

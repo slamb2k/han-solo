@@ -59,18 +59,18 @@ configure_js_test_workflow() {
   
   # Determine test command based on framework
   local test_cmd="npm test"
-  case "$TEST_FRAMEWORK" in
+  case "${TEST_FRAMEWORK}" in
     jest)
-      test_cmd="$PACKAGE_MANAGER run test --coverage --ci"
+      test_cmd="${PACKAGE_MANAGER} run test --coverage --ci"
       ;;
     vitest)
-      test_cmd="$PACKAGE_MANAGER run test:unit --coverage --run"
+      test_cmd="${PACKAGE_MANAGER} run test:unit --coverage --run"
       ;;
     mocha)
-      test_cmd="$PACKAGE_MANAGER run test --recursive"
+      test_cmd="${PACKAGE_MANAGER} run test --recursive"
       ;;
     *)
-      test_cmd="$PACKAGE_MANAGER test"
+      test_cmd="${PACKAGE_MANAGER} test"
       ;;
   esac
   
@@ -78,9 +78,9 @@ configure_js_test_workflow() {
   local matrix_os="[\"ubuntu-latest\"]"
   local matrix_node="[\"20\"]"
   
-  if [ "$TEST_MATRIX" = "multi-os" ]; then
+  if [[ "${TEST_MATRIX}" = "multi-os" ]]; then
     matrix_os='["ubuntu-latest", "macos-latest", "windows-latest"]'
-  elif [ "$TEST_MATRIX" = "full" ]; then
+  elif [[ "${TEST_MATRIX}" = "full" ]]; then
     matrix_os='["ubuntu-latest", "macos-latest", "windows-latest"]'
     matrix_node='["18", "20", "22"]'
   fi
@@ -97,31 +97,31 @@ on:
       package-manager:
         description: 'Package manager'
         type: string
-        default: '$PACKAGE_MANAGER'
+        default: '${PACKAGE_MANAGER}'
       coverage-threshold:
         description: 'Minimum coverage percentage'
         type: number
-        default: $COVERAGE_THRESHOLD
+        default: ${COVERAGE_THRESHOLD}
     outputs:
       coverage:
         description: 'Test coverage percentage'
-        value: \${{ jobs.test.outputs.coverage }}
+        value: \${ jobs.test.outputs.coverage }
       test-results:
         description: 'Test results summary'
-        value: \${{ jobs.test.outputs.results }}
+        value: \${ jobs.test.outputs.results }
 
 jobs:
   test:
-    name: Test (\${{ matrix.os }} / Node \${{ matrix.node }})
-    runs-on: \${{ matrix.os }}
+    name: Test (\${ matrix.os } / Node \${ matrix.node })
+    runs-on: \${ matrix.os }
     strategy:
       fail-fast: false
       matrix:
         os: $matrix_os
         node: $matrix_node
     outputs:
-      coverage: \${{ steps.coverage.outputs.percentage }}
-      results: \${{ steps.results.outputs.summary }}
+      coverage: \${ steps.coverage.outputs.percentage }
+      results: \${ steps.results.outputs.summary }
     
     steps:
       - name: 📥 Checkout code
@@ -134,14 +134,14 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: \${{ matrix.node }}
-          cache: \${{ inputs.package-manager }}
+          node-version: \${ matrix.node }
+          cache: \${ inputs.package-manager }
           
       - name: 📚 Install dependencies
         run: |
-          if [ "\${{ inputs.package-manager }}" = "npm" ]; then
+          if [[ "\${ inputs.package-manager }" = "npm" ]]; then
             npm ci
-          elif [ "\${{ inputs.package-manager }}" = "pnpm" ]; then
+          elif [[ "\${ inputs.package-manager }" = "pnpm" ]]; then
             pnpm install --frozen-lockfile
           else
             yarn install --frozen-lockfile
@@ -155,16 +155,16 @@ jobs:
         id: coverage
         if: success() && matrix.os == 'ubuntu-latest'
         run: |
-          if [ -f "coverage/coverage-summary.json" ]; then
+          if [[ -f "coverage/coverage-summary.json" ]]; then
             COVERAGE=\$(node -e "console.log(require('./coverage/coverage-summary.json').total.lines.pct)")
-            echo "percentage=\$COVERAGE" >> \$GITHUB_OUTPUT
+            echo "percentage=\${COVERAGE}" >> \${GITHUB_OUTPUT}
             
-            if (( \$(echo "\$COVERAGE < \${{ inputs.coverage-threshold }}" | bc -l) )); then
-              echo "::error::Coverage \${COVERAGE}% is below threshold \${{ inputs.coverage-threshold }}%"
+            if (( \$(echo "\${COVERAGE} < \${ inputs.coverage-threshold }" | bc -l) )); then
+              echo "::error::Coverage \${COVERAGE}% is below threshold \${ inputs.coverage-threshold }%"
               exit 1
             fi
           else
-            echo "percentage=0" >> \$GITHUB_OUTPUT
+            echo "percentage=0" >> \${GITHUB_OUTPUT}
           fi
           
       - name: 📈 Upload coverage
@@ -173,18 +173,18 @@ jobs:
         with:
           files: ./coverage/lcov.info
           flags: unittests
-          name: coverage-\${{ matrix.os }}-node-\${{ matrix.node }}
+          name: coverage-\${ matrix.os }-node-\${ matrix.node }
 EOF
   
   # Add integration tests if comprehensive mode
-  if [ "$MODE" = "comprehensive" ]; then
+  if [[ "${MODE}" = "comprehensive" ]]; then
     cat >> "$workflow_file" << 'EOF'
           
       - name: 🔗 Run integration tests
         if: success()
         run: |
-          if ${{ inputs.package-manager }} run test:integration --help 2>/dev/null; then
-            ${{ inputs.package-manager }} run test:integration
+          if ${ inputs.package-manager } run test:integration --help 2>/dev/null; then
+            ${ inputs.package-manager } run test:integration
           else
             echo "No integration tests configured"
           fi
@@ -192,18 +192,18 @@ EOF
   fi
   
   # Add E2E tests if framework detected and comprehensive mode
-  if [ -n "$E2E_FRAMEWORK" ] && [ "$MODE" = "comprehensive" ]; then
+  if [[ -n "${E2E_FRAMEWORK}" ]] && [[ "${MODE}" = "comprehensive" ]]; then
     cat >> "$workflow_file" << EOF
           
       - name: 🎭 Install Playwright browsers
-        if: matrix.os == 'ubuntu-latest' && '$E2E_FRAMEWORK' == 'playwright'
+        if: matrix.os == 'ubuntu-latest' && '${E2E_FRAMEWORK}' == 'playwright'
         run: npx playwright install --with-deps
         
       - name: 🎭 Run E2E tests
         if: matrix.os == 'ubuntu-latest'
         run: |
-          if \${{ inputs.package-manager }} run test:e2e --help 2>/dev/null; then
-            \${{ inputs.package-manager }} run test:e2e
+          if \${ inputs.package-manager } run test:e2e --help 2>/dev/null; then
+            \${ inputs.package-manager } run test:e2e
           else
             echo "E2E tests not configured"
           fi
@@ -217,21 +217,21 @@ EOF
         id: results
         if: always()
         run: |
-          echo "## 🧪 Test Results" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Node**: ${{ matrix.node }}" >> $GITHUB_STEP_SUMMARY
+          echo "## 🧪 Test Results" >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **OS**: ${ matrix.os }" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Node**: ${ matrix.node }" >> ${GITHUB_STEP_SUMMARY}
           
-          if [ "${{ steps.unit-tests.outcome }}" = "success" ]; then
-            echo "- **Unit Tests**: ✅ Passed" >> $GITHUB_STEP_SUMMARY
-            echo "summary=✅ All tests passed" >> $GITHUB_OUTPUT
+          if [[ "${ steps.unit-tests.outcome }" = "success" ]]; then
+            echo "- **Unit Tests**: ✅ Passed" >> ${GITHUB_STEP_SUMMARY}
+            echo "summary=✅ All tests passed" >> ${GITHUB_OUTPUT}
           else
-            echo "- **Unit Tests**: ❌ Failed" >> $GITHUB_STEP_SUMMARY
-            echo "summary=❌ Tests failed" >> $GITHUB_OUTPUT
+            echo "- **Unit Tests**: ❌ Failed" >> ${GITHUB_STEP_SUMMARY}
+            echo "summary=❌ Tests failed" >> ${GITHUB_OUTPUT}
           fi
           
-          if [ -n "${{ steps.coverage.outputs.percentage }}" ]; then
-            echo "- **Coverage**: ${{ steps.coverage.outputs.percentage }}%" >> $GITHUB_STEP_SUMMARY
+          if [[ -n "${ steps.coverage.outputs.percentage }" ]]; then
+            echo "- **Coverage**: ${ steps.coverage.outputs.percentage }%" >> ${GITHUB_STEP_SUMMARY}
           fi
 EOF
 }
@@ -244,7 +244,7 @@ configure_python_test_workflow() {
   
   # Determine test command
   local test_cmd="pytest"
-  if [ "$TEST_FRAMEWORK" = "unittest" ]; then
+  if [[ "${TEST_FRAMEWORK}" = "unittest" ]]; then
     test_cmd="python -m unittest discover"
   fi
   
@@ -252,9 +252,9 @@ configure_python_test_workflow() {
   local matrix_os="[\"ubuntu-latest\"]"
   local matrix_python='["3.11"]'
   
-  if [ "$TEST_MATRIX" = "multi-os" ]; then
+  if [[ "${TEST_MATRIX}" = "multi-os" ]]; then
     matrix_os='["ubuntu-latest", "macos-latest", "windows-latest"]'
-  elif [ "$TEST_MATRIX" = "full" ]; then
+  elif [[ "${TEST_MATRIX}" = "full" ]]; then
     matrix_os='["ubuntu-latest", "macos-latest", "windows-latest"]'
     matrix_python='["3.9", "3.10", "3.11", "3.12"]'
   fi
@@ -271,23 +271,23 @@ on:
       coverage-threshold:
         description: 'Minimum coverage percentage'
         type: number
-        default: $COVERAGE_THRESHOLD
+        default: ${COVERAGE_THRESHOLD}
     outputs:
       coverage:
         description: 'Test coverage percentage'
-        value: \${{ jobs.test.outputs.coverage }}
+        value: \${ jobs.test.outputs.coverage }
 
 jobs:
   test:
-    name: Test (\${{ matrix.os }} / Python \${{ matrix.python }})
-    runs-on: \${{ matrix.os }}
+    name: Test (\${ matrix.os } / Python \${ matrix.python })
+    runs-on: \${ matrix.os }
     strategy:
       fail-fast: false
       matrix:
         os: $matrix_os
         python: $matrix_python
     outputs:
-      coverage: \${{ steps.coverage.outputs.percentage }}
+      coverage: \${ steps.coverage.outputs.percentage }
     
     steps:
       - name: 📥 Checkout code
@@ -296,7 +296,7 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: \${{ matrix.python }}
+          python-version: \${ matrix.python }
           cache: 'pip'
           
       - name: 📚 Install dependencies
@@ -313,10 +313,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           COVERAGE=\$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(float(root.get('line-rate')) * 100)")
-          echo "percentage=\$COVERAGE" >> \$GITHUB_OUTPUT
+          echo "percentage=\${COVERAGE}" >> \${GITHUB_OUTPUT}
           
-          if (( \$(echo "\$COVERAGE < \${{ inputs.coverage-threshold }}" | bc -l) )); then
-            echo "::error::Coverage \${COVERAGE}% is below threshold \${{ inputs.coverage-threshold }}%"
+          if (( \$(echo "\${COVERAGE} < \${ inputs.coverage-threshold }" | bc -l) )); then
+            echo "::error::Coverage \${COVERAGE}% is below threshold \${ inputs.coverage-threshold }%"
             exit 1
           fi
           
@@ -326,26 +326,26 @@ jobs:
         with:
           files: ./coverage.xml
           flags: unittests
-          name: coverage-\${{ matrix.os }}-python-\${{ matrix.python }}
+          name: coverage-\${ matrix.os }-python-\${ matrix.python }
 EOF
 }
 
 # Update package.json scripts for JavaScript projects
 update_package_scripts() {
-  if [ "$LANGUAGE" != "javascript" ] && [ "$LANGUAGE" != "typescript" ]; then
+  if [[ "${LANGUAGE}" != "javascript" ]] && [[ "${LANGUAGE}" != "typescript" ]]; then
     return
   fi
   
   log_section "📝 Updating package.json scripts"
   
   # Check if package.json exists
-  if [ ! -f "package.json" ]; then
+  if [[ ! -f "package.json" ]]; then
     log_warn "No package.json found, skipping script updates"
     return
   fi
   
   # Add test scripts if they don't exist
-  if [ "$TEST_FRAMEWORK" = "jest" ]; then
+  if [[ "${TEST_FRAMEWORK}" = "jest" ]]; then
     # Add Jest test scripts
     node -e "
       const pkg = require('./package.json');
@@ -357,7 +357,7 @@ update_package_scripts() {
       pkg.scripts['test:watch'] = pkg.scripts['test:watch'] || 'jest --watch';
       require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
     " && log_info "Added Jest test scripts"
-  elif [ "$TEST_FRAMEWORK" = "vitest" ]; then
+  elif [[ "${TEST_FRAMEWORK}" = "vitest" ]]; then
     # Add Vitest test scripts
     node -e "
       const pkg = require('./package.json');
@@ -372,7 +372,7 @@ update_package_scripts() {
   fi
   
   # Add E2E scripts if framework detected
-  if [ "$E2E_FRAMEWORK" = "playwright" ]; then
+  if [[ "${E2E_FRAMEWORK}" = "playwright" ]]; then
     node -e "
       const pkg = require('./package.json');
       pkg.scripts = pkg.scripts || {};
@@ -380,7 +380,7 @@ update_package_scripts() {
       pkg.scripts['test:e2e:ui'] = pkg.scripts['test:e2e:ui'] || 'playwright test --ui';
       require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));
     " && log_info "Added Playwright E2E scripts"
-  elif [ "$E2E_FRAMEWORK" = "cypress" ]; then
+  elif [[ "${E2E_FRAMEWORK}" = "cypress" ]]; then
     node -e "
       const pkg = require('./package.json');
       pkg.scripts = pkg.scripts || {};
@@ -398,22 +398,22 @@ main() {
   "${SCRIPT_DIR}/block-text.sh" -s "SCAFFOLDING TESTS"
   
   log_section "📋 Configuration Summary"
-  echo "  Language: $LANGUAGE"
-  echo "  Test Framework: $TEST_FRAMEWORK"
+  echo "  Language: ${LANGUAGE}"
+  echo "  Test Framework: ${TEST_FRAMEWORK}"
   echo "  E2E Framework: ${E2E_FRAMEWORK:-none}"
-  echo "  Coverage Threshold: $COVERAGE_THRESHOLD%"
-  echo "  Test Matrix: $TEST_MATRIX"
-  echo "  Mode: $MODE"
+  echo "  Coverage Threshold: ${COVERAGE_THRESHOLD}%"
+  echo "  Test Matrix: ${TEST_MATRIX}"
+  echo "  Mode: ${MODE}"
   
   # Configure test workflow based on language
   log_section "🔧 Configuring Test Workflow"
   
-  if [ "$LANGUAGE" = "javascript" ] || [ "$LANGUAGE" = "typescript" ]; then
+  if [[ "${LANGUAGE}" = "javascript" ]] || [[ "${LANGUAGE}" = "typescript" ]]; then
     configure_js_test_workflow
-  elif [ "$LANGUAGE" = "python" ]; then
+  elif [[ "${LANGUAGE}" = "python" ]]; then
     configure_python_test_workflow
   else
-    log_warn "Language $LANGUAGE not yet supported for test configuration"
+    log_warn "Language ${LANGUAGE} not yet supported for test configuration"
     exit 1
   fi
   
@@ -427,19 +427,18 @@ main() {
   echo -e "${BOLD}${GREEN}✅ Test Configuration Complete!${NC}"
   echo
   echo "Configured:"
-  echo "  ✅ Test workflow with $TEST_FRAMEWORK"
-  if [ -n "$E2E_FRAMEWORK" ]; then
-    echo "  ✅ E2E tests with $E2E_FRAMEWORK"
+  echo "  ✅ Test workflow with ${TEST_FRAMEWORK}"
+  if [[ -n "${E2E_FRAMEWORK}" ]]; then
+    echo "  ✅ E2E tests with ${E2E_FRAMEWORK}"
   fi
-  echo "  ✅ Coverage threshold: $COVERAGE_THRESHOLD%"
-  echo "  ✅ Test matrix: $TEST_MATRIX"
+  echo "  ✅ Coverage threshold: ${COVERAGE_THRESHOLD}%"
+  echo "  ✅ Test matrix: ${TEST_MATRIX}"
   echo
   echo "Next steps:"
   echo "  1. Review: cat .github/workflows/reusable-test.yml"
-  echo "  2. Test locally: $PACKAGE_MANAGER test"
+  echo "  2. Test locally: ${PACKAGE_MANAGER} test"
   echo "  3. Commit changes: git add . && git commit -m 'Configure testing'"
   echo "  4. Ship: /ship"
 }
 
 # Run main function
-main "$@"

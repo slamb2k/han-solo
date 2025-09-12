@@ -56,7 +56,7 @@ configure_npm_release() {
       - name: 📦 Setup NPM publishing
         if: contains(inputs.targets, 'npm')
         run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          echo "//registry.npmjs.org/:_authToken=${ secrets.NPM_TOKEN }" > ~/.npmrc
           
       - name: 🔖 Bump version
         if: contains(inputs.targets, 'npm') && inputs.strategy == 'semantic'
@@ -72,18 +72,18 @@ configure_npm_release() {
           fi
           
           # Bump version
-          npm version $VERSION_BUMP --no-git-tag-version
+          npm version ${VERSION_BUMP} --no-git-tag-version
           NEW_VERSION=$(node -p "require('./package.json').version")
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version=${NEW_VERSION}" >> ${GITHUB_OUTPUT}
           
       - name: 📚 Build package
         if: contains(inputs.targets, 'npm')
-        run: ${{ inputs.package-manager }} run build
+        run: ${ inputs.package-manager } run build
         
       - name: 🚀 Publish to NPM
         if: contains(inputs.targets, 'npm')
         run: |
-          if [ "${{ inputs.package-manager }}" = "pnpm" ]; then
+          if [[ "${ inputs.package-manager }" = "pnpm" ]]; then
             pnpm publish --no-git-checks
           else
             npm publish
@@ -92,11 +92,11 @@ configure_npm_release() {
       - name: 📝 Create NPM release notes
         if: contains(inputs.targets, 'npm') && success()
         run: |
-          echo "## 📦 NPM Package Released" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Package**: $(node -p "require('./package.json').name")" >> $GITHUB_STEP_SUMMARY
-          echo "- **Registry**: https://www.npmjs.com/package/$(node -p "require('./package.json').name")" >> $GITHUB_STEP_SUMMARY
+          echo "## 📦 NPM Package Released" >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Version**: ${ steps.version.outputs.version }" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Package**: $(node -p "require('./package.json').name")" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Registry**: https://www.npmjs.com/package/$(node -p "require('./package.json').name")" >> ${GITHUB_STEP_SUMMARY}
 EOF
 }
 
@@ -113,22 +113,22 @@ configure_docker_release() {
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${ github.actor }
+          password: ${ secrets.GITHUB_TOKEN }
           
       - name: 🏷️ Extract metadata
         if: contains(inputs.targets, 'docker')
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${ github.repository }
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{version}
+            type=semver,pattern={{major}.{{minor}
             type=sha
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=latest,enable={{is_default_branch}
             
       - name: 🏗️ Build and push Docker image
         if: contains(inputs.targets, 'docker')
@@ -136,19 +136,19 @@ configure_docker_release() {
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${ steps.meta.outputs.tags }
+          labels: ${ steps.meta.outputs.labels }
           cache-from: type=gha
           cache-to: type=gha,mode=max
           
       - name: 📝 Docker release notes
         if: contains(inputs.targets, 'docker') && success()
         run: |
-          echo "## 🐳 Docker Image Released" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Registry**: ghcr.io" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image**: ghcr.io/${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tags**: ${{ steps.meta.outputs.tags }}" >> $GITHUB_STEP_SUMMARY
+          echo "## 🐳 Docker Image Released" >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Registry**: ghcr.io" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Image**: ghcr.io/${ github.repository }" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Tags**: ${ steps.meta.outputs.tags }" >> ${GITHUB_STEP_SUMMARY}
 EOF
 }
 
@@ -162,7 +162,7 @@ configure_github_release() {
         run: |
           # Get commits since last tag
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -z "$LAST_TAG" ]; then
+          if [[ -z "${LAST_TAG}" ]]; then
             COMMITS=$(git log --pretty=format:"- %s (%an)" -10)
           else
             COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%an)")
@@ -172,17 +172,17 @@ configure_github_release() {
           cat > CHANGELOG.md << EOL
           ## What's Changed
           
-          $COMMITS
+          ${COMMITS}
           
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${LAST_TAG}...v${{ steps.version.outputs.version || github.sha }}
+          **Full Changelog**: https://github.com/${ github.repository }/compare/${LAST_TAG}...v${ steps.version.outputs.version || github.sha }
           EOL
           
       - name: 🏷️ Create GitHub Release
         if: contains(inputs.targets, 'github')
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.version.outputs.version || github.run_number }}
-          name: Release v${{ steps.version.outputs.version || github.run_number }}
+          tag_name: v${ steps.version.outputs.version || github.run_number }
+          name: Release v${ steps.version.outputs.version || github.run_number }
           body_path: CHANGELOG.md
           draft: false
           prerelease: false
@@ -198,15 +198,15 @@ configure_cloud_deployment() {
         if: contains(inputs.targets, 'vercel')
         run: |
           npm i -g vercel
-          vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel --prod --token=${ secrets.VERCEL_TOKEN }
           
       - name: 📝 Vercel deployment notes
         if: contains(inputs.targets, 'vercel') && success()
         run: |
-          echo "## ☁️ Deployed to Vercel" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: Production" >> $GITHUB_STEP_SUMMARY
-          echo "- **URL**: https://${{ github.event.repository.name }}.vercel.app" >> $GITHUB_STEP_SUMMARY
+          echo "## ☁️ Deployed to Vercel" >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Environment**: Production" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **URL**: https://${ github.event.repository.name }.vercel.app" >> ${GITHUB_STEP_SUMMARY}
 EOF
 }
 
@@ -214,7 +214,7 @@ EOF
 create_release_workflow() {
   local workflow_file=".github/workflows/reusable-release.yml"
   
-  log_info "Creating release workflow for targets: $DEPLOY_TARGETS"
+  log_info "Creating release workflow for targets: ${DEPLOY_TARGETS}"
   
   # Start workflow
   cat > "$workflow_file" << EOF
@@ -229,15 +229,15 @@ on:
       targets:
         description: 'Release targets (comma-separated: npm,docker,github,vercel)'
         type: string
-        default: '$DEPLOY_TARGETS'
+        default: '${DEPLOY_TARGETS}'
       strategy:
         description: 'Release strategy (semantic, manual, continuous)'
         type: string
-        default: '$RELEASE_STRATEGY'
+        default: '${RELEASE_STRATEGY}'
       package-manager:
         description: 'Package manager'
         type: string
-        default: '$PACKAGE_MANAGER'
+        default: '${PACKAGE_MANAGER}'
     secrets:
       NPM_TOKEN:
         required: false
@@ -248,9 +248,9 @@ on:
 
 jobs:
   release:
-    name: Release to \${{ inputs.targets }}
+    name: Release to \${ inputs.targets }
     runs-on: ubuntu-latest
-    environment: \${{ inputs.environment }}
+    environment: \${ inputs.environment }
     permissions:
       contents: write
       packages: write
@@ -270,13 +270,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: \${{ inputs.package-manager }}
+          cache: \${ inputs.package-manager }
           
       - name: 📚 Install dependencies
         run: |
-          if [ "\${{ inputs.package-manager }}" = "npm" ]; then
+          if [[ "\${ inputs.package-manager }" = "npm" ]]; then
             npm ci
-          elif [ "\${{ inputs.package-manager }}" = "pnpm" ]; then
+          elif [[ "\${ inputs.package-manager }" = "pnpm" ]]; then
             pnpm install --frozen-lockfile
           else
             yarn install --frozen-lockfile
@@ -284,19 +284,19 @@ jobs:
 EOF
   
   # Add target-specific configurations
-  if [[ "$DEPLOY_TARGETS" == *"npm"* ]]; then
+  if [[ "${DEPLOY_TARGETS}" == *"npm"* ]]; then
     configure_npm_release >> "$workflow_file"
   fi
   
-  if [[ "$DEPLOY_TARGETS" == *"docker"* ]]; then
+  if [[ "${DEPLOY_TARGETS}" == *"docker"* ]]; then
     configure_docker_release >> "$workflow_file"
   fi
   
-  if [[ "$DEPLOY_TARGETS" == *"github"* ]]; then
+  if [[ "${DEPLOY_TARGETS}" == *"github"* ]]; then
     configure_github_release >> "$workflow_file"
   fi
   
-  if [[ "$DEPLOY_TARGETS" == *"vercel"* ]] || [[ "$DEPLOY_TARGETS" == *"netlify"* ]]; then
+  if [[ "${DEPLOY_TARGETS}" == *"vercel"* ]] || [[ "${DEPLOY_TARGETS}" == *"netlify"* ]]; then
     configure_cloud_deployment >> "$workflow_file"
   fi
   
@@ -306,38 +306,38 @@ EOF
       - name: 📊 Release Summary
         if: always()
         run: |
-          echo "## 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Strategy**: ${{ inputs.strategy }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Targets**: ${{ inputs.targets }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ inputs.environment }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "## 🚀 Release Summary" >> ${GITHUB_STEP_SUMMARY}
+          echo "" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Strategy**: ${ inputs.strategy }" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Targets**: ${ inputs.targets }" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Environment**: ${ inputs.environment }" >> ${GITHUB_STEP_SUMMARY}
+          echo "- **Status**: ${ job.status }" >> ${GITHUB_STEP_SUMMARY}
           
       - name: 🔔 Notify on success
         if: success()
         run: |
-          echo "::notice::Successfully released to: ${{ inputs.targets }}"
+          echo "::notice::Successfully released to: ${ inputs.targets }"
           
       - name: ❌ Notify on failure
         if: failure()
         run: |
-          echo "::error::Release failed for targets: ${{ inputs.targets }}"
+          echo "::error::Release failed for targets: ${ inputs.targets }"
 EOF
 }
 
 # Update package.json for releases
 update_package_json() {
-  if [ "$LANGUAGE" != "javascript" ] && [ "$LANGUAGE" != "typescript" ]; then
+  if [[ "${LANGUAGE}" != "javascript" ]] && [[ "${LANGUAGE}" != "typescript" ]]; then
     return
   fi
   
-  if [[ "$DEPLOY_TARGETS" != *"npm"* ]]; then
+  if [[ "${DEPLOY_TARGETS}" != *"npm"* ]]; then
     return
   fi
   
   log_section "📝 Updating package.json for NPM publishing"
   
-  if [ ! -f "package.json" ]; then
+  if [[ ! -f "package.json" ]]; then
     log_warn "No package.json found"
     return
   fi
@@ -374,13 +374,13 @@ update_package_json() {
     }
     
     // Add files field if not present
-    if (!pkg.files && '$PROJECT_TYPE' === 'library') {
+    if (!pkg.files && '${PROJECT_TYPE}' === 'library') {
       pkg.files = ['dist', 'lib', 'esm', 'cjs', 'README.md', 'LICENSE'];
     }
     
     // Add release scripts
     pkg.scripts = pkg.scripts || {};
-    pkg.scripts['prepublishOnly'] = pkg.scripts['prepublishOnly'] || '$PACKAGE_MANAGER run build && $PACKAGE_MANAGER test';
+    pkg.scripts['prepublishOnly'] = pkg.scripts['prepublishOnly'] || '${PACKAGE_MANAGER} run build && ${PACKAGE_MANAGER} test';
     pkg.scripts['version'] = pkg.scripts['version'] || 'git add -A .';
     pkg.scripts['postversion'] = pkg.scripts['postversion'] || 'git push && git push --tags';
     
@@ -403,7 +403,7 @@ Configure these secrets in your repository settings under Settings → Secrets �
 ## Secrets needed for your release configuration:
 EOF
   
-  if [[ "$DEPLOY_TARGETS" == *"npm"* ]]; then
+  if [[ "${DEPLOY_TARGETS}" == *"npm"* ]]; then
     cat >> "$secrets_file" << 'EOF'
 
 ### NPM_TOKEN
@@ -417,7 +417,7 @@ EOF
 EOF
   fi
   
-  if [[ "$DEPLOY_TARGETS" == *"vercel"* ]]; then
+  if [[ "${DEPLOY_TARGETS}" == *"vercel"* ]]; then
     cat >> "$secrets_file" << 'EOF'
 
 ### VERCEL_TOKEN
@@ -468,11 +468,11 @@ main() {
   "${SCRIPT_DIR}/block-text.sh" -s "SCAFFOLDING RELEASE"
   
   log_section "📋 Configuration Summary"
-  echo "  Language: $LANGUAGE"
-  echo "  Deploy Targets: $DEPLOY_TARGETS"
-  echo "  Release Strategy: $RELEASE_STRATEGY"
-  echo "  Project Type: $PROJECT_TYPE"
-  echo "  Mode: $MODE"
+  echo "  Language: ${LANGUAGE}"
+  echo "  Deploy Targets: ${DEPLOY_TARGETS}"
+  echo "  Release Strategy: ${RELEASE_STRATEGY}"
+  echo "  Project Type: ${PROJECT_TYPE}"
+  echo "  Mode: ${MODE}"
   
   # Create release workflow
   log_section "🔧 Configuring Release Workflow"
@@ -512,4 +512,3 @@ main() {
 }
 
 # Run main function
-main "$@"

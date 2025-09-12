@@ -12,18 +12,18 @@ echo -e "${CYAN}🎯 Setting up Quality Gates${NC}"
 echo
 
 # Detect project type
-if [ -f "package.json" ]; then
+if [[ -f "package.json" ]]; then
   echo -e "${GREEN}✓${NC} Node.js project detected"
   
   # Detect package manager
-  if [ -f "pnpm-lock.yaml" ]; then
+  if [[ -f "pnpm-lock.yaml" ]]; then
     PKG_MGR="pnpm"
-  elif [ -f "yarn.lock" ]; then
+  elif [[ -f "yarn.lock" ]]; then
     PKG_MGR="yarn"
   else
     PKG_MGR="npm"
   fi
-  echo -e "${GREEN}✓${NC} Package manager: $PKG_MGR"
+  echo -e "${GREEN}✓${NC} Package manager: ${PKG_MGR}"
   
   # Create test directories
   mkdir -p tests/unit tests/integration tests/regression
@@ -40,7 +40,7 @@ EOF
   echo -e "${GREEN}✓${NC} Created sample test"
   
   # Update Husky hooks to run real tests
-  if [ -f ".husky/pre-push" ]; then
+  if [[ -f ".husky/pre-push" ]]; then
     cat > .husky/pre-push << 'EOF'
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
@@ -63,9 +63,9 @@ EOF
   echo -e "${GREEN}✨ Quality gates setup complete!${NC}"
   echo
   echo "Next steps:"
-  echo "  1. Install test framework: ${CYAN}$PKG_MGR install --save-dev jest${NC}"
+  echo "  1. Install test framework: ${CYAN}${PKG_MGR} install --save-dev jest${NC}"
   echo "  2. Update package.json test script: ${CYAN}\"test\": \"jest\"${NC}"
-  echo "  3. Run tests: ${CYAN}$PKG_MGR test${NC}"
+  echo "  3. Run tests: ${CYAN}${PKG_MGR} test${NC}"
   
 else
   echo -e "${YELLOW}⚠${NC} No package.json found. Please run from project root."

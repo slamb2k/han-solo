@@ -79,15 +79,15 @@ PYTHON_END
             local phase=$((i * 360 / max_colors))
             local r g b
             
-            if [ $phase -lt 60 ]; then
+            if [[ $phase -lt 60 ]]; then
                 r=255; g=$((phase * 255 / 60)); b=0
-            elif [ $phase -lt 120 ]; then
+            elif [[ $phase -lt 120 ]]; then
                 r=$((255 - (phase - 60) * 255 / 60)); g=255; b=0
-            elif [ $phase -lt 180 ]; then
+            elif [[ $phase -lt 180 ]]; then
                 r=0; g=255; b=$(((phase - 120) * 255 / 60))
-            elif [ $phase -lt 240 ]; then
+            elif [[ $phase -lt 240 ]]; then
                 r=0; g=$((255 - (phase - 180) * 255 / 60)); b=255
-            elif [ $phase -lt 300 ]; then
+            elif [[ $phase -lt 300 ]]; then
                 r=$(((phase - 240) * 255 / 60)); g=0; b=255
             else
                 r=255; g=0; b=$((255 - (phase - 300) * 255 / 60))
@@ -116,7 +116,7 @@ print_block() {
             # Add each line of the letter to our output lines
             for j in 0 1 2; do
                 # Add a single space between characters (not for the first character)
-                if [ "$first_char" = false ]; then
+                if [[ "$first_char" = false ]]; then
                     lines[$j]="${lines[$j]} "
                 fi
                 lines[$j]="${lines[$j]}${letter_lines[$j]}"
@@ -125,7 +125,7 @@ print_block() {
         else
             # Unknown character, add spaces
             for j in 0 1 2; do
-                if [ "$first_char" = false ]; then
+                if [[ "$first_char" = false ]]; then
                     lines[$j]="${lines[$j]} "
                 fi
                 lines[$j]="${lines[$j]}  "
@@ -135,7 +135,7 @@ print_block() {
     done
     
     # Print with colors if requested
-    if [ "$color_mode" = "rainbow" ]; then
+    if [[ "$color_mode" = "rainbow" ]]; then
         # Pre-generate the entire rainbow palette once
         readarray -t rainbow_colors < <(generate_rainbow_palette)
         local num_colors=${#rainbow_colors[@]}
@@ -151,7 +151,7 @@ print_block() {
             for (( pos=0; pos<${#line}; pos++ )); do
                 char="${line:$pos:1}"
                 
-                if [ "$char" != " " ]; then
+                if [[ "$char" != " " ]]; then
                     # Calculate color index
                     local color_idx=$(((start_offset + pos + line_num * 2) % num_colors))
                     local rgb=(${rainbow_colors[$color_idx]})
@@ -166,7 +166,7 @@ print_block() {
             # Print the entire line at once
             printf "%s\033[0m\n" "$output"
         done
-    elif [ "$color_mode" = "simple" ]; then
+    elif [[ "$color_mode" = "simple" ]]; then
         # Simple single color output - using random color
         local simple_colors=(
             $'\033[31m'  # Red
@@ -191,7 +191,7 @@ print_block() {
         for line in "${lines[@]}"; do
             printf "%s%s%s\n" "$chosen_color" "$line" "$reset"
         done
-    elif [ "$color_mode" = "rainbow-basic" ]; then
+    elif [[ "$color_mode" = "rainbow-basic" ]]; then
         # Rainbow using basic 16 colors (more compatible)
         local basic_colors=(
             $'\033[31m'  # Red
@@ -217,7 +217,7 @@ print_block() {
             for (( pos=0; pos<${#line}; pos++ )); do
                 char="${line:$pos:1}"
                 
-                if [ "$char" != " " ]; then
+                if [[ "$char" != " " ]]; then
                     # Calculate color index
                     local color_idx=$(((pos + line_num * 3) % num_colors))
                     output+="${basic_colors[$color_idx]}${char}"
@@ -237,7 +237,7 @@ print_block() {
 }
 
 # Main
-if [ $# -eq 0 ]; then
+if [[ $# -eq 0 ]]; then
     echo "Usage: $0 [OPTIONS] \"TEXT TO CONVERT\""
     echo "Example: $0 SCAFFOLD"
     echo ""
@@ -255,19 +255,20 @@ if [ $# -eq 0 ]; then
 fi
 
 # Check which color mode to use
-if [ "$1" == "--color" ] || [ "$1" == "-c" ]; then
+if [[ "$1" == "--color" ]] || [[ "$1" == "-c" ]]; then
     shift
     print_block "$*" "rainbow"
-elif [ "$1" == "--basic" ] || [ "$1" == "-b" ]; then
+elif [[ "$1" == "--basic" ]] || [[ "$1" == "-b" ]]; then
     shift
     print_block "$*" "rainbow-basic"
-elif [ "$1" == "--simple" ] || [ "$1" == "-s" ]; then
+elif [[ "$1" == "--simple" ]] || [[ "$1" == "-s" ]]; then
     shift
     print_block "$*" "simple"
-elif [ "$1" == "--plain" ] || [ "$1" == "-p" ]; then
+elif [[ "$1" == "--plain" ]] || [[ "$1" == "-p" ]]; then
     shift
     print_block "$*" "none"
 else
     # Default to no color
     print_block "$*" "none"
 fi
+

@@ -77,7 +77,8 @@ if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; t
         timestamp="$(date +%Y%m%d-%H%M%S)"
         auto_fix "Creating feature branch with your changes" \
                    "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"
-        if [[ $? -eq 0 ]]; then
+        fix_result=$?
+        if [[ ${fix_result} -eq 0 ]]; then
             CREATED_BRANCH=true
             CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
             echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
@@ -91,7 +92,8 @@ if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; t
             timestamp="$(date +%Y%m%d-%H%M%S)"
             auto_fix "Creating feature branch with your commits" \
                        "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"
-            if [[ $? -eq 0 ]]; then
+            fix_result=$?
+            if [[ ${fix_result} -eq 0 ]]; then
                 CREATED_BRANCH=true
                 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
                 echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
@@ -200,7 +202,8 @@ if [[ -f "${FETCH_HEAD}" ]]; then
     if [[ ${HOURS_AGO} -gt 24 ]]; then
         echo -e "  ${WARN} Repository data is ${YELLOW}${HOURS_AGO} hours${NC} old"
         auto_fix "Fetching latest changes" "git fetch origin"
-        if [[ $? -eq 0 ]]; then
+        fix_result=$?
+        if [[ ${fix_result} -eq 0 ]]; then
             echo -e "  ${CHECK} Fetched latest changes"
         else
             fail_check "  ${CROSS} Repository is stale"

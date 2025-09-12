@@ -98,4 +98,3 @@ if [[ "${CURRENT_HEAD}" = "${MAIN_BRANCH}" ]]; then
   exit 1
 fi
 
-exit 0
