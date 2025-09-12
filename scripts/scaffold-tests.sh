@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# scaffold-test.sh - Deterministic test configuration for reusable-test.yml
+# scaffold-tests.sh - Deterministic test configuration for reusable-test.yml
 # This script configures the actual test implementation based on detected frameworks
 
 set -euo pipefail
@@ -393,8 +393,9 @@ update_package_scripts() {
 
 # Main execution
 main() {
-  echo -e "${BOLD}${GREEN}🧪 Test Scaffold Configuration${NC}"
-  echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  # Display colorful banner
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  "$SCRIPT_DIR/block-text.sh" -s "SCAFFOLDING TESTS"
   
   log_section "📋 Configuration Summary"
   echo "  Language: $LANGUAGE"

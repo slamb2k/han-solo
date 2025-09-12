@@ -24,10 +24,9 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display colorful banner with gradient colors
-printf "\033[38;5;196m _   _  _       _   _  ___       _       \033[0m\n"
-printf "\033[38;5;202m(_  /  |_) | | |_) |_)  |  |\\ | /__   \\ \\ \\ \033[0m\n"
-printf "\033[38;5;208m__) \\_ | \\ |_| |_) |_) _|_ | \\| \\_|   / / / \033[0m\n"
+# Display colorful banner
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/block-text.sh" -s "SCRUBBING"
 echo
 
 # Get default branch

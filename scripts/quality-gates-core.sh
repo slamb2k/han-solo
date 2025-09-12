@@ -13,12 +13,8 @@ NC='\033[0m'
 BOLD='\033[1m'
 
 # Display colorful banner
-printf "${MAGENTA} ___       _   _  _          ___      _           ${NC}\n"
-printf "${CYAN}/ _ \\ _  _| |_| |(_)_ _ _  _ / __|__ _| |_ ___ ___ ${NC}\n"
-printf "${BLUE}\\_, | || | '_| || |  _| || | \\__ \\/ _\` |  _/ -_|_-< ${NC}\n"
-printf "${GREEN}  /_/\\_,_|_| |_||_|_| \\_, | |___/\\__,_|\\__\\___/__/ ${NC}\n"
-printf "${GREEN}                      |__/                          ${NC}\n"
-echo
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/block-text.sh" -s "QUALITY GATES"
 
 # Configuration
 MODE="${1:-balanced}"

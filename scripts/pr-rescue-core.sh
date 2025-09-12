@@ -13,9 +13,8 @@ NC='\033[0m' # No Color
 BOLD='\033[1m'
 
 # Display colorful banner
-printf "\033[38;5;201m__  __      __  ___ ___  _           \033[0m\n"
-printf "\033[38;5;207m|_) |_)   |_) |_ (_  /  | | |_   \\\\ \\\\ \\\\ \033[0m\n"
-printf "\033[38;5;213m|   | \\   | \\ |_ __) \\_ |_| |_   / / /\033[0m\n"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/block-text.sh" -s "PR RESCUE"
 echo
 
 # Parse arguments

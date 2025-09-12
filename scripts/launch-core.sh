@@ -1,5 +1,5 @@
 #!/bin/bash
-# fresh-core.sh - Start a fresh, clean feature branch from updated main
+# launch-core.sh - Launch a new, clean feature branch from updated main
 set -e
 
 # Colors for output
@@ -10,11 +10,9 @@ RED='\033[0;31m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display colorful banner with flush for immediate display
-printf "\033[38;5;196m_           _  _     ___     _   _         \033[0m\n"
-printf "\033[38;5;202m|\\ | |_ \\    /   |_ |_  /\\  | | | |_) |_   \\\\ \\\\ \\\\ \033[0m\n"
-printf "\033[38;5;208m| \\\\| |_  \\\\/\\\\/    |  |_ /--\\ | |_| | \\ |_   / / /\033[0m\n"
-echo
+# Display colorful banner
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/block-text.sh" -s "LAUNCHING"
 
 # Parse branch name argument
 BRANCH_NAME="${1:-feature/$(date +%Y-%m-%d-%H%M%S)}"
@@ -33,7 +31,7 @@ echo -e "Current branch: ${YELLOW}$CURRENT_BRANCH${NC}"
 STASH_NEEDED=false
 if [ -n "$(git status --porcelain)" ]; then
   echo -e "${YELLOW}📦 Stashing uncommitted changes...${NC}"
-  git stash push -m "fresh-command-autostash-$(date +%s)"
+  git stash push -m "launch-command-autostash-$(date +%s)"
   STASH_NEEDED=true
 fi
 
@@ -79,7 +77,7 @@ fi
 
 # Show final status
 echo ""
-echo -e "${GREEN}✅ Fresh branch ready!${NC}"
+echo -e "${GREEN}✅ Launch successful!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "  Branch: ${CYAN}$BRANCH_NAME${NC}"
 echo -e "  Base: ${CYAN}origin/$MAIN_BRANCH${NC} (latest)"

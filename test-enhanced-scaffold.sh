@@ -146,7 +146,7 @@ echo -e "${BOLD}${CYAN}TEST 2: Testing Mode${NC}"
 echo -e "${BOLD}${CYAN}═══════════════════════════════════════════${NC}"
 echo
 
-"$OLDPWD/scripts/scaffold-test.sh" \
+"$OLDPWD/scripts/scaffold-tests.sh" \
   --language typescript \
   --test-framework jest \
   --e2e-framework playwright \

@@ -45,7 +45,7 @@ Create a flexible, maintainable DevOps foundation using modular, reusable workfl
 - Sets up branch protection and repository settings
 
 ### Testing Mode (--testing)
-**Test Configuration** (via scaffold-agent + scaffold-test.sh)
+**Test Configuration** (via scaffold-agent + scaffold-tests.sh)
 - Detects test frameworks (Jest, Vitest, pytest, etc.)
 - Identifies test types (unit, integration, e2e)
 - Analyzes coverage tools and requirements
@@ -191,7 +191,7 @@ Uses the Task tool with:
   4. Get user confirmation
   5. Delegate to appropriate script:
      - scaffold-core.sh (base infrastructure)
-     - scaffold-test.sh (testing configuration)
+     - scaffold-tests.sh (testing configuration)
      - scaffold-release.sh (release configuration)
   6. Update reusable workflows as needed
   7. Report what was created/modified

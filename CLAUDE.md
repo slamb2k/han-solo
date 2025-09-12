@@ -14,7 +14,7 @@ This repository includes custom Claude Code extensions:
 
 ### Commands
 - **`/bootstrap`** (`.claude/commands/han-solo/bootstrap.md`): Sets up repository governance with branch protection, strict required checks (🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build), Husky hooks, and CI workflow. Solo mode by default (0 required reviewers).
-- **`/fresh`** (`.claude/commands/han-solo/fresh.md`): Creates a fresh feature branch from updated main. Delegates to `scripts/fresh-core.sh`.
+- **`/launch`** (`.claude/commands/han-solo/launch.md`): Launches a new feature branch from updated main. Delegates to `scripts/launch-core.sh`.
 - **`/health`** (`.claude/commands/han-solo/health.md`): Comprehensive repository health check. Delegates to `scripts/health-core.sh`.
 - **`/scrub`** (`.claude/commands/han-solo/scrub.md`): Cleans up merged branches safely. Delegates to `scripts/scrub-core.sh`.
 - **`/ship`** (`.claude/commands/han-solo/ship.md`): Creates/updates PRs with automatic rebase, waits for required checks by default, then squash-merges. Use `--nowait` for PR-only, `--force` to merge despite failures.

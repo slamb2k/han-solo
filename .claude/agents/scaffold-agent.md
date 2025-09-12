@@ -25,7 +25,7 @@ The agent operates in three distinct modes based on the command argument:
 
 ### 3. Deterministic Execution (Delegates to scripts)
 - **Base Mode** → scaffold-core.sh
-- **Testing Mode** → scaffold-test.sh
+- **Testing Mode** → scaffold-tests.sh
 - **Release Mode** → scaffold-release.sh
 
 ## Workflow Structure

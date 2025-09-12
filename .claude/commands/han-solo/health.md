@@ -102,7 +102,7 @@ fi
 - All PRs in good state
 
 ## Related Commands
-- `/fresh` - Start clean feature branch
+- `/launch` - Start clean feature branch
 - `/ship --check` - Pre-flight checks before shipping
 - `/scrub` - Clean up old branches
 

@@ -509,8 +509,9 @@ setup_branch_protection() {
 
 # Main execution
 main() {
-  echo -e "${BOLD}${GREEN}🏗️  Scaffold Execution${NC}"
-  echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  # Display colorful banner
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  "$SCRIPT_DIR/block-text.sh" -s "SCAFFOLDING"
   
   # Create workflows if requested
   if [ "$CREATE_WORKFLOWS" = "true" ]; then

@@ -14,10 +14,9 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 BOLD='\033[1m'
 
-# Display colorful banner with flush for immediate display
-printf "\033[38;5;51m__       _  _ ___       _      _  _            \033[0m\n"
-printf "\033[38;5;87m(_   /\\  |_ |_  | \\_/   /  |_| |_ /  |/   \\\\ \\\\ \\\\ \033[0m\n"
-printf "\033[38;5;123m__) /--\\ |  |_  |  |    \\_ | | |_ \\_ |\\   / / /\033[0m\n"
+# Display colorful banner
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/block-text.sh" -s "SHIP CHECK"
 echo
 
 # Emoji
@@ -114,7 +113,7 @@ if [[ -n "${UPSTREAM}" ]]; then
     if [[ "${LOCAL}" != "${REMOTE}" ]] && [[ "${LOCAL}" != "${BASE}" ]] && [[ "${REMOTE}" != "${BASE}" ]]; then
         fail_check "  ${STOP} Branch has diverged from $UPSTREAM!"
         echo -e "  ${THINK} This usually means the branch was already merged"
-        echo -e "  ${INFO} Consider creating a fresh branch"
+        echo -e "  ${INFO} Consider creating a new branch with /launch"
         if [[ "${AUTO_FIX}" = true ]] && [[ "${CREATED_BRANCH}" = false ]]; then
             echo -e "  ${YELLOW}Creating fresh branch...${NC}"
             git checkout main 2>/dev/null || git checkout master

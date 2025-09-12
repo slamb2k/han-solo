@@ -463,8 +463,9 @@ EOF
 
 # Main execution
 main() {
-  echo -e "${BOLD}${GREEN}🚀 Release Scaffold Configuration${NC}"
-  echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+  # Display colorful banner
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  "$SCRIPT_DIR/block-text.sh" -s "SCAFFOLDING RELEASE"
   
   log_section "📋 Configuration Summary"
   echo "  Language: $LANGUAGE"
