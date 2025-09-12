@@ -25,13 +25,15 @@ fi
 
 # Get current branch for reporting
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-echo -e "Current branch: ${YELLOW}$CURRENT_BRANCH${NC}"
+echo -e "Current branch: ${YELLOW}${CURRENT_BRANCH}${NC}"
 
 # Check for uncommitted changes and stash them
 STASH_NEEDED=false
-if [ -n "$(git status --porcelain)" ]; then
+GIT_STATUS=$(git status --porcelain)
+if [[ -n "${GIT_STATUS}" ]]; then
   echo -e "${YELLOW}📦 Stashing uncommitted changes...${NC}"
-  git stash push -m "launch-command-autostash-$(date +%s)"
+  TIMESTAMP=$(date +%s)
+  git stash push -m "launch-command-autostash-${TIMESTAMP}"
   STASH_NEEDED=true
 fi
 
@@ -44,9 +46,9 @@ if ! git rev-parse --verify main >/dev/null 2>&1; then
 fi
 
 # Switch to main branch
-echo -e "${CYAN}📍 Switching to $MAIN_BRANCH branch...${NC}"
-git checkout "$MAIN_BRANCH" 2>/dev/null || {
-  echo -e "${RED}❌ Failed to checkout $MAIN_BRANCH${NC}"
+echo -e "${CYAN}📍 Switching to ${MAIN_BRANCH} branch...${NC}"
+git checkout "${MAIN_BRANCH}" 2>/dev/null || {
+  echo -e "${RED}❌ Failed to checkout ${MAIN_BRANCH}${NC}"
   exit 1
 }
 
@@ -55,19 +57,19 @@ echo -e "${CYAN}📡 Fetching latest changes...${NC}"
 git fetch origin --prune
 
 # Hard reset to origin/main
-echo -e "${CYAN}🔄 Syncing with origin/$MAIN_BRANCH...${NC}"
-git reset --hard "origin/$MAIN_BRANCH"
+echo -e "${CYAN}🔄 Syncing with origin/${MAIN_BRANCH}...${NC}"
+git reset --hard "origin/${MAIN_BRANCH}"
 
 # Clean untracked files
 echo -e "${CYAN}🧹 Cleaning untracked files...${NC}"
 git clean -fd
 
 # Create new feature branch
-echo -e "${GREEN}🌱 Creating new branch: $BRANCH_NAME${NC}"
-git checkout -b "$BRANCH_NAME"
+echo -e "${GREEN}🌱 Creating new branch: ${BRANCH_NAME}${NC}"
+git checkout -b "${BRANCH_NAME}"
 
 # Restore stashed changes if any
-if [ "$STASH_NEEDED" = true ]; then
+if [[ "${STASH_NEEDED}" = true ]]; then
   echo -e "${YELLOW}📤 Restoring stashed changes...${NC}"
   git stash pop || {
     echo -e "${YELLOW}⚠️  Could not auto-restore stash (conflicts possible)${NC}"
@@ -79,8 +81,8 @@ fi
 echo ""
 echo -e "${GREEN}✅ Launch successful!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "  Branch: ${CYAN}$BRANCH_NAME${NC}"
-echo -e "  Base: ${CYAN}origin/$MAIN_BRANCH${NC} (latest)"
+echo -e "  Branch: ${CYAN}${BRANCH_NAME}${NC}"
+echo -e "  Base: ${CYAN}origin/${MAIN_BRANCH}${NC} (latest)"
 echo -e "  Status: ${GREEN}Clean and ready for work${NC}"
 echo ""
 echo -e "${YELLOW}💡 Next steps:${NC}"
@@ -90,8 +92,9 @@ echo -e "  3. Ship with: ${CYAN}/ship${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 # Final safety check
-if [ "$(git rev-parse --abbrev-ref HEAD)" = "$MAIN_BRANCH" ]; then
-  echo -e "${RED}⚠️  WARNING: Still on $MAIN_BRANCH branch!${NC}"
+CURRENT_HEAD=$(git rev-parse --abbrev-ref HEAD)
+if [[ "${CURRENT_HEAD}" = "${MAIN_BRANCH}" ]]; then
+  echo -e "${RED}⚠️  WARNING: Still on ${MAIN_BRANCH} branch!${NC}"
   exit 1
 fi
 

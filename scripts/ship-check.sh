@@ -75,8 +75,9 @@ if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; t
     if [[ -n "${status_output}" ]]; then
         echo -e "  ${INFO} You have uncommitted changes"
         timestamp="$(date +%Y%m%d-%H%M%S)"
-        if auto_fix "Creating feature branch with your changes" \
-                   "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"; then
+        auto_fix "Creating feature branch with your changes" \
+                   "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"
+        if [[ $? -eq 0 ]]; then
             CREATED_BRANCH=true
             CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
             echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
@@ -88,8 +89,9 @@ if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; t
         if [[ "${UNPUSHED}" -gt 0 ]]; then
             echo -e "  ${CROSS} You have ${UNPUSHED} unpushed commits on main!"
             timestamp="$(date +%Y%m%d-%H%M%S)"
-            if auto_fix "Creating feature branch with your commits" \
-                       "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"; then
+            auto_fix "Creating feature branch with your commits" \
+                       "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"
+            if [[ $? -eq 0 ]]; then
                 CREATED_BRANCH=true
                 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
                 echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
@@ -197,7 +199,8 @@ if [[ -f "${FETCH_HEAD}" ]]; then
     
     if [[ ${HOURS_AGO} -gt 24 ]]; then
         echo -e "  ${WARN} Repository data is ${YELLOW}${HOURS_AGO} hours${NC} old"
-        if auto_fix "Fetching latest changes" "git fetch origin"; then
+        auto_fix "Fetching latest changes" "git fetch origin"
+        if [[ $? -eq 0 ]]; then
             echo -e "  ${CHECK} Fetched latest changes"
         else
             fail_check "  ${CROSS} Repository is stale"
