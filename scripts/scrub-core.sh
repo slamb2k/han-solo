@@ -35,7 +35,7 @@ DEFAULT=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/r
 # Function to check if a branch has been squash-merged
 is_squash_merged() {
   local BRANCH=$1
-  local BASE=${2:-${DEFAULT}
+  local BASE=${2:-${DEFAULT}}
   
   # Method 1: Check if all commits are cherry-picked/equivalent
   # git cherry returns '-' for commits that are equivalent in upstream
@@ -265,7 +265,6 @@ if [[ -n "${LOCAL_BRANCHES}" ]]; then
     fi
   fi
   done
-  fi
 fi
 
 # Report summary

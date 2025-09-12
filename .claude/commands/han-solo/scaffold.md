@@ -2,7 +2,7 @@
 name: /han-solo:scaffold
 description: "Intelligently scaffold your repository with modular DevOps workflows, testing, and release automation"
 requires_args: false
-argument-hint: "[--testing | --release | --refresh | --minimal | --full]"
+argument-hint: "[--refresh | --minimal]"
 allowed-tools:
   - Task
 ---
@@ -19,20 +19,11 @@ Create a flexible, maintainable DevOps foundation using modular, reusable workfl
 # Initial scaffold - basic DevOps infrastructure
 /scaffold
 
-# Configure testing in reusable-test.yml
-/scaffold --testing
-
-# Configure releases in reusable-release.yml
-/scaffold --release
-
 # Refresh existing scaffold with detected changes
 /scaffold --refresh
 
 # Minimal setup - essentials only
 /scaffold --minimal
-
-# Full setup - scaffold + testing + release
-/scaffold --full
 ```
 
 ## What It Does
@@ -43,20 +34,8 @@ Create a flexible, maintainable DevOps foundation using modular, reusable workfl
 - Identifies project type (library, application, monorepo)
 - Creates modular workflow structure
 - Sets up branch protection and repository settings
-
-### Testing Mode (--testing)
-**Test Configuration** (via scaffold-agent + scaffold-tests.sh)
-- Detects test frameworks (Jest, Vitest, pytest, etc.)
-- Identifies test types (unit, integration, e2e)
-- Analyzes coverage tools and requirements
-- Configures reusable-test.yml with actual implementation
-
-### Release Mode (--release)
-**Release Configuration** (via scaffold-agent + scaffold-release.sh)
-- Detects deployment targets (npm, Docker, cloud)
-- Identifies versioning strategies
-- Analyzes release requirements
-- Configures reusable-release.yml with actual implementation
+- Creates placeholder reusable-test.yml (use `/quality-gates` to configure)
+- Creates placeholder reusable-release.yml (use `/release` to configure)
 
 ### 2. **Interactive Planning**
 - Presents analysis findings
@@ -67,9 +46,9 @@ Create a flexible, maintainable DevOps foundation using modular, reusable workfl
 ### 3. **Modular Workflow Creation**
 Creates separate, reusable workflows:
 - `.github/workflows/reusable-lint.yml` - Linting checks
-- `.github/workflows/reusable-test.yml` - Test execution (placeholder initially)
+- `.github/workflows/reusable-test.yml` - Test execution (placeholder - configure with `/quality-gates`)
 - `.github/workflows/reusable-build.yml` - Build process
-- `.github/workflows/reusable-release.yml` - Release automation (placeholder initially)
+- `.github/workflows/reusable-release.yml` - Release automation (placeholder - configure with `/release`)
 - `.github/workflows/ci.yml` - Main workflow that orchestrates the above
 
 ### 4. **Repository Configuration** (via scaffold-core)
@@ -167,8 +146,9 @@ jobs:
 
 ### Test Workflow
 - Initially a placeholder
-- Configured by `/scaffold --testing`
+- Configured by `/quality-gates` command
 - Detects and integrates existing test frameworks
+- Sets up coverage requirements and test matrices
 
 ### Build Workflow
 - Actual implementation based on build tools
@@ -176,7 +156,7 @@ jobs:
 
 ### Release Workflow
 - Initially a placeholder
-- Configured by `/scaffold --release`
+- Configured by `/release` command
 - Supports npm, Docker, GitHub releases, cloud deployments
 
 ## Implementation Details
@@ -184,17 +164,18 @@ jobs:
 Uses the Task tool with:
 - **subagent_type**: "scaffold-agent"
 - **description**: "Scaffold repository"
-- **prompt**: Includes mode (base/testing/release) and asks agent to:
-  1. Analyze the codebase for the specific mode
+- **prompt**: Asks agent to:
+  1. Analyze the codebase
   2. Present findings to user
   3. Offer appropriate options
   4. Get user confirmation
-  5. Delegate to appropriate script:
-     - scaffold-core.sh (base infrastructure)
-     - scaffold-tests.sh (testing configuration)
-     - scaffold-release.sh (release configuration)
-  6. Update reusable workflows as needed
+  5. Delegate to scaffold-core.sh for base infrastructure
+  6. Create placeholder workflows for test and release
   7. Report what was created/modified
+  
+Note: 
+- Test configuration is handled by `/quality-gates` which uses scaffold-tests.sh
+- Release configuration is handled by `/release` which uses release-core.sh
 
 ## Modes of Operation
 
@@ -204,35 +185,22 @@ Uses the Task tool with:
 ```
 Creates base infrastructure with placeholder test/release workflows.
 
-### Testing Configuration
+### Minimal Setup
 ```bash
-/scaffold --testing
+/scaffold --minimal
 ```
-Analyzes testing needs and configures reusable-test.yml:
-- Unit test runners
-- Integration test setup
-- Coverage reporting
-- Test matrices (OS, versions)
+Creates only essential workflows without extensive configuration.
 
-### Release Configuration
+### Refresh Setup
 ```bash
-/scaffold --release
+/scaffold --refresh
 ```
-Analyzes deployment needs and configures reusable-release.yml:
-- NPM publishing
-- Docker image building
-- GitHub releases
-- Cloud deployments
+Updates existing scaffold when project structure changes.
 
-### Full Setup
-```bash
-/scaffold --full
-```
-Runs all three modes sequentially:
-1. Base scaffold
-2. Testing configuration
-3. Release configuration
+For test configuration, run `/quality-gates` after scaffolding.
+For release configuration, run `/release` after scaffolding.
 
 ## Related Commands
-- `/quality-gates` - Add additional quality checks
+- `/quality-gates` - Configure testing and quality validation
+- `/release` - Configure release automation
 - `/ship` - Ship code through the scaffold
