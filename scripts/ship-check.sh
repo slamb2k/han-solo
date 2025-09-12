@@ -16,7 +16,7 @@ BOLD='\033[1m'
 
 # Display colorful banner
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"$SCRIPT_DIR/block-text.sh" -s "SHIP CHECK"
+"${SCRIPT_DIR}/block-text.sh" -s "SHIP CHECK"
 echo
 
 # Emoji
@@ -71,10 +71,13 @@ if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; t
     fail_check "  ${STOP} You're on ${CURRENT_BRANCH} branch!"
     
     # Check for uncommitted changes
-    if [[ -n "$(git status --porcelain)" ]]; then
+    status_output="$(git status --porcelain)"
+    if [[ -n "${status_output}" ]]; then
         echo -e "  ${INFO} You have uncommitted changes"
-        if auto_fix "Creating feature branch with your changes" \
-                   "git checkout -b feature/$(date +%Y%m%d-%H%M%S) && CREATED_BRANCH=true"; then
+        timestamp="$(date +%Y%m%d-%H%M%S)"
+        auto_fix "Creating feature branch with your changes" \
+                   "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"
+        if [[ $? -eq 0 ]]; then
             CREATED_BRANCH=true
             CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
             echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
@@ -85,8 +88,10 @@ if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; t
         UNPUSHED=$(git rev-list HEAD ^origin/"${CURRENT_BRANCH}" 2>/dev/null | wc -l || echo "0")
         if [[ "${UNPUSHED}" -gt 0 ]]; then
             echo -e "  ${CROSS} You have ${UNPUSHED} unpushed commits on main!"
-            if auto_fix "Creating feature branch with your commits" \
-                       "git checkout -b feature/$(date +%Y%m%d-%H%M%S) && CREATED_BRANCH=true"; then
+            timestamp="$(date +%Y%m%d-%H%M%S)"
+            auto_fix "Creating feature branch with your commits" \
+                       "git checkout -b feature/${timestamp} && CREATED_BRANCH=true"
+            if [[ $? -eq 0 ]]; then
                 CREATED_BRANCH=true
                 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
                 echo -e "  ${CHECK} Moved to branch: ${GREEN}${CURRENT_BRANCH}${NC}"
@@ -111,14 +116,15 @@ if [[ -n "${UPSTREAM}" ]]; then
     BASE=$(git merge-base HEAD "${UPSTREAM}" 2>/dev/null || echo "")
     
     if [[ "${LOCAL}" != "${REMOTE}" ]] && [[ "${LOCAL}" != "${BASE}" ]] && [[ "${REMOTE}" != "${BASE}" ]]; then
-        fail_check "  ${STOP} Branch has diverged from $UPSTREAM!"
+        fail_check "  ${STOP} Branch has diverged from ${UPSTREAM}!"
         echo -e "  ${THINK} This usually means the branch was already merged"
         echo -e "  ${INFO} Consider creating a new branch with /launch"
         if [[ "${AUTO_FIX}" = true ]] && [[ "${CREATED_BRANCH}" = false ]]; then
             echo -e "  ${YELLOW}Creating fresh branch...${NC}"
             git checkout main 2>/dev/null || git checkout master
             git pull origin main 2>/dev/null || git pull origin master
-            git checkout -b "feature/fresh-$(date +%Y%m%d-%H%M%S)"
+            timestamp="$(date +%Y%m%d-%H%M%S)"
+            git checkout -b "feature/fresh-${timestamp}"
             echo -e "  ${CHECK} Created fresh branch"
             IS_SAFE=true
         fi
@@ -146,7 +152,8 @@ if [[ "${CURRENT_BRANCH}" != "main" ]] && [[ "${CURRENT_BRANCH}" != "master" ]];
         echo -e "  ${INFO} Create a new branch for new work"
         if [[ "${AUTO_FIX}" = true ]]; then
             echo -e "  ${YELLOW}Creating new branch...${NC}"
-            NEW_BRANCH="feature/new-$(date +%Y%m%d-%H%M%S)"
+            timestamp="$(date +%Y%m%d-%H%M%S)"
+            NEW_BRANCH="feature/new-${timestamp}"
             git checkout -b "${NEW_BRANCH}"
             echo -e "  ${CHECK} Created branch: ${GREEN}${NEW_BRANCH}${NC}"
             IS_SAFE=true
@@ -161,7 +168,8 @@ echo ""
 
 # 4. Check for uncommitted changes
 echo -e "${BOLD}4. Uncommitted Changes Check${NC}"
-if [[ -n "$(git status --porcelain)" ]]; then
+status_output="$(git status --porcelain)"
+if [[ -n "${status_output}" ]]; then
     CHANGE_COUNT=$(git status --porcelain | wc -l)
     echo -e "  ${INFO} Found ${YELLOW}${CHANGE_COUNT}${NC} uncommitted file(s)"
     echo -e "  ${INFO} /ship will commit these for you"
