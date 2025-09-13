@@ -16,14 +16,14 @@ This repository includes custom Claude Code extensions:
 
 ### Commands
 - **`/ship`** (`.claude/commands/han-solo/ship.md`): Creates/updates PRs with automatic rebase, waits for required checks by default, then squash-merges. Use `--nowait` for PR-only, `--force` to merge despite failures.
-- **`/launch`** (`.claude/commands/han-solo/launch.md`): Launches a new feature branch from updated main. Delegates to `scripts/launch-core.sh`.
-- **`/scrub`** (`.claude/commands/han-solo/scrub.md`): Cleans up merged branches safely. Delegates to `scripts/scrub-core.sh`.
-- **`/health`** (`.claude/commands/han-solo/health.md`): Comprehensive repository health check. Delegates to `scripts/health-core.sh`.
+- **`/launch`** (`.claude/commands/han-solo/launch.md`): Launches a new feature branch from updated main. Delegates to `.claude/scripts/launch-core.sh`.
+- **`/scrub`** (`.claude/commands/han-solo/scrub.md`): Cleans up merged branches safely. Delegates to `.claude/scripts/scrub-core.sh`.
+- **`/health`** (`.claude/commands/han-solo/health.md`): Comprehensive repository health check. Delegates to `.claude/scripts/health-core.sh`.
 - **`/pr-rescue`** (`.claude/commands/han-solo/pr-rescue.md`): Rescue stuck PRs that need intervention.
 - **`/status-line`** (`.claude/commands/han-solo/status-line.md`): Configure Claude Code's status line for visual workflow guidance.
 
 ### Subagents
-- **git-shipper** (`.claude/agents/git-shipper.md`): Handles the PR shipping workflow. Delegates to `scripts/ship-core.sh`.
+- **git-shipper** (`.claude/agents/git-shipper.md`): Handles the PR shipping workflow. Delegates to `.claude/scripts/ship-core.sh`.
 
 ## Key Workflow
 
@@ -44,12 +44,12 @@ The repository follows a modular architecture optimized for Claude Code context 
 ### Directory Structure
 - `.claude/agents/`: Contains specialized subagents that handle complex workflows
 - `.claude/commands/`: Contains lightweight command definitions (~100 lines each)
-- `scripts/`: Contains core implementation scripts following `{command}-core.sh` pattern
+- `.claude/scripts/`: Contains core implementation scripts following `{command}-core.sh` pattern
 
 ### Modular Design Pattern
 - **Commands** (`.claude/commands/`): Lightweight wrappers that delegate to scripts
 - **Agents** (`.claude/agents/`): Specialized subagents for complex multi-step operations
-- **Scripts** (`scripts/`): Core logic extracted from commands to reduce context usage
+- **Scripts** (`.claude/scripts/`): Core logic extracted from commands to reduce context usage
 
 ### Benefits
 - Reduces Claude AI context usage by ~60%

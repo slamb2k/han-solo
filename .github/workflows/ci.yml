@@ -179,10 +179,10 @@ jobs:
           echo "### Curl Installation (Legacy)" >> release_notes.md
           echo "\`\`\`bash" >> release_notes.md
           echo "# Project-scoped" >> release_notes.md
-          echo "curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash" >> release_notes.md
+          echo "curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/.claude/scripts/install.sh | bash" >> release_notes.md
           echo "" >> release_notes.md
           echo "# Global" >> release_notes.md
-          echo "curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install.sh | bash -s -- --global" >> release_notes.md
+          echo "curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/.claude/scripts/install.sh | bash -s -- --global" >> release_notes.md
           echo "\`\`\`" >> release_notes.md
           echo "" >> release_notes.md
           echo "## 🎯 What's Included" >> release_notes.md

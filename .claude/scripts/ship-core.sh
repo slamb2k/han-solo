@@ -112,12 +112,12 @@ done
 
 # If in check mode, run the ship-check.sh script
 if [[ "${CHECK_MODE}" = "true" ]]; then
-  if [[ -f "./scripts/ship-check.sh" ]]; then
+  if [[ -f "./.claude/scripts/ship-check.sh" ]]; then
     echo -e "${BLUE}Running pre-ship safety check...${NC}"
-    
+
     # Temporarily disable errexit to capture exit code
     set +e
-    ./scripts/ship-check.sh "$@"
+    ./.claude/scripts/ship-check.sh "$@"
     CHECK_RESULT=$?
     set -e
     
@@ -800,8 +800,8 @@ fi
 
 # Run comprehensive branch cleanup
 note "🧹 Running comprehensive branch cleanup..."
-if [[ -f "./scripts/scrub-core.sh" ]]; then
-  ./scripts/scrub-core.sh --quiet || warn "Branch cleanup encountered issues (non-critical)"
+if [[ -f "./.claude/scripts/scrub-core.sh" ]]; then
+  ./.claude/scripts/scrub-core.sh --quiet || warn "Branch cleanup encountered issues (non-critical)"
 else
   warn "scrub-core.sh not found - skipping comprehensive cleanup"
 fi

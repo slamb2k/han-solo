@@ -86,7 +86,7 @@ skip_test() {
 run_syntax_checks() {
     start_stage "Syntax Checking"
     
-    for script in scripts/*.sh; do
+    for script in .claude/scripts/*.sh; do
         if [ -f "$script" ]; then
             run_test "$(basename "$script")" "bash -n '$script'" || true
         fi
@@ -100,7 +100,7 @@ run_linting() {
     start_stage "Linting (ShellCheck)"
     
     if command -v shellcheck > /dev/null 2>&1; then
-        for script in scripts/*.sh; do
+        for script in .claude/scripts/*.sh; do
             if [ -f "$script" ]; then
                 run_test "$(basename "$script")" "shellcheck '$script'" || true
             fi
@@ -180,8 +180,8 @@ run_performance_tests() {
     start_stage "Performance Tests"
     
     # Quick performance check of critical operations
-    run_test "ship --check performance" "timeout 5 ./scripts/ship-core.sh --check 2>/dev/null || [ \$? -eq 1 ]" || true
-    run_test "scrub --dry-run performance" "timeout 3 ./scripts/scrub-core.sh --dry-run" || true
+    run_test "ship --check performance" "timeout 5 ./.claude/scripts/ship-core.sh --check 2>/dev/null || [ \$? -eq 1 ]" || true
+    run_test "scrub --dry-run performance" "timeout 3 ./.claude/scripts/scrub-core.sh --dry-run" || true
     
     end_stage "performance"
 }
@@ -269,7 +269,7 @@ main() {
 }
 
 # Check if running from repo root
-if [ ! -f "scripts/ship-core.sh" ]; then
+if [ ! -f ".claude/scripts/ship-core.sh" ]; then
     echo -e "${RED}Error: Must run from repository root${NC}"
     exit 1
 fi

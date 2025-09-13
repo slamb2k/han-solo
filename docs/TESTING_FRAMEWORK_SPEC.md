@@ -34,7 +34,7 @@ This document outlines a comprehensive testing strategy for the han-solo Git wor
 #!/bin/bash
 # Quick format check (auto-fix)
 npx prettier --write --cache "**/*.{json,md,yml,yaml}"
-shfmt -w scripts/*.sh
+shfmt -w .claude/scripts/*.sh
 
 # Syntax validation (staged shell scripts only)
 for file in $(git diff --cached --name-only --diff-filter=ACM | grep '\.sh$'); do
@@ -106,7 +106,7 @@ jobs:
       - name: Format Check
         run: npm run format:check
       - name: ShellCheck
-        run: shellcheck scripts/*.sh
+        run: shellcheck .claude/scripts/*.sh
       - name: Validate Commands
         run: npm run validate:commands
 
@@ -193,10 +193,10 @@ setup() {
 }
 
 @test "ship creates PR successfully" {
-  run ./scripts/ship-core.sh --check
+  run ./.claude/scripts/ship-core.sh --check
   [ "$status" -eq 0 ]
   
-  run ./scripts/ship-core.sh
+  run ./.claude/scripts/ship-core.sh
   [ "$status" -eq 0 ]
   [[ "$output" =~ "PR created" ]]
 }
@@ -224,7 +224,7 @@ Purpose: Ensure fixed bugs stay fixed
   git add . && git commit -m "test"
   
   # Run ship
-  run ./scripts/ship-core.sh
+  run ./.claude/scripts/ship-core.sh
   [ "$status" -eq 0 ]
   
   # Verify no orphaned branch
@@ -245,7 +245,7 @@ Purpose: Ensure operations complete within acceptable time
 
 @test "ship completes check mode under 5 seconds" {
   start=$(date +%s)
-  run timeout 5 ./scripts/ship-core.sh --check
+  run timeout 5 ./.claude/scripts/ship-core.sh --check
   end=$(date +%s)
   
   [ "$status" -eq 0 ]

@@ -195,7 +195,7 @@ main() {
     echo "Testing: Orphaned Branch Prevention (PR #69)"
     
     # Get the script path
-    SCRIPT_PATH="${1:-scripts/ship-core.sh}"
+    SCRIPT_PATH="${1:-.claude/scripts/ship-core.sh}"
     
     if [ ! -f "$SCRIPT_PATH" ]; then
         echo -e "${RED}Error: Script not found at $SCRIPT_PATH${NC}"
@@ -224,12 +224,12 @@ main() {
 }
 
 # Run from repo root
-if [ -f "scripts/ship-core.sh" ]; then
-    main "scripts/ship-core.sh"
-elif [ -f "../scripts/ship-core.sh" ]; then
-    main "../scripts/ship-core.sh"
-elif [ -f "../../scripts/ship-core.sh" ]; then
-    main "../../scripts/ship-core.sh"
+if [ -f ".claude/scripts/ship-core.sh" ]; then
+    main ".claude/scripts/ship-core.sh"
+elif [ -f "../.claude/scripts/ship-core.sh" ]; then
+    main "../.claude/scripts/ship-core.sh"
+elif [ -f "../../.claude/scripts/ship-core.sh" ]; then
+    main "../../.claude/scripts/ship-core.sh"
 else
     echo -e "${RED}Error: Cannot find ship-core.sh. Run from repo root.${NC}"
     exit 1

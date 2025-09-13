@@ -231,9 +231,9 @@ case "${MODE}" in
     echo -e "Found $(echo "$pr_numbers" | wc -w) open PR(s)"
     echo
     echo -e "${BOLD}Available Actions:${NC}"
-    echo -e "  • Enable auto-merge: ${CYAN}./scripts/pr-rescue-core.sh enable-auto-merge <PR#>${NC}"
-    echo -e "  • Update branch:     ${CYAN}./scripts/pr-rescue-core.sh update-branch <PR#>${NC}"
-    echo -e "  • Force merge:       ${CYAN}./scripts/pr-rescue-core.sh force-merge <PR#>${NC}"
+    echo -e "  • Enable auto-merge: ${CYAN}./.claude/scripts/pr-rescue-core.sh enable-auto-merge <PR#>${NC}"
+    echo -e "  • Update branch:     ${CYAN}./.claude/scripts/pr-rescue-core.sh update-branch <PR#>${NC}"
+    echo -e "  • Force merge:       ${CYAN}./.claude/scripts/pr-rescue-core.sh force-merge <PR#>${NC}"
     ;;
     
   enable-auto-merge)
