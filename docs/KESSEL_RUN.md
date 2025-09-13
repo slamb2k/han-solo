@@ -24,7 +24,7 @@ Before we jump to hyperspace, ensure you have:
 
 ```bash
 # Interactive installation (recommended for first-timers)
-curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/install-interactive.sh | bash
+curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/.claude/scripts/install-interactive.sh | bash
 ```
 
 Choose the **Solo Developer** profile when prompted. This gives you everything you need.

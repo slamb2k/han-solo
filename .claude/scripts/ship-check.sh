@@ -262,7 +262,7 @@ if [[ "${IS_SAFE}" = true ]]; then
     echo -e "  Current branch: ${GREEN}${CURRENT_BRANCH}${NC}"
     echo -e "  Ready to run: ${BOLD}/ship${NC}"
     echo ""
-    echo -e "  ${INFO} After shipping, run: ${GREEN}./scripts/post-ship-cleanup.sh${NC}"
+    echo -e "  ${INFO} After shipping, run: ${GREEN}./.claude/scripts/post-ship-cleanup.sh${NC}"
 else
     echo -e "${BOLD}${RED}  ${STOP} NOT SAFE TO SHIP!${NC}"
     echo ""

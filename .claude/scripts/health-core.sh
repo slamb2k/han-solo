@@ -250,7 +250,7 @@ fi
 echo ""
 if [[ ${ISSUES_FOUND} -gt 0 ]]; then
     echo -e "${BOLD}  Issues Found: ${RED}${ISSUES_FOUND}${NC}"
-    echo -e "${BOLD}  Run ${GREEN}./scripts/pre-ship-check.sh${NC} before shipping"
+    echo -e "${BOLD}  Run ${GREEN}./.claude/scripts/pre-ship-check.sh${NC} before shipping"
 else
     echo -e "${BOLD}  ${CHECK} No issues found!${NC}"
 fi
