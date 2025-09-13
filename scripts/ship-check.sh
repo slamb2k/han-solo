@@ -122,12 +122,12 @@ if [[ -n "${UPSTREAM}" ]]; then
         echo -e "  ${THINK} This usually means the branch was already merged"
         echo -e "  ${INFO} Consider creating a new branch with /launch"
         if [[ "${AUTO_FIX}" = true ]] && [[ "${CREATED_BRANCH}" = false ]]; then
-            echo -e "  ${YELLOW}Creating fresh branch...${NC}"
+            echo -e "  ${YELLOW}Creating new branch...${NC}"
             git checkout main 2>/dev/null || git checkout master
             git pull origin main 2>/dev/null || git pull origin master
             timestamp="$(date +%Y%m%d-%H%M%S)"
-            git checkout -b "feature/fresh-${timestamp}"
-            echo -e "  ${CHECK} Created fresh branch"
+            git checkout -b "feature/auto-${timestamp}"
+            echo -e "  ${CHECK} Created new branch"
             IS_SAFE=true
         fi
     else

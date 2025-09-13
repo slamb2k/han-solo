@@ -220,7 +220,7 @@ If you've found yourself in the Sarlacc pit, don't despair. Every developer has 
 
 | Sarlacc Problem | Han-Solo Solution |
 |-----------------|-------------------|
-| Diverged branches | `/fresh` always starts clean |
+| Diverged branches | `/launch` always starts clean |
 | Accumulated stashes | Auto-stash and restore |
 | Old branches | Auto-cleanup after merge |
 | Bad commit messages | Auto-generated from conventions |
@@ -235,7 +235,7 @@ Ready to escape the Sarlacc pit? Here's your action plan:
 
 1. **Install Han-Solo**: Stop digging deeper
 2. **Run `/health`**: Assess the damage
-3. **Use `/fresh`**: Start clean from now on
+3. **Use `/launch`**: Start clean from now on
 4. **Follow the Kessel Run**: Learn the right way
 5. **Trust the automation**: Let Han-Solo handle the complexity
 

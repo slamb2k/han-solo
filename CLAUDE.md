@@ -4,35 +4,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-Han-solo is a Git workflow automation tool optimized for solo developers and small teams. It provides:
-- **`/bootstrap`**: Idempotent repository setup with branch protection, CI, and Husky hooks
+Han-solo is a Git workflow automation tool focused on developer velocity and safe shipping. It provides:
 - **`/ship`**: Automated PR creation, check waiting, and merging workflow
+- **`/launch`**: Clean feature branch creation
+- **`/scrub`**: Automatic branch cleanup
+- **`/health`**: Repository health monitoring
 
 ## Custom Commands and Agents
 
 This repository includes custom Claude Code extensions:
 
 ### Commands
-- **`/bootstrap`** (`.claude/commands/han-solo/bootstrap.md`): Sets up repository governance with branch protection, strict required checks (🧹 Format, 🔎 Lint, 🧠 Typecheck, 🛠️ Build), Husky hooks, and CI workflow. Solo mode by default (0 required reviewers).
-- **`/launch`** (`.claude/commands/han-solo/launch.md`): Launches a new feature branch from updated main. Delegates to `scripts/launch-core.sh`.
-- **`/health`** (`.claude/commands/han-solo/health.md`): Comprehensive repository health check. Delegates to `scripts/health-core.sh`.
-- **`/scrub`** (`.claude/commands/han-solo/scrub.md`): Cleans up merged branches safely. Delegates to `scripts/scrub-core.sh`.
 - **`/ship`** (`.claude/commands/han-solo/ship.md`): Creates/updates PRs with automatic rebase, waits for required checks by default, then squash-merges. Use `--nowait` for PR-only, `--force` to merge despite failures.
+- **`/launch`** (`.claude/commands/han-solo/launch.md`): Launches a new feature branch from updated main. Delegates to `scripts/launch-core.sh`.
+- **`/scrub`** (`.claude/commands/han-solo/scrub.md`): Cleans up merged branches safely. Delegates to `scripts/scrub-core.sh`.
+- **`/health`** (`.claude/commands/han-solo/health.md`): Comprehensive repository health check. Delegates to `scripts/health-core.sh`.
+- **`/pr-rescue`** (`.claude/commands/han-solo/pr-rescue.md`): Rescue stuck PRs that need intervention.
+- **`/status-line`** (`.claude/commands/han-solo/status-line.md`): Configure Claude Code's status line for visual workflow guidance.
 
 ### Subagents
-- **bootstrap-guardian** (`.claude/agents/bootstrap-guardian.md`): Handles the actual bootstrap implementation
 - **git-shipper** (`.claude/agents/git-shipper.md`): Handles the PR shipping workflow. Delegates to `scripts/ship-core.sh`.
 
-## Key Workflows
+## Key Workflow
 
-### Solo Developer Workflow (Default)
-1. Run `/bootstrap` to set up repository governance (0 required reviewers, strict checks)
-2. Work on feature branches
+### Developer Flow
+1. Run `/launch` to create a clean feature branch
+2. Make your changes and commit
 3. Run `/ship` to create PR, wait for checks, and auto-merge
+4. Automatic `/scrub` cleans up after successful merge
 
-### Team Workflow
-1. Run `/bootstrap --team --reviews 1` to require approvals
-2. Use `/ship --nowait` to create PRs without auto-merging
+### Quick Options
+- Use `/ship --nowait` to create PRs without waiting for merge
+- Use `/ship --force` to merge despite failures (use with caution)
 
 ## Architecture
 
@@ -63,8 +66,8 @@ The repository follows a modular architecture optimized for Claude Code context 
 ## Development Notes
 
 - This is a meta-repository for Claude Code tooling, not a traditional codebase
-- No package.json or traditional build system - the tools themselves set these up in target repos
-- The bootstrap process creates: Husky v10 hooks, GitHub Actions CI with pnpm caching, branch protection rules
+- Designed to work with any existing repository that has CI/CD already configured
+- Zero configuration philosophy - just clone and ship
 - Commands automatically collect context (repo name, branches, status) before delegating to subagents
 
 ## Code Edit Verification Rules
@@ -172,15 +175,15 @@ If you need to commit changes (and AUTOSHIP is not true), always ask: "Would you
 
 ### Pre-execution Checks (ONLY for manual operations):
 Before doing manual git operations (NOT before running /ship):
-1. Check for running processes: `ps aux | grep -E "(ship-core|fresh-core)"`
+1. Check for running processes: `ps aux | grep -E "(ship-core|launch-core)"`
 2. Look for lock files that indicate active operations
 3. If something IS running, then wait
 
 ### When Scripts Are ALREADY Running (detected BEFORE you act):
 1. **NEVER intervene** when a script is already executing:
    - Another `ship-core.sh` process (not yours)
-   - Another `fresh-core.sh` process (not yours)
-   - Any bootstrap or scrub operations in progress
+   - Another `launch-core.sh` process (not yours)
+   - Any scrub operations in progress
    
 2. **Wait for completion** - Scripts may take time to:
    - Push branches

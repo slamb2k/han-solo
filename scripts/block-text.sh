@@ -239,7 +239,7 @@ print_block() {
 # Main
 if [[ $# -eq 0 ]]; then
     echo "Usage: $0 [OPTIONS] \"TEXT TO CONVERT\""
-    echo "Example: $0 SCAFFOLD"
+    echo "Example: $0 SHIPPING"
     echo ""
     echo "Options:"
     echo "  --color, -c    Apply lolcat-style rainbow gradient (24-bit color)"

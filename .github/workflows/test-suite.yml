@@ -104,9 +104,9 @@ jobs:
         run: |
           ./scripts/scrub-core.sh --dry-run
           
-      - name: 🧪 Test fresh
+      - name: 🧪 Test launch
         run: |
-          ./scripts/fresh-core.sh test-branch-${{ github.run_number }}
+          ./scripts/launch-core.sh test-branch-${{ github.run_number }}
           git branch -d test-branch-${{ github.run_number }}
           
       - name: 📊 Report
