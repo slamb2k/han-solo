@@ -19,7 +19,7 @@ A complete standalone status line with comprehensive repository information.
 #### Example Output
 ```
 📁 han-solo | 🌟 feat/new-feature | ●3 +45/-12 | ↑2 | PR#42→ | 🤖 Opus 4.1 | 🧠 [██░░░░░░░░] 78% left
-📁 project | ⚠️ main | ✓ clean | ✓ | 🤖 Sonnet 3.5 | 🧠 [████░░░░░░] 60% left [USE /fresh TO START WORK]
+📁 project | ⚠️ main | ✓ clean | ✓ | 🤖 Sonnet 3.5 | 🧠 [████░░░░░░] 60% left [USE /launch TO START WORK]
 ```
 
 

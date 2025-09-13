@@ -131,7 +131,7 @@ if [[ "${CHECK_MODE}" = "true" ]]; then
       if [[ "${CURRENT_BRANCH}" = "main" ]] || [[ "${CURRENT_BRANCH}" = "master" ]]; then
         echo -e "\n${BOLD}Issue: You're on the main branch${NC}"
         echo -e "\n${GREEN}Resolution Options:${NC}"
-        echo -e "  1. Create a feature branch: ${CYAN}/fresh feature-name${NC}"
+        echo -e "  1. Create a feature branch: ${CYAN}/launch feature-name${NC}"
         echo -e "     Then run: ${CYAN}/ship${NC}"
         echo -e "\n  2. Let ship create a branch: ${CYAN}/ship --branch-name feature-name${NC}"
         echo -e "\n  ℹ️  Recommended: Use option 1 for cleaner workflow${NC}"

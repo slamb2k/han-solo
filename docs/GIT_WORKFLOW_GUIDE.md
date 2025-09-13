@@ -1,6 +1,6 @@
 # 🚀 Git Workflow Guide: Avoiding Merge Conflict Hell
 
-> **⚡ TL;DR**: Never work on main. Always ship from fresh feature branches. Always sync after shipping.
+> **⚡ TL;DR**: Never work on main. Always ship from clean feature branches. Always sync after shipping.
 
 ## 📖 Table of Contents
 1. [The Core Problem](#-the-core-problem)
@@ -168,7 +168,7 @@ git clean -fd  # Remove untracked files
 
 ### 💼 For Each Task
 ```bash
-# 1. Create fresh branch
+# 1. Create new branch
 git checkout -b feature/task-name
 
 # 2. Work
@@ -221,10 +221,10 @@ git checkout feature/recovered
 
 ### Situation: "PR has unexpected commits"
 ```bash
-# Cancel the PR and start fresh
+# Cancel the PR and start over
 git checkout main
 git pull origin main
-git checkout -b feature/fresh-start
+git checkout -b feature/new-start
 git cherry-pick <commit-sha>  # Pick only the commits you want
 /ship
 ```
@@ -254,7 +254,7 @@ git status
 git branch -vv
 git log origin/main..HEAD --oneline
 
-# Start fresh
+# Start over
 git checkout main
 git fetch origin
 git reset --hard origin/main

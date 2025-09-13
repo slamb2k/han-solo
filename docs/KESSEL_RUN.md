@@ -29,21 +29,20 @@ curl -fsSL https://raw.githubusercontent.com/slamb2k/han-solo/main/scripts/insta
 
 Choose the **Solo Developer** profile when prompted. This gives you everything you need.
 
-### Bootstrap Your First Repository
+### Ready to Ship
 
 ```bash
 cd your-project
-/bootstrap
+/launch
 ```
 
-This sets up:
-- ✅ CI/CD pipeline
-- ✅ Branch protection
-- ✅ Auto-merge on green checks
-- ✅ Git hooks for safety
-- ✅ Required status checks
+Han-Solo works with your existing repository setup:
+- ✅ Uses your existing CI/CD pipeline
+- ✅ Respects your branch protection rules
+- ✅ Works with your current checks
+- ✅ No setup required
 
-**What just happened?** You've activated your ship's deflector shields. You're now protected from most git disasters.
+**What just happened?** You've created a clean feature branch and you're ready to start shipping code. Han-Solo will handle the git workflow complexity for you.
 
 ## 🗺️ Stage 2: The Flight Path
 
@@ -52,7 +51,7 @@ This sets up:
 **Morning: Start Fresh**
 ```bash
 /health                    # Check ship systems
-/fresh feature/day1-work   # Launch from the docking bay
+/launch feature/day1-work   # Launch from the docking bay
 ```
 
 **Work Session:**
@@ -81,7 +80,7 @@ Your changes are now safely merged into main. No manual PR management needed!
 ```bash
 # Every morning starts the same
 /health                    # System check
-/fresh feat/day2-feature   # Clean launch
+/launch feat/day2-feature   # Clean launch
 ```
 
 **Multiple Commits Strategy:**
@@ -104,7 +103,7 @@ git commit -m "docs: update API documentation"
 **When Things Get Complicated:**
 
 ```bash
-/fresh fix/urgent-bug
+/launch fix/urgent-bug
 
 # Oh no, you need something from another branch!
 git cherry-pick abc123    # Grab that specific commit
@@ -114,7 +113,7 @@ git status               # Assess damage
 /health                  # Get recommendations
 
 # Nuclear option (start over)
-/fresh fix/urgent-bug-attempt2
+/launch fix/urgent-bug-attempt2
 ```
 
 ## 🎯 Stage 3: Navigation Patterns
@@ -124,7 +123,7 @@ git status               # Assess damage
 Perfect for typos, small bugs, urgent changes.
 
 ```bash
-/fresh fix/typo
+/launch fix/typo
 # Fix the typo
 git add . && git commit -m "fix: correct spelling in README"
 /ship --nowait    # Don't wait for merge, move on
@@ -136,7 +135,7 @@ git add . && git commit -m "fix: correct spelling in README"
 For substantial new features.
 
 ```bash
-/fresh feat/payment-system
+/launch feat/payment-system
 
 # Day 1
 git add . && git commit -m "feat: add payment models"
@@ -157,7 +156,7 @@ git add . && git commit -m "test: add payment tests"
 For trying risky things.
 
 ```bash
-/fresh experiment/crazy-idea
+/launch experiment/crazy-idea
 
 # Go wild with changes
 # ...
@@ -175,7 +174,7 @@ git branch -D experiment/crazy-idea    # Jettison the escape pod
 When production is on fire.
 
 ```bash
-/fresh hotfix/stop-the-bleeding
+/launch hotfix/stop-the-bleeding
 
 # Fix the critical issue
 git add .
@@ -191,17 +190,17 @@ git commit -m "fix: prevent database from catching fire"
 **The "Just One More Change" Trap**
 ```bash
 # DON'T DO THIS
-/fresh feature/simple-change
+/launch feature/simple-change
 # ... 3 hours later ...
 # ... 47 files changed ...
 # ... merge conflicts everywhere ...
 
 # DO THIS INSTEAD
-/fresh feature/simple-change
+/launch feature/simple-change
 # Make ONE change
 /ship
 # Want more changes? Start fresh!
-/fresh feature/another-simple-change
+/launch feature/another-simple-change
 ```
 
 **The "I'll Commit Later" Syndrome**
@@ -225,7 +224,7 @@ git checkout main
 git commit -m "yolo"
 
 # DO THIS INSTEAD
-/fresh       # ALWAYS start with /fresh
+/launch       # ALWAYS start with /launch
 # Work on feature branch
 /ship        # Let automation handle main
 ```
@@ -238,11 +237,11 @@ Working on multiple features simultaneously:
 
 ```bash
 # Terminal 1: Feature A
-/fresh feat/user-profiles
+/launch feat/user-profiles
 # Work on user profiles
 
 # Terminal 2: Feature B  
-/fresh feat/notifications
+/launch feat/notifications
 # Work on notifications
 
 # Ship whichever is ready first
@@ -258,7 +257,7 @@ cd ../feature-b-dir
 Even solo devs benefit from reviewing their own code:
 
 ```bash
-/fresh feat/complex-feature
+/launch feat/complex-feature
 # ... make changes ...
 git commit -m "feat: add complex feature"
 
@@ -277,17 +276,17 @@ Ship multiple times per day:
 
 ```bash
 # Morning
-/fresh feat/morning-work
+/launch feat/morning-work
 # Small chunk of work
 /ship
 
 # After lunch
-/fresh feat/afternoon-work  
+/launch feat/afternoon-work  
 # Another small chunk
 /ship
 
 # Before leaving
-/fresh fix/cleanup
+/launch fix/cleanup
 # Quick cleanup
 /ship
 
@@ -301,14 +300,14 @@ Ship multiple times per day:
 ```yaml
 Morning:
   - /health                 # Check status
-  - /fresh feat/daily-work  # Start clean
+  - /launch feat/daily-work  # Start clean
   - Work in small chunks
   - Commit frequently
 
 Afternoon:
   - /ship --check          # Pre-flight check
   - /ship                  # Deploy
-  - /fresh feat/next-task  # Start next task
+  - /launch feat/next-task  # Start next task
 
 Evening:
   - /ship                  # Ship today's work
@@ -361,7 +360,7 @@ You've completed the Kessel Run when you can:
 
 1. **Ship a feature in < 10 minutes**
    ```bash
-   /fresh → code → commit → /ship
+   /launch → code → commit → /ship
    ```
 
 2. **Recover from any git situation**
@@ -384,13 +383,13 @@ You've completed the Kessel Run when you can:
 ### Lost in Space (Detached HEAD)
 ```bash
 git checkout main
-/fresh recovery-branch
+/launch recovery-branch
 ```
 
 ### Hull Breach (Merge Conflicts)
 ```bash
 git merge --abort
-/fresh start-over
+/launch start-over
 ```
 
 ### Engine Failure (Can't Push)
@@ -408,14 +407,14 @@ cp -r . ../backup
 # Nuclear reset
 git checkout main
 git reset --hard origin/main
-/fresh clean-start
+/launch clean-start
 ```
 
 ## 🌟 The Way of the Git Jedi
 
 ### The Git Jedi Code
 
-1. **Start fresh, always** - Every journey begins with `/fresh`
+1. **Start fresh, always** - Every journey begins with `/launch`
 2. **Ship small, ship often** - Multiple small ships > one big ship
 3. **Commit with meaning** - Your future self will thank you
 4. **Trust the automation** - Let Han-Solo handle the complexity
@@ -436,7 +435,7 @@ git reset --hard origin/main
 ## 🎬 Your Next Steps
 
 1. **Practice the basics** for one week:
-   - `/fresh` every morning
+   - `/launch` every morning
    - `/ship` every evening
    - `/health` checks daily
 
@@ -484,6 +483,6 @@ Now go forth and ship with confidence. May the git force be with you!
 
 ---
 
-**Final Challenge**: Can you make the Kessel Run (morning `/fresh` to evening `/ship`) in less than 12 parsecs... er, minutes?
+**Final Challenge**: Can you make the Kessel Run (morning `/launch` to evening `/ship`) in less than 12 parsecs... er, minutes?
 
 Good luck, pilot. The galaxy is counting on you! 🚀

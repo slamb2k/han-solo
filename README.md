@@ -61,11 +61,11 @@ No decisions needed. Just `/ship` and move on to the next story.
 - Cleans up branches
 - **Never leaves you hanging** - completes or rolls back cleanly
 
-### 👥 Solo & Team Modes
+### 👥 Solo & Team Ready
 **Optimized for solo devs, scales to teams:**
-- **Solo Mode** (default): No review required, just quality gates
-- **Team Mode**: Human or AI reviewers with configurable approval count
-- Switch modes anytime: `/bootstrap --team --reviews 2`
+- Works with your existing CI/CD setup
+- Respects your current branch protection rules
+- Adapts to solo or team review requirements automatically
 
 ### 📦 Smart Deployment
 **Auto-detected deployment targets with GitHub Releases:**
@@ -86,12 +86,12 @@ No decisions needed. Just `/ship` and move on to the next story.
 ### 📊 Smart Status Line
 **Visual workflow guidance in your terminal:**
 - **Real-time context tracking** - See how much context remains before compaction
-- **Branch warnings** - Red alerts when on main, reminders to use `/fresh`
+- **Branch warnings** - Red alerts when on main, reminders to use `/launch`
 - **PR status** - Shows CI checks, review status, mergeability
 - **Work tracking** - Uncommitted changes, sync status, divergence warnings
 - **Model awareness** - Displays active Claude model (Opus 4.1, Sonnet 3.5, etc.)
 - **Smart hints** - Visual cues guide you through the workflow:
-  - ⚠️ **Red on main** - "USE /fresh TO START WORK"
+  - ⚠️ **Red on main** - "USE /launch TO START WORK"
   - 🌟 **Feature branches** - Shows you're in the right place
   - ⚡ **Diverged branches** - Warns about potential conflicts
   - 🚫 **Closed PR branches** - Alerts to dead-end work
@@ -117,24 +117,10 @@ Interactive installer with:
 - Component selection
 - Status line configuration
 
-### 2. Bootstrap Your Repository
+### 2. Ship Your First Feature
 
 ```bash
-/bootstrap    # One-time setup with all the goodies
-```
-
-This gives you:
-- ✅ Branch protection with required checks
-- ✅ Husky v10 hooks for pre-commit/push validation  
-- ✅ GitHub Actions CI with pnpm caching
-- ✅ Auto-merge when checks pass
-- ✅ Deployment detection and setup
-- ✅ Claude Code safety rules
-
-### 3. Ship Your First Feature
-
-```bash
-/fresh my-feature    # Start clean
+/launch my-feature   # Start clean
 # ... make changes ...
 /ship               # Ship it!
 ```
@@ -157,11 +143,11 @@ This gives you:
 
 #### 🔴 Scenario 1: On Main Branch (Warning Mode)
 ```ansi
-📁 my-app | ⚠️ main | ✓ clean | ✓ | 🤖 Opus 4.1 | 🧠 [█░░░░░░░░░] 90% left [USE /fresh TO START WORK]
+📁 my-app | ⚠️ main | ✓ clean | ✓ | 🤖 Opus 4.1 | 🧠 [█░░░░░░░░░] 90% left [USE /launch TO START WORK]
             ^^^^^^^^                                                      ^^^^^^^^^^^^^^^^^^^^^^^^
               RED                                                           FLASHING WARNING
 ```
-**What you see:** Bright red warning that you're on main, with clear instruction to use `/fresh`
+**What you see:** Bright red warning that you're on main, with clear instruction to use `/launch`
 
 #### 🟢 Scenario 2: Active Feature Development
 ```ansi
@@ -223,7 +209,7 @@ This gives you:
 
 | Symbol | Meaning | Color | Action Needed |
 |--------|---------|-------|---------------|
-| ⚠️ | On main branch | 🔴 Red | Use `/fresh` to start |
+| ⚠️ | On main branch | 🔴 Red | Use `/launch` to start |
 | 🌟 | Feature branch | 🟡 Yellow | You're good! |
 | ● | Uncommitted changes | 🟠 Orange | Consider committing |
 | ✓ | Clean working tree | 🟢 Green | Ready to switch |
@@ -251,20 +237,18 @@ The context bar changes color as you work:
 
 | Command | What It Does | 
 |---------|--------------|
-| `/bootstrap` | One-time repository setup with all automation |
 | `/ship` | Complete PR workflow with auto-merge and deploy |
-| `/fresh` | Start a clean feature branch |
+| `/launch` | Start a clean feature branch |
 | `/scrub` | Clean up merged branches |
 | `/health` | Repository diagnostic scan |
 
 ### Command Details
 
-#### `/bootstrap` - Repository Setup
-**One-time setup for professional-grade automation:**
+#### `/launch` - Start New Work
+**Create a clean feature branch:**
 ```bash
-/bootstrap              # Solo mode (no reviews)
-/bootstrap --team       # Team mode (1 reviewer)
-/bootstrap --team --reviews 2  # Multiple reviewers
+/launch                 # Auto-generate branch name
+/launch my-feature      # Specify branch name
 ```
 
 #### `/ship` - Ship Your Code  
@@ -277,11 +261,11 @@ The context bar changes color as you work:
 /ship --force           # Override failing checks (dangerous!)
 ```
 
-#### `/fresh` - Start Fresh
+#### `/launch` - Start Fresh
 **Clean slate for new work:**
 ```bash
-/fresh                  # Auto-generated branch name
-/fresh my-feature       # Custom branch name
+/launch                 # Auto-generated branch name
+/launch my-feature      # Custom branch name
 ```
 
 #### `/scrub` - Cleanup
@@ -302,11 +286,8 @@ The context bar changes color as you work:
 
 ### Solo Developer Flow
 ```bash
-# One-time setup
-/bootstrap
-
 # Daily workflow
-/fresh new-feature
+/launch new-feature
 # ... code ...
 /ship
 # Already on main, ready for next feature!
@@ -321,9 +302,6 @@ git add src/auth.js tests/auth.test.js
 
 ### Team Collaboration
 ```bash
-# Switch to team mode
-/bootstrap --team --reviews 1
-
 # Create PR for review
 /ship --nowait
 

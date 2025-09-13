@@ -4,6 +4,7 @@ description: "Ship code with a governed fast-path tailored for SOLO devs: rebase
 requires_args: false
 argument-hint: "[--check] [--nowait] [--force] [--staged] [--title 'text'] [--body 'text'] [--draft]"
 allowed-tools:
+  - Task
   - Bash
   - Read
   - Grep
@@ -68,7 +69,7 @@ git add file1.js file2.js
 - Default branch: !`gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name' 2>/dev/null || git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p' || echo main`
 - Current branch: !`git branch --show-current 2>/dev/null || echo "(detached)"`
 - Uncommitted changes: !`git status --porcelain=v1 | wc -l | xargs -I {} echo "{} file(s)"`
-- Commits ahead: !`git rev-list --count origin/$(git remote show origin | sed -n 's/.*HEAD branch: //p')..HEAD 2>/dev/null || echo "0"`
+- Commits ahead: !`git rev-list --count @{u}..HEAD 2>/dev/null || echo "0"`
 - Last commit: !`git log -1 --pretty=format:"%h %s" 2>/dev/null || echo "no commits"`
 
 ## Pre-flight Checks
@@ -186,9 +187,9 @@ gh pr merge --squash --delete-branch
 ```
 
 ## Related Commands
-- `/bootstrap`: Set up repository governance before first ship
-- `/bootstrap --team`: Switch to team mode with required reviews
+- `/launch`: Create a clean feature branch to start work
 - `/scrub`: Comprehensive branch cleanup (automatically run after successful ship)
+- `/health`: Check repository health and workflow status
 
 ## Best Practices
 1. **Commit often**: Use conventional commits for better PR descriptions

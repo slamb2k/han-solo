@@ -39,8 +39,8 @@ npx han-solo-installer
 
 ### Solo Developer
 Full suite for independent development:
-- Commands (/ship, /bootstrap, /fresh)
-- Agents (bootstrap-guardian, git-shipper)
+- Commands (/ship, /launch, /scrub, /health)
+- Agents (git-shipper)
 - Status Lines
 - Utility Scripts
 
@@ -59,7 +59,7 @@ Choose your own components
 
 ## 🎨 Components
 
-- **Commands** - Core workflow commands (/ship, /bootstrap, /fresh)
+- **Commands** - Core workflow commands (/ship, /launch, /scrub, /health)
 - **Agents** - Specialized sub-agents for complex tasks
 - **Status Lines** - Real-time git status indicators
 - **Scripts** - Utility scripts and helpers

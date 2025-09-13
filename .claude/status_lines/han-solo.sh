@@ -347,7 +347,7 @@ fi
 
 # Main branch warning (additional emphasis)
 if [ "$BRANCH" = "main" ] || [ "$BRANCH" = "master" ]; then
-  OUTPUT="${OUTPUT} ${RED}${BOLD}[USE /fresh TO START WORK]${NC}"
+  OUTPUT="${OUTPUT} ${RED}${BOLD}[USE /launch TO START WORK]${NC}"
 fi
 
 echo -e "$OUTPUT"

@@ -193,11 +193,10 @@ jobs:
           echo "## 🎯 What's Included" >> release_notes.md
           echo "- **Interactive TUI** - Professional installer with arrow key navigation" >> release_notes.md
           echo "- **Status Lines** - Real-time git status in your terminal" >> release_notes.md
-          echo "- **bootstrap-guardian** - Repository bootstrapping with governance" >> release_notes.md
           echo "- **git-shipper** - Solo-first PR shipping workflow" >> release_notes.md
-          echo "- **/bootstrap** - Set up repository with quality gates" >> release_notes.md
           echo "- **/ship** - Ship code through governed fast-path" >> release_notes.md
-          echo "- **/fresh** - Start clean feature branches" >> release_notes.md
+          echo "- **/launch** - Start clean feature branches" >> release_notes.md
+          echo "- **/scrub** - Automatic branch cleanup" >> release_notes.md
           echo "- **/health** - Check repository health" >> release_notes.md
           echo "" >> release_notes.md
           echo "## 🔗 Links" >> release_notes.md

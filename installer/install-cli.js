@@ -21,13 +21,13 @@ const REPO_URL = 'https://github.com/slamb2k/han-solo';
 const COMPONENTS = {
   commands: {
     name: 'Commands',
-    description: 'Core workflow commands (/ship, /bootstrap, /fresh)',
+    description: 'Core workflow commands (/ship, /launch, /scrub, /health)',
     path: '.claude/commands',
     selected: true
   },
   agents: {
     name: 'Agents',
-    description: 'Specialized sub-agents (bootstrap-guardian, git-shipper)',
+    description: 'Specialized sub-agents (git-shipper),',
     path: '.claude/agents',
     selected: true
   },
@@ -119,7 +119,7 @@ class HanSoloInstaller {
     const welcomeBox = boxen(
       chalk.yellow('Welcome to the Han-Solo Interactive Installer!\n\n') +
       'This installer will help you set up:\n' +
-      chalk.green('  • ') + 'Workflow commands (/ship, /bootstrap, /fresh)\n' +
+      chalk.green('  • ') + 'Workflow commands (/ship, /launch, /scrub)\n' +
       chalk.green('  • ') + 'Intelligent git agents\n' +
       chalk.green('  • ') + 'Real-time status indicators\n' +
       chalk.green('  • ') + 'Repository governance tools',
@@ -479,15 +479,15 @@ If you need to commit changes, always ask: "Would you like me to commit these ch
 
 ### Pre-execution Checks (ONLY for manual operations):
 Before doing manual git operations (NOT before running /ship):
-1. Check for running processes: \`ps aux | grep -E "(ship-core|fresh-core)"\`
+1. Check for running processes: \`ps aux | grep -E "(ship-core|launch-core)"\`
 2. Look for lock files that indicate active operations
 3. If something IS running, then wait
 
 ### When Scripts Are ALREADY Running (detected BEFORE you act):
 1. **NEVER intervene** when a script is already executing:
    - Another \`ship-core.sh\` process (not yours)
-   - Another \`fresh-core.sh\` process (not yours)
-   - Any bootstrap or scrub operations in progress
+   - Another \`launch-core.sh\` process (not yours)
+   - Any scrub operations in progress
    
 2. **Wait for completion** - Scripts may take time to:
    - Push branches
@@ -575,8 +575,8 @@ ${gitCommitRules}`;
     successMessage += chalk.yellow.bold('Next Steps:\n') +
       '1. Restart Claude Code or reload the window\n' +
       '2. Run ' + chalk.cyan('/help') + ' to see available commands\n' +
-      '3. Run ' + chalk.cyan('/bootstrap') + ' to set up repository governance\n' +
-      '4. Run ' + chalk.cyan('/fresh') + ' to start a new feature branch\n\n';
+      '3. Run ' + chalk.cyan('/launch') + ' to start a new feature branch\n' +
+      '4. Run ' + chalk.cyan('/ship') + ' to ship your code\n\n';
     
     if (this.state.selectedComponents.includes('status_lines')) {
       successMessage += chalk.gray('The smart status line will appear in your terminal.\n\n');
