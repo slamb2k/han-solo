@@ -123,60 +123,44 @@ Always ask user for:
 - Additional context needed
 - Review assignees
 
-## Step 4: Enable Auto-Merge
-```bash
-# Enable auto-merge for the PR
-gh pr merge $PR_NUMBER --auto --squash --delete-branch
-echo "✓ Auto-merge enabled for PR #$PR_NUMBER"
-```
-
-## Step 5: Monitor and Complete
+## Step 4: Try to Enable Auto-Merge
 
 ```bash
-# Monitor PR until merged
-.claude/scripts/monitor-pr-merge.sh $PR_NUMBER
+# Get the PR number we just created
+PR_NUMBER=$(gh pr view --json number -q .number)
+echo "Created PR #$PR_NUMBER"
 
-# After merge, perform cleanup
-if [[ $? -eq 0 ]]; then
-    echo "✓ PR successfully merged!"
-
-    # Get current branch name for cleanup
-    CURRENT_BRANCH=$(git branch --show-current)
-
-    # Switch back to main
-    echo "Switching to main branch..."
-    git checkout main
-
-    # Pull latest changes
-    echo "Pulling latest changes..."
-    git pull origin main
-
-    # Delete local feature branch
-    echo "Cleaning up local branch..."
-    git branch -D "$CURRENT_BRANCH" 2>/dev/null || true
-
-    # Verify remote branch was deleted
-    if ! git ls-remote --heads origin "$CURRENT_BRANCH" | grep -q "$CURRENT_BRANCH"; then
-        echo "✓ Remote branch automatically deleted"
-    else
-        echo "⚠️ Remote branch still exists, manual cleanup may be needed"
-    fi
-
-    echo ""
-    echo "✓ Ship complete! You're now on an updated main branch."
+# Try to enable auto-merge (may fail if not available)
+echo "Attempting to enable auto-merge..."
+if gh pr merge $PR_NUMBER --auto --squash --delete-branch 2>/dev/null; then
+    echo "✓ Auto-merge enabled for PR #$PR_NUMBER"
+    echo "The PR will automatically merge when checks pass."
 else
-    echo "⚠️ PR merge monitoring failed or timed out"
-    echo "Check PR status: gh pr view $PR_NUMBER --web"
+    echo "ℹ️ Auto-merge could not be enabled."
+    echo "Possible reasons:"
+    echo "  - Repository doesn't have auto-merge enabled"
+    echo "  - PR requires review approvals"
+    echo "  - CI checks haven't been configured"
+    echo "The PR will need to be merged manually or by the ship command."
 fi
+
+# Return PR information to the ship command
+echo ""
+echo "PR_NUMBER=$PR_NUMBER"
+echo "PR_URL=$(gh pr view $PR_NUMBER --json url -q .url)"
 ```
 
-## Complete Shipping Workflow
+## Success Output
 
-1. **Pre-flight checks** - Validate branch state
-2. **Create PR** - Generate and submit
-3. **Enable auto-merge** - Set to squash and delete branch
-4. **Monitor merge** - Wait for CI and auto-merge
-5. **Cleanup** - Return to main, pull latest, delete local branch
+Blue Squadron should return:
+- PR number created
+- PR URL for viewing
+- Auto-merge status (enabled/disabled)
+
+The ship command will handle:
+1. Monitoring the PR until merged
+2. Performing cleanup after merge
+3. Returning to main branch
 
 ## Success Metrics
 
