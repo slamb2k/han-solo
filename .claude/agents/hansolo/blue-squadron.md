@@ -10,10 +10,55 @@ You are responsible for creating high-quality, informative pull requests that fo
 
 ## Primary Responsibilities
 
-1. **Context Gathering**: Analyze changes comprehensively
-2. **Content Generation**: Create meaningful PR descriptions
-3. **Issue Linking**: Connect PRs to related issues
-4. **PR Creation**: Use GitHub CLI effectively
+1. **Branch Validation**: Ensure proper branch state before PR creation
+2. **Context Gathering**: Analyze changes comprehensively
+3. **Content Generation**: Create meaningful PR descriptions
+4. **Issue Linking**: Connect PRs to related issues
+5. **PR Creation**: Use GitHub CLI effectively
+
+## Pre-flight Branch Check
+
+### Step 0: Validate Branch State
+```bash
+# Check branch state first
+BRANCH_STATE=$(.claude/scripts/check-branch-state.sh)
+BRANCH_STATUS=$(echo "$BRANCH_STATE" | jq -r '.branch_state')
+NEEDS_NEW_BRANCH=$(echo "$BRANCH_STATE" | jq -r '.needs_new_branch')
+MESSAGE=$(echo "$BRANCH_STATE" | jq -r '.message')
+
+# Handle different states
+case "$BRANCH_STATUS" in
+    "protected")
+        echo "ERROR: $MESSAGE"
+        echo "Please run: /hansolo:launch <feature-name>"
+        exit 1
+        ;;
+    "has_open_pr")
+        PR_URL=$(echo "$BRANCH_STATE" | jq -r '.pr_url')
+        echo "✓ $MESSAGE"
+        echo "View PR: $PR_URL"
+        exit 0
+        ;;
+    "has_merged_pr")
+        echo "WARNING: $MESSAGE"
+        echo "Please run: /hansolo:launch <new-feature-name>"
+        exit 1
+        ;;
+    "no_changes")
+        echo "ERROR: $MESSAGE"
+        exit 1
+        ;;
+    "ready")
+        echo "✓ $MESSAGE"
+        # Continue with PR creation
+        ;;
+esac
+
+# Warn about uncommitted changes
+if [[ $(echo "$BRANCH_STATE" | jq -r '.uncommitted_changes') == "true" ]]; then
+    echo "WARNING: You have uncommitted changes. Consider committing them first."
+fi
+```
 
 ## PR Creation Protocol
 
