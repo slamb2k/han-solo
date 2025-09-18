@@ -1,0 +1,59 @@
+# han-solo Git configuration
+# Enforces linear history and best practices
+
+[pull]
+    # Only allow fast-forward pulls (no merge commits)
+    ff = only
+
+[merge]
+    # Only allow fast-forward merges
+    ff = only
+
+[rebase]
+    # Automatically stash/unstash when rebasing
+    autoStash = true
+    # Show abbreviated commit SHAs in rebase todo
+    abbreviateCommands = true
+
+[fetch]
+    # Automatically prune deleted remote branches
+    prune = true
+
+[push]
+    # Ensure local branch tracks remote with same name
+    default = current
+    # Verify commits are signed (if GPG configured)
+    gpgSign = if-asked
+
+[branch]
+    # Automatically set up remote tracking
+    autoSetupMerge = always
+    # Rebase when pulling by default
+    autoSetupRebase = always
+
+[core]
+    # Use .gitmessage template for commits
+    template = .gitmessage
+
+[commit]
+    # Show diff in commit message editor
+    verbose = true
+
+[diff]
+    # Better diff algorithm
+    algorithm = histogram
+    # Show moved lines in different color
+    colorMoved = default
+
+[status]
+    # Show individual files in untracked directories
+    showUntrackedFiles = all
+    # Show stash count in status
+    showStash = true
+
+[alias]
+    # han-solo workflow aliases
+    hs-launch = "!f() { git switch main && git pull --ff-only && git switch -c feature/$1; }; f"
+    hs-sync = "!git fetch origin && git rebase origin/main"
+    hs-status = "status --short --branch"
+    hs-log = "log --oneline --graph --decorate -10"

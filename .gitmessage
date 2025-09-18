@@ -1,0 +1,32 @@
+# <type>(<scope>): <subject>
+# |<----   Preferably using up to 50 chars   --->|<-- Max 72 chars -->|
+
+# <body>
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+
+# <footer>
+# |<----   Try To Limit Each Line to a Maximum Of 72 Characters   ---->|
+
+# Type can be:
+#   feat     (new feature)
+#   fix      (bug fix)
+#   refactor (refactoring code)
+#   style    (formatting, missing semicolons, etc; no code change)
+#   docs     (changes to documentation)
+#   test     (adding or refactoring tests; no production code change)
+#   chore    (updating grunt tasks etc; no production code change)
+#
+# Scope is optional and can be anything specifying the place of the commit change.
+# For example: auth, user, payment, shipping, etc.
+#
+# Subject is a brief description of the change using imperative, present tense.
+# Not capitalized. No period at the end.
+#
+# Body should include the motivation for the change and contrast with previous behavior.
+# Use imperative, present tense: "change" not "changed" nor "changes"
+#
+# Footer should contain any information about Breaking Changes and is also
+# the place to reference GitHub issues that this commit Closes.
+#
+# Breaking Changes should start with the word BREAKING CHANGE: with a space or
+# two newlines. The rest of the commit message is then used for this.

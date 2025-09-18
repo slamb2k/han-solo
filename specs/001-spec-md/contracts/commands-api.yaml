@@ -1,0 +1,267 @@
+openapi: 3.0.0
+info:
+  title: han-solo Commands API
+  description: Slash command interface for han-solo orchestrator
+  version: 1.0.0
+
+paths:
+  /hansolo:init:
+    post:
+      summary: Initialize repository with han-solo configuration
+      description: Creates standard config files and sets up GitHub branch protection
+      operationId: initializeRepository
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: Optional project type hint
+      responses:
+        '200':
+          description: Repository initialized successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  files_created:
+                    type: array
+                    items:
+                      type: string
+                  branch_protection:
+                    type: boolean
+        '400':
+          description: Already initialized or invalid state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hansolo:launch:
+    post:
+      summary: Create new feature branch
+      description: Creates a new feature branch from updated main
+      operationId: launchFeature
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: Feature name for branch
+              example: "user-authentication"
+      responses:
+        '200':
+          description: Feature branch created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  branch:
+                    type: string
+                    example: "feature/user-authentication"
+                  previous_branch:
+                    type: string
+        '400':
+          description: Invalid branch name or state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hansolo:ship:
+    post:
+      summary: Create pull request
+      description: Creates PR with auto-generated description
+      operationId: shipFeature
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                issue_number:
+                  type: integer
+                  description: Related issue to close
+      responses:
+        '200':
+          description: Pull request created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  pr_number:
+                    type: integer
+                  pr_url:
+                    type: string
+                  title:
+                    type: string
+                  checks_status:
+                    type: string
+                    enum: [pending, running, passed, failed]
+        '400':
+          description: Not on feature branch or uncommitted changes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /hansolo:sync:
+    post:
+      summary: Sync feature branch with main
+      description: Rebases current feature branch onto latest main
+      operationId: syncBranch
+      responses:
+        '200':
+          description: Branch synchronized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  commits_rebased:
+                    type: integer
+        '409':
+          description: Rebase conflicts detected
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [conflict]
+                  conflicts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        file:
+                          type: string
+                        type:
+                          type: string
+                          enum: [content, deleted, added]
+
+  /hansolo:commit:
+    post:
+      summary: Create atomic commit
+      description: Runs quality checks and creates commit with generated message
+      operationId: commitChanges
+      requestBody:
+        required: false
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: Optional commit message override
+      responses:
+        '200':
+          description: Commit created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  commit_sha:
+                    type: string
+                  message:
+                    type: string
+                  files_changed:
+                    type: integer
+        '422':
+          description: Quality checks failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [blocked]
+                  reason:
+                    type: string
+                  lint_errors:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        file:
+                          type: string
+                        line:
+                          type: integer
+                        message:
+                          type: string
+
+  /hansolo:ci-setup:
+    post:
+      summary: Generate CI/CD pipeline
+      description: Creates GitHub Actions workflow based on project type
+      operationId: setupCI
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deploy:
+                  type: boolean
+                  default: false
+                environment:
+                  type: string
+                  enum: [staging, production]
+      responses:
+        '200':
+          description: CI pipeline configured
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  workflow_file:
+                    type: string
+                  detected_type:
+                    type: string
+                    enum: [node, python, go, java]
+                  required_secrets:
+                    type: array
+                    items:
+                      type: string
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [error]
+        message:
+          type: string
+        code:
+          type: string
+      required:
+        - status
+        - message

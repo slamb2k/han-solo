@@ -1,0 +1,115 @@
+openapi: 3.0.0
+info:
+  title: han-solo Status Line API
+  description: Status line data interface
+  version: 1.0.0
+
+paths:
+  /status:
+    post:
+      summary: Get status line data
+      description: Computes current project and workflow status
+      operationId: getStatusData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  description: Current Claude model
+                  example: "claude-opus-4-1"
+                project_dir:
+                  type: string
+                  description: Project directory path
+                session_id:
+                  type: string
+                  description: Current session identifier
+              required:
+                - model
+                - project_dir
+      responses:
+        '200':
+          description: Status data computed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  project_name:
+                    type: string
+                    example: "han-solo"
+                  model:
+                    type: string
+                    example: "Opus 4.1"
+                  context_usage:
+                    type: object
+                    properties:
+                      percent:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                      visual:
+                        type: string
+                        example: "[████████░░] 80%"
+                  git:
+                    type: object
+                    properties:
+                      branch:
+                        type: string
+                        example: "feature/user-auth"
+                      status:
+                        type: string
+                        enum: [clean, modified, conflicted]
+                      diverged:
+                        type: boolean
+                  pr:
+                    type: object
+                    nullable: true
+                    properties:
+                      number:
+                        type: integer
+                      checks:
+                        type: string
+                        enum: [pending, running, passed, failed]
+                      reviewers:
+                        type: array
+                        items:
+                          type: string
+                  warnings:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum: [branch_needed, checks_failed, diverged, on_main]
+                        message:
+                          type: string
+                        action:
+                          type: string
+                  mode:
+                    type: string
+                    enum: [strict, tutor]
+                    example: "strict"
+
+components:
+  schemas:
+    StatusWarning:
+      type: object
+      properties:
+        icon:
+          type: string
+          example: "⚠️"
+        text:
+          type: string
+          example: "On main, use /hansolo:launch"
+        severity:
+          type: string
+          enum: [info, warning, error]
+        action_command:
+          type: string
+          nullable: true
+          example: "/hansolo:launch"

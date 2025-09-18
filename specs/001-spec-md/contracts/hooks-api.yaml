@@ -1,0 +1,191 @@
+openapi: 3.0.0
+info:
+  title: han-solo Hooks API
+  description: Hook interface for workflow enforcement
+  version: 1.0.0
+
+paths:
+  /hooks/pretooluse:
+    post:
+      summary: Pre-tool execution hook
+      description: Validates and potentially blocks tool execution
+      operationId: preToolUseHook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tool:
+                  type: string
+                  enum: [Bash, Write, Edit, MultiEdit]
+                tool_input:
+                  type: object
+                  properties:
+                    command:
+                      type: string
+                      description: For Bash tool
+                    file_path:
+                      type: string
+                      description: For file tools
+                session_id:
+                  type: string
+              required:
+                - tool
+                - tool_input
+      responses:
+        '200':
+          description: Tool execution allowed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [allow]
+                  exit_code:
+                    type: integer
+                    enum: [0]
+        '403':
+          description: Tool execution blocked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [block]
+                  exit_code:
+                    type: integer
+                    enum: [2]
+                  message:
+                    type: string
+                    description: Error message for Claude
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+
+  /hooks/posttooluse:
+    post:
+      summary: Post-tool execution hook
+      description: Creates checkpoint commits after file modifications
+      operationId: postToolUseHook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tool:
+                  type: string
+                  enum: [Write, Edit, MultiEdit]
+                tool_input:
+                  type: object
+                  properties:
+                    file_path:
+                      type: string
+                tool_result:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                    files_modified:
+                      type: array
+                      items:
+                        type: string
+              required:
+                - tool
+                - tool_result
+      responses:
+        '200':
+          description: Checkpoint created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  checkpoint_sha:
+                    type: string
+                  checkpoint_message:
+                    type: string
+
+  /hooks/stop:
+    post:
+      summary: Session completion hook
+      description: Squashes checkpoint commits into atomic commit
+      operationId: stopHook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                session_id:
+                  type: string
+                task_description:
+                  type: string
+                checkpoints:
+                  type: array
+                  items:
+                    type: string
+                    description: Checkpoint commit SHAs
+              required:
+                - session_id
+      responses:
+        '200':
+          description: Commits squashed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [success]
+                  final_commit_sha:
+                    type: string
+                  final_message:
+                    type: string
+                  squashed_count:
+                    type: integer
+
+components:
+  schemas:
+    HookValidation:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [lint, format, branch_check, conflict_check]
+        passed:
+          type: boolean
+        details:
+          type: object
+
+    GitState:
+      type: object
+      properties:
+        branch:
+          type: string
+        is_clean:
+          type: boolean
+        uncommitted_files:
+          type: array
+          items:
+            type: string
+        ahead_behind:
+          type: object
+          properties:
+            ahead:
+              type: integer
+            behind:
+              type: integer
