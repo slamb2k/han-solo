@@ -60,7 +60,7 @@ Natural language triggers for `/hansolo:sync`:
 - "catch up with main" → `/hansolo:sync`
 
 ### Deployment
-Natural language triggers for `/hansolo:ship`:
+Natural language triggers for `/hansolo:ship` (Smart Shipping):
 - "create the PR" → `/hansolo:ship`
 - "open a pull request" → `/hansolo:ship`
 - "ship this feature" → `/hansolo:ship`
@@ -68,6 +68,12 @@ Natural language triggers for `/hansolo:ship`:
 - "create pull request" → `/hansolo:ship`
 - "submit for review" → `/hansolo:ship`
 - "send it to review" → `/hansolo:ship`
+
+**Note**: `/hansolo:ship` now includes intelligent branch detection:
+- Automatically prompts for new feature branch if on main
+- Detects if current branch already has a merged PR and suggests new branch
+- Shows existing PR URL if one is already open
+- Only creates PR when on a valid feature branch with new changes
 
 Natural language triggers for `/hansolo:ci-setup`:
 - "set up CI" → `/hansolo:ci-setup`
