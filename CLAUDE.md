@@ -26,16 +26,56 @@ han-solo is an agentic orchestrator for modern software delivery built as a Clau
 ## han-solo Workflow Commands
 
 ### Initialization
-When the user says "initialize han-solo" or "set up the project", execute `/hansolo:init`
+Natural language triggers for `/hansolo:init`:
+- "initialize han-solo" → `/hansolo:init`
+- "set up the project" → `/hansolo:init`
+- "configure han-solo" → `/hansolo:init`
+- "init the repo" → `/hansolo:init`
+- "bootstrap the project" → `/hansolo:init`
+- "setup git workflow" → `/hansolo:init`
 
 ### Feature Development
-- When the user says "start a new feature" or "create a branch", execute `/hansolo:launch`. Use subsequent words as the feature name.
-- When the user says "I'm ready to commit" or "commit my work", execute `/hansolo:commit`
-- When the user says "sync with main" or "update my branch", execute `/hansolo:sync`
+Natural language triggers for `/hansolo:launch`:
+- "start a new feature called {name}" → `/hansolo:launch {name}`
+- "create a branch for {name}" → `/hansolo:launch {name}`
+- "begin working on {name}" → `/hansolo:launch {name}`
+- "launch {name} feature" → `/hansolo:launch {name}`
+- "new feature branch {name}" → `/hansolo:launch {name}`
+- "switch to a new feature {name}" → `/hansolo:launch {name}`
+
+Natural language triggers for `/hansolo:commit`:
+- "I'm ready to commit" → `/hansolo:commit`
+- "commit my work" → `/hansolo:commit`
+- "save my changes" → `/hansolo:commit`
+- "create a commit" → `/hansolo:commit`
+- "commit these changes" → `/hansolo:commit`
+- "squash and commit" → `/hansolo:commit`
+
+Natural language triggers for `/hansolo:sync`:
+- "sync with main" → `/hansolo:sync`
+- "update my branch" → `/hansolo:sync`
+- "pull latest changes" → `/hansolo:sync`
+- "rebase on main" → `/hansolo:sync`
+- "get latest from main" → `/hansolo:sync`
+- "catch up with main" → `/hansolo:sync`
 
 ### Deployment
-- When the user says "create the PR" or "open a pull request", execute `/hansolo:ship`
-- When the user says "set up CI" or "configure deployment", execute `/hansolo:ci-setup`
+Natural language triggers for `/hansolo:ship`:
+- "create the PR" → `/hansolo:ship`
+- "open a pull request" → `/hansolo:ship`
+- "ship this feature" → `/hansolo:ship`
+- "ready to ship" → `/hansolo:ship`
+- "create pull request" → `/hansolo:ship`
+- "submit for review" → `/hansolo:ship`
+- "send it to review" → `/hansolo:ship`
+
+Natural language triggers for `/hansolo:ci-setup`:
+- "set up CI" → `/hansolo:ci-setup`
+- "configure deployment" → `/hansolo:ci-setup`
+- "setup continuous integration" → `/hansolo:ci-setup`
+- "create CI pipeline" → `/hansolo:ci-setup`
+- "configure GitHub Actions" → `/hansolo:ci-setup`
+- "setup automated tests" → `/hansolo:ci-setup`
 
 ## Interaction Rules
 
