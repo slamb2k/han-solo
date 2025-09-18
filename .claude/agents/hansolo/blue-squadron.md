@@ -123,11 +123,52 @@ Always ask user for:
 - Additional context needed
 - Review assignees
 
+## Step 4: Try to Enable Auto-Merge
+
+```bash
+# Get the PR number we just created
+PR_NUMBER=$(gh pr view --json number -q .number)
+echo "Created PR #$PR_NUMBER"
+
+# Try to enable auto-merge (may fail if not available)
+echo "Attempting to enable auto-merge..."
+if gh pr merge $PR_NUMBER --auto --squash --delete-branch 2>/dev/null; then
+    echo "✓ Auto-merge enabled for PR #$PR_NUMBER"
+    echo "The PR will automatically merge when checks pass."
+else
+    echo "ℹ️ Auto-merge could not be enabled."
+    echo "Possible reasons:"
+    echo "  - Repository doesn't have auto-merge enabled"
+    echo "  - PR requires review approvals"
+    echo "  - CI checks haven't been configured"
+    echo "The PR will need to be merged manually or by the ship command."
+fi
+
+# Return PR information to the ship command
+echo ""
+echo "PR_NUMBER=$PR_NUMBER"
+echo "PR_URL=$(gh pr view $PR_NUMBER --json url -q .url)"
+```
+
+## Success Output
+
+Blue Squadron should return:
+- PR number created
+- PR URL for viewing
+- Auto-merge status (enabled/disabled)
+
+The ship command will handle:
+1. Monitoring the PR until merged
+2. Performing cleanup after merge
+3. Returning to main branch
+
 ## Success Metrics
 
 - PR created successfully
-- CI checks triggered
-- Reviewers notified
-- URL displayed to user
+- Auto-merge enabled
+- CI checks pass
+- PR merges automatically
+- Branches cleaned up (local and remote)
+- Developer returned to clean main branch
 
-Remember: A well-crafted PR accelerates the review process.
+Remember: A complete shipping workflow minimizes context switching and maintains a clean repository state.
