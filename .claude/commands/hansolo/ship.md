@@ -46,9 +46,29 @@ When branch is ready, invoke the han-solo-blue-squadron subagent to:
 2. Generate PR title and description
 3. Link to related issues if provided
 4. Create PR using GitHub CLI
-5. Display PR URL and CI status
+5. Enable auto-merge with squash
+6. Monitor PR until merged
+7. Clean up branches after merge
+8. Return to updated main branch
 
 Optional: Pass issue number as $1 to auto-link
+
+## Complete Workflow
+
+The ship command now provides a complete end-to-end workflow:
+
+1. **Pre-flight** - Ensures you're on a shippable branch
+2. **Creation** - Generates and submits the PR
+3. **Auto-merge** - Enables automatic squash merge when checks pass
+4. **Monitoring** - Waits for CI completion and merge
+5. **Cleanup** - Deletes branches and returns to main
+
+After shipping completes, you'll be:
+- On the main branch
+- Synced with latest changes
+- Ready for the next feature
+
+No manual intervention needed for simple PRs!
 
 ## Interactive Prompts
 

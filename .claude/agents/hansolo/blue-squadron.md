@@ -123,11 +123,68 @@ Always ask user for:
 - Additional context needed
 - Review assignees
 
+## Step 4: Enable Auto-Merge
+```bash
+# Enable auto-merge for the PR
+gh pr merge $PR_NUMBER --auto --squash --delete-branch
+echo "✓ Auto-merge enabled for PR #$PR_NUMBER"
+```
+
+## Step 5: Monitor and Complete
+
+```bash
+# Monitor PR until merged
+.claude/scripts/monitor-pr-merge.sh $PR_NUMBER
+
+# After merge, perform cleanup
+if [[ $? -eq 0 ]]; then
+    echo "✓ PR successfully merged!"
+
+    # Get current branch name for cleanup
+    CURRENT_BRANCH=$(git branch --show-current)
+
+    # Switch back to main
+    echo "Switching to main branch..."
+    git checkout main
+
+    # Pull latest changes
+    echo "Pulling latest changes..."
+    git pull origin main
+
+    # Delete local feature branch
+    echo "Cleaning up local branch..."
+    git branch -D "$CURRENT_BRANCH" 2>/dev/null || true
+
+    # Verify remote branch was deleted
+    if ! git ls-remote --heads origin "$CURRENT_BRANCH" | grep -q "$CURRENT_BRANCH"; then
+        echo "✓ Remote branch automatically deleted"
+    else
+        echo "⚠️ Remote branch still exists, manual cleanup may be needed"
+    fi
+
+    echo ""
+    echo "✓ Ship complete! You're now on an updated main branch."
+else
+    echo "⚠️ PR merge monitoring failed or timed out"
+    echo "Check PR status: gh pr view $PR_NUMBER --web"
+fi
+```
+
+## Complete Shipping Workflow
+
+1. **Pre-flight checks** - Validate branch state
+2. **Create PR** - Generate and submit
+3. **Enable auto-merge** - Set to squash and delete branch
+4. **Monitor merge** - Wait for CI and auto-merge
+5. **Cleanup** - Return to main, pull latest, delete local branch
+
 ## Success Metrics
 
 - PR created successfully
-- CI checks triggered
-- Reviewers notified
-- URL displayed to user
+- Auto-merge enabled
+- CI checks pass
+- PR merges automatically
+- Branches cleaned up (local and remote)
+- Developer returned to clean main branch
 
-Remember: A well-crafted PR accelerates the review process.
+Remember: A complete shipping workflow minimizes context switching and maintains a clean repository state.
