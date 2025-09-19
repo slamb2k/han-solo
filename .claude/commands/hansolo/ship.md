@@ -5,162 +5,251 @@ argument_hint: "[issue-number]"
 
 # /hansolo:ship
 
+## Setup and Operations Loading
+
+```bash
+#!/bin/bash
+set -euo pipefail
+
+# Source operation scripts for actual execution
+source .claude/lib/operations/branch-operations.sh
+source .claude/lib/operations/pr-operations.sh
+source .claude/lib/operations/sync-operations.sh
+
+# Store issue number if provided
+ISSUE_NUMBER="$1"
+```
+
 ## Squadron Identity
 
 Display Red Squadron identity:
-```
+```bash
 echo ""
 echo "Red Leader, standing by..."
 echo ""
-cat .claude/lib/banners/shipping.txt
+cat .claude/lib/banners/shipping.txt 2>/dev/null || true
 echo ""
 ```
 
-Smart shipping command that ensures you're on a proper feature branch before creating a PR.
+## PRE-FLIGHT CHECKS
 
-## Pre-flight Checks
+Validate we're ready to ship:
 
-First, check the current branch state:
+### 1. Check Current Branch State
 ```bash
+echo "🔍 Pre-flight checks..."
+
+# Get current branch state
 BRANCH_STATE=$(.claude/scripts/check-branch-state.sh)
 NEEDS_NEW_BRANCH=$(echo "$BRANCH_STATE" | jq -r '.needs_new_branch')
-STATE_MESSAGE=$(echo "$BRANCH_STATE" | jq -r '.message')
+CURRENT_BRANCH=$(echo "$BRANCH_STATE" | jq -r '.current_branch')
+PR_EXISTS=$(echo "$BRANCH_STATE" | jq -r '.pr_exists')
+PR_STATE=$(echo "$BRANCH_STATE" | jq -r '.pr_state')
+PR_URL=$(echo "$BRANCH_STATE" | jq -r '.pr_url')
+
+echo "  Current branch: $CURRENT_BRANCH"
 ```
 
-## Branch State Handling
-
-Based on the branch state, take appropriate action:
-
-1. **If on main/master branch** OR **If PR already merged**:
-   - **IMPORTANT**: Execute the command `/hansolo:launch --json`
-   - DO NOT create the branch directly with git commands
-   - DO NOT generate or pass a branch name
-   - Parse the JSON response from /hansolo:launch
-   - If JSON response received:
-     - Display Gold Squadron identity from JSON:
-       ```bash
-       echo ""
-       echo "Gold Leader, standing by..."
-       echo ""
-       cat .claude/lib/banners/launching.txt
-       echo ""
-       ```
-     - Handle any user prompts from the JSON response
-   - Wait for /hansolo:launch to complete before proceeding
-   - Then continue with shipping process
-
-3. **If open PR exists**:
-   - Show the existing PR URL
-   - Stop (no duplicate PR needed)
-
-4. **If ready to ship**:
-   - Invoke Red Squadron to create PR
-
-## Ready to Ship
-
-When branch is ready, the banner is already displayed from the squadron identity section above.
-███████║██║  ██║██║██║     ██║     ██║██║ ╚████║╚██████╔╝
-╚══════╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
-```
-
-## Red Squadron Invocation
-
-Invoke the hansolo-red-squadron subagent to:
-1. Analyze changes with git diff
-2. Generate PR title and description
-3. Link to related issues if provided
-4. Create PR using GitHub CLI
-5. Attempt to enable auto-merge
-6. Return PR number and URL
-
-Optional: Pass issue number as $1 to auto-link
-
-## Post-flight: Monitor and Sync
-
-After Red Squadron creates the PR, the ship command performs post-flight operations:
-
-1. **Extract PR details from Red Squadron**:
-   - Parse the JSON response for PR number and URL
-   - If JSON_MODE not available, extract from text output
-
-2. **Monitor PR until merged**:
-   ```bash
-   # Monitor PR with configurable timeout
-   echo "🔄 Monitoring PR for merge completion..."
-   .claude/scripts/monitor-pr-merge.sh $PR_NUMBER 300
-   MERGE_STATUS=$?
-   ```
-
-3. **Handle merge results**:
-   - **Success (0)**: PR merged → Call `/hansolo:sync` for cleanup
-   - **Timeout (2)**: Suggest manual merge options
-   - **Error (1)**: Show failure reason and next steps
-
-4. **Auto-sync on success**:
-   When PR is successfully merged, automatically execute `/hansolo:sync` to:
-   - Switch back to main branch
-   - Pull latest changes
-   - Delete the merged feature branch
-   - Prepare for next feature
-
-**Implementation**:
+### 2. Handle Protected Branch
 ```bash
-# After PR creation, extract PR number
-PR_NUMBER=<from-red-squadron>
-PR_URL=<from-red-squadron>
+if [[ "$NEEDS_NEW_BRANCH" == "true" ]]; then
+    echo "  ⚠️  On protected branch - need feature branch"
+    echo ""
+    echo "📍 Creating feature branch..."
 
-# Monitor the PR
-echo "🔄 Monitoring PR #$PR_NUMBER for merge..."
+    # Use branch operations to create branch
+    LAUNCH_RESULT=$(create_feature_branch "" "true")
+    BRANCH_CREATED=$(echo "$LAUNCH_RESULT" | jq -r '.data.branch_created // ""')
+
+    if [[ -z "$BRANCH_CREATED" ]]; then
+        echo "❌ Pre-flight failed: Could not create feature branch"
+        exit 1
+    fi
+
+    echo "  ✓ Created and switched to: $BRANCH_CREATED"
+
+    # Show Gold Squadron banner since we launched
+    echo ""
+    echo "Gold Leader, standing by..."
+    cat .claude/lib/banners/launching.txt 2>/dev/null || true
+    echo ""
+
+    # Update current branch
+    CURRENT_BRANCH="$BRANCH_CREATED"
+else
+    echo "  ✓ On feature branch: $CURRENT_BRANCH"
+fi
+```
+
+### 3. Check for Existing PR
+```bash
+if [[ "$PR_EXISTS" == "true" ]]; then
+    if [[ "$PR_STATE" == "OPEN" ]]; then
+        echo "  ⚠️  PR already exists: $PR_URL"
+        echo ""
+        echo "✓ Pre-flight complete: Nothing to ship (PR exists)"
+        exit 0
+    elif [[ "$PR_STATE" == "MERGED" ]]; then
+        echo "  ⚠️  Branch already shipped (PR was merged)"
+        echo ""
+        echo "Create a new feature branch for additional changes."
+        exit 0
+    fi
+fi
+
+echo "  ✓ No existing PR found"
+echo ""
+echo "✓ Pre-flight checks passed"
+echo ""
+```
+
+## EXECUTION: CREATE PULL REQUEST
+
+Perform the actual PR creation:
+
+```bash
+echo "🚀 EXECUTION: Creating pull request..."
+echo ""
+
+# Generate PR content
+echo "  Analyzing changes..."
+PR_TITLE=$(generate_pr_title)
+PR_BODY=$(generate_pr_body)
+
+echo "  Title: $PR_TITLE"
+echo ""
+
+# Create the actual PR
+PR_JSON=$(create_pull_request "$PR_TITLE" "$PR_BODY" "$ISSUE_NUMBER" "true")
+EXIT_CODE=$?
+
+if [[ $EXIT_CODE -ne 0 ]]; then
+    echo "❌ Execution failed: Could not create PR"
+    echo "$PR_JSON" | jq -r '.error.message // "Unknown error"' >&2
+    exit 1
+fi
+
+# Extract PR details
+PR_NUMBER=$(echo "$PR_JSON" | jq -r '.data.pr_number // ""')
+PR_URL=$(echo "$PR_JSON" | jq -r '.data.pr_url // ""')
+AUTO_MERGE=$(echo "$PR_JSON" | jq -r '.data.auto_merge_enabled // false')
+
+if [[ -z "$PR_NUMBER" ]]; then
+    echo "❌ Execution failed: No PR number returned"
+    exit 1
+fi
+
+echo "✓ PR #$PR_NUMBER created successfully"
+echo "  URL: $PR_URL"
+
+if [[ "$AUTO_MERGE" == "true" ]]; then
+    echo "  ✓ Auto-merge enabled"
+else
+    echo "  ℹ Auto-merge not enabled (may need approvals)"
+fi
+echo ""
+```
+
+## MONITOR AND WAIT
+
+Monitor PR until merged:
+
+```bash
+echo "⏳ Monitoring PR #$PR_NUMBER for merge..."
+echo ""
+
+# Use monitoring script
 .claude/scripts/monitor-pr-merge.sh "$PR_NUMBER" 300
 MERGE_STATUS=$?
 
 if [[ $MERGE_STATUS -eq 0 ]]; then
-    echo "✅ PR #$PR_NUMBER has been merged!"
     echo ""
-    echo "🔄 Running /hansolo:sync to complete cleanup..."
-
-    # Execute sync command for post-merge cleanup
-    # The sync command will detect the merged branch and clean up
-    /hansolo:sync
-
-    echo ""
-    echo "🚀 Ship complete! You're on updated main, ready for the next feature."
-
+    echo "✓ PR #$PR_NUMBER has been merged!"
+    PR_MERGED="true"
 elif [[ $MERGE_STATUS -eq 2 ]]; then
-    echo "⏱ Monitoring timed out. The PR is not merged yet."
+    echo ""
+    echo "⏱ Timeout reached - PR not merged yet"
     echo ""
     echo "You can:"
-    echo "1. Check PR status: gh pr view $PR_NUMBER --web"
-    echo "2. Merge manually: gh pr merge $PR_NUMBER --squash"
-    echo "3. After merge, run: /hansolo:sync"
-
+    echo "  1. Check status: gh pr view $PR_NUMBER --web"
+    echo "  2. Merge manually: gh pr merge $PR_NUMBER --squash"
+    echo "  3. After merge, run: /hansolo:sync"
+    PR_MERGED="false"
 else
-    echo "❌ PR merge failed or was closed without merging."
-    echo "View details: $PR_URL"
+    echo ""
+    echo "❌ PR monitoring failed"
+    PR_MERGED="false"
+fi
+echo ""
+```
+
+## POST-FLIGHT: SYNC AND CLEANUP
+
+Verify outcomes and clean up if PR was merged:
+
+```bash
+echo "🔄 POST-FLIGHT: Finalizing..."
+echo ""
+
+if [[ "$PR_MERGED" == "true" ]]; then
+    echo "  Syncing repository after merge..."
+
+    # Perform sync to cleanup merged branch
+    SYNC_JSON=$(perform_sync "true")
+    SYNC_MODE=$(echo "$SYNC_JSON" | jq -r '.data.sync_mode // ""')
+    CLEANUP_DONE=$(echo "$SYNC_JSON" | jq -r '.data.cleanup_performed // false')
+    CURRENT_BRANCH=$(echo "$SYNC_JSON" | jq -r '.data.current_branch // ""')
+
+    if [[ "$CLEANUP_DONE" == "true" ]]; then
+        echo "  ✓ Feature branch cleaned up"
+        echo "  ✓ Switched to: $CURRENT_BRANCH"
+    else
+        echo "  ✓ Sync complete (mode: $SYNC_MODE)"
+    fi
+
+    # Final validation
+    if [[ "$CURRENT_BRANCH" == "main" ]] || [[ "$CURRENT_BRANCH" == "master" ]]; then
+        echo ""
+        echo "✅ POST-FLIGHT: Ship complete!"
+        echo "  • PR created and merged"
+        echo "  • Branch cleaned up"
+        echo "  • On main with latest changes"
+        echo "  • Ready for next feature"
+    else
+        echo ""
+        echo "⚠️  POST-FLIGHT: Ship complete with warnings"
+        echo "  • PR created and merged"
+        echo "  • Still on feature branch: $CURRENT_BRANCH"
+        echo "  • Run /hansolo:sync to complete cleanup"
+    fi
+else
+    # PR not merged yet
+    echo "  PR created but not yet merged"
+    echo ""
+    echo "✓ POST-FLIGHT: Partial ship complete"
+    echo "  • PR #$PR_NUMBER created successfully"
+    echo "  • Monitor or merge manually"
+    echo "  • Run /hansolo:sync after merge"
 fi
 ```
 
-## Complete Workflow
+## Summary
 
-The ship command provides a complete end-to-end workflow:
+The ship command follows the three-phase pattern:
 
-1. **Pre-flight** - Validates you're on a shippable branch (or creates one via launch)
-2. **PR Creation** - Red Squadron generates and submits the PR
-3. **Auto-merge Attempt** - Tries to enable automatic merge
-4. **Monitoring** - Waits for PR to be merged (up to 5 minutes)
-5. **Auto-sync** - Calls `/hansolo:sync` to cleanup and return to main
+1. **PRE-FLIGHT**:
+   - ✓ Validates branch state
+   - ✓ Creates feature branch if needed
+   - ✓ Checks for existing PRs
 
-After successful shipping:
-- ✅ PR created and merged
-- ✅ Automatically synced via `/hansolo:sync`
-- ✅ On main branch with latest changes
-- ✅ Feature branch cleaned up
-- ✅ Ready for next feature immediately
+2. **EXECUTION**:
+   - ✓ Creates actual pull request
+   - ✓ Enables auto-merge if possible
+   - ✓ Monitors until merged (with timeout)
 
-## Automatic Branch Creation
+3. **POST-FLIGHT**:
+   - ✓ Syncs repository after merge
+   - ✓ Cleans up feature branch
+   - ✓ Validates final state
 
-When a new branch is needed, the ship command will:
-1. Execute `/hansolo:launch` without arguments
-2. Let /hansolo:launch handle branch naming (it may prompt the user)
-3. Wait for branch creation to complete
-4. Continue with the shipping process once on the new branch
+All operations use real shell scripts, not agent simulations!

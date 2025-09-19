@@ -5,81 +5,111 @@ argument_hint: "<feature-name>"
 
 # /hansolo:launch
 
-## Squadron Identity & JSON Mode Detection
+## Setup and JSON Mode Detection
 
-First, check for JSON mode:
 ```bash
+# Source the branch operations script for actual execution
+source .claude/lib/operations/branch-operations.sh
+
+# Check for JSON mode
 JSON_MODE=false
 if [[ "$1" == "--json" ]]; then
     JSON_MODE=true
     shift  # Remove --json flag from arguments
 fi
+
+# Store feature name
+FEATURE_NAME="$1"
 ```
+
+## Squadron Identity Display
 
 If NOT in JSON mode, display squadron identity:
-```
-echo ""
-echo "Gold Leader, standing by..."
-echo ""
-cat .claude/lib/banners/launching.txt
-echo ""
-```
-
-## Invoke Gold Squadron
-
-Invoke the hansolo-gold-squadron subagent to create a new feature branch.
-
-Pass the JSON_MODE flag to the agent:
-```
-Task(subagent_type="hansolo-gold-squadron",
-     prompt="Create feature branch. JSON_MODE=$JSON_MODE. Feature: $1")
+```bash
+if [[ "$JSON_MODE" != "true" ]]; then
+    echo ""
+    echo "Gold Leader, standing by..."
+    echo ""
+    cat .claude/lib/banners/launching.txt
+    echo ""
+fi
 ```
 
-The subagent MUST:
-1. Check current branch status and notify if on main
-2. Ensure the main branch is synced with remote
-3. Create new branch from latest main
-4. Switch to the new feature branch
+## Branch Creation Execution
 
-If no feature name provided and NOT in JSON mode, prompt the user with:
+### Handle Input Cases
 
+1. **No input provided** - Prompt for branch name (if not JSON mode):
+```bash
+if [[ -z "$FEATURE_NAME" ]] && [[ "$JSON_MODE" != "true" ]]; then
+    echo "Enter branch name (respond with one of the following):"
+    echo "  • Natural language description: \"bug fixes to authentication\""
+    echo "  • Explicit branch name: \"fix/auth-validation\" or \"feature/new-login\""
+    echo "  • Single '*' character for auto-generation based on your changes"
+    echo ""
+
+    # Wait for user input
+    read -r FEATURE_NAME
+fi
 ```
-Enter branch name (respond with one of the following):
-  • Natural language description: "bug fixes to authentication"
-  • Explicit branch name: "fix/auth-validation" or "feature/new-login"
-  • Single '*' character for auto-generation based on your changes
-```
 
-Handle the user's response:
-1. **Natural language or explicit branch name** - Pass it directly to Gold Squadron
-2. **'*' character** - Do NOT pass anything to Gold Squadron; the absence of input triggers auto-generation
-
-If in JSON mode and no feature name:
-- Return JSON response with status "awaiting_input"
-- Include prompt in display.prompt field
-
-## Gold Squadron Responsibilities
-
-The Gold Squadron agent will:
-- Parse natural language (e.g., "bug fixes to auth" → `fix/auth`)
-- Use explicit branch names as-is (with type detection)
-- Auto-generate when no input is provided, using this priority:
-  1. From uncommitted changes
-  2. From unshipped commits
-  3. Timestamp fallback if all commits are shipped
-
-If JSON_MODE=true, Gold Squadron returns:
-```json
+2. **JSON mode with no input** - Return awaiting_input response:
+```bash
+if [[ -z "$FEATURE_NAME" ]] && [[ "$JSON_MODE" == "true" ]]; then
+    cat <<EOF
 {
-  "squadron": {
-    "name": "gold",
-    "quote": "Gold Leader, standing by...",
-    "banner_type": "LAUNCHING"
-  },
-  "status": "completed",
-  "data": {
-    "branch_created": "feature/branch-name",
-    "previous_branch": "main"
-  }
+    "squadron": {
+        "name": "gold",
+        "quote": "Gold Leader, standing by...",
+        "banner_type": "LAUNCHING"
+    },
+    "status": "awaiting_input",
+    "display": {
+        "prompt": "Enter branch name (natural language or explicit format)"
+    }
 }
+EOF
+    exit 0
+fi
 ```
+
+### Execute Branch Creation
+
+Use the operations script for ACTUAL branch creation:
+```bash
+# The operations script handles:
+# - Auto-generation if FEATURE_NAME is "*" or empty
+# - Natural language parsing
+# - Actual git commands
+# - JSON response formatting
+
+create_feature_branch "$FEATURE_NAME" "$JSON_MODE"
+EXIT_CODE=$?
+
+# Exit with the same code as the operation
+exit $EXIT_CODE
+```
+
+## What This Command Actually Does
+
+1. **Sources real shell script** - Uses `.claude/lib/operations/branch-operations.sh`
+2. **Executes real git commands** - No agent invocation, direct execution
+3. **Returns real results** - JSON based on actual branch creation
+4. **Handles all input modes** - Natural language, explicit names, auto-generation
+
+## Benefits Over Agent Approach
+
+- ✅ **Guaranteed execution** - Shell script always runs
+- ✅ **Real results** - JSON contains actual branch names
+- ✅ **Testable** - Can verify with `git branch --show-current`
+- ✅ **Fast** - No Task tool overhead
+- ✅ **Reliable** - No interpretation issues
+
+## Gold Squadron Role (Future)
+
+Gold Squadron agent can still be invoked for complex scenarios requiring reasoning:
+- Conflict resolution guidance
+- Branch naming suggestions based on complex context
+- Merge strategy recommendations
+
+But for basic branch creation, we use direct execution.
