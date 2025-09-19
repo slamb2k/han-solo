@@ -128,18 +128,24 @@ Red Squadron should return:
 - PR URL for viewing
 - Auto-merge status (enabled/disabled)
 
-The ship command will handle:
+## Scope Boundaries
+
+Red Squadron is responsible ONLY for:
+1. Creating the pull request
+2. Enabling auto-merge if possible
+3. Returning PR details
+
+The ship command handles:
 1. Monitoring the PR until merged
-2. Performing cleanup after merge
-3. Returning to main branch
+2. Calling sync for cleanup after merge
+3. Orchestrating the complete workflow
 
 ## Success Metrics
 
 - PR created successfully
-- Auto-merge enabled
-- CI checks pass
-- PR merges automatically
-- Branches cleaned up (local and remote)
-- Developer returned to clean main branch
+- Auto-merge enabled (when possible)
+- Clear PR description generated
+- Issue properly linked (if provided)
+- PR details returned for monitoring
 
-Remember: A complete shipping workflow minimizes context switching and maintains a clean repository state.
+Remember: Red Squadron's mission is complete once the PR is created and auto-merge is attempted.

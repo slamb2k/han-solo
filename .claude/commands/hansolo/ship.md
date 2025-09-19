@@ -75,61 +75,68 @@ Invoke the hansolo-red-squadron subagent to:
 
 Optional: Pass issue number as $1 to auto-link
 
-## Post-flight: Monitor and Complete
+## Post-flight: Monitor and Sync
 
 After Red Squadron creates the PR, the ship command performs post-flight operations:
 
-```bash
-# Extract PR number from Red Squadron output
-PR_NUMBER=<from-red-squadron>
+1. **Extract PR details from Red Squadron**:
+   - Parse the JSON response for PR number and URL
+   - If JSON_MODE not available, extract from text output
 
-# Monitor PR until merged (handles both auto-merge and manual merge)
-echo "Monitoring PR #$PR_NUMBER for merge completion..."
-.claude/scripts/monitor-pr-merge.sh $PR_NUMBER
+2. **Monitor PR until merged**:
+   ```bash
+   # Monitor PR with configurable timeout
+   echo "🔄 Monitoring PR for merge completion..."
+   .claude/scripts/monitor-pr-merge.sh $PR_NUMBER 300
+   MERGE_STATUS=$?
+   ```
+
+3. **Handle merge results**:
+   - **Success (0)**: PR merged → Call `/hansolo:sync` for cleanup
+   - **Timeout (2)**: Suggest manual merge options
+   - **Error (1)**: Show failure reason and next steps
+
+4. **Auto-sync on success**:
+   When PR is successfully merged, automatically execute `/hansolo:sync` to:
+   - Switch back to main branch
+   - Pull latest changes
+   - Delete the merged feature branch
+   - Prepare for next feature
+
+**Implementation**:
+```bash
+# After PR creation, extract PR number
+PR_NUMBER=<from-red-squadron>
+PR_URL=<from-red-squadron>
+
+# Monitor the PR
+echo "🔄 Monitoring PR #$PR_NUMBER for merge..."
+.claude/scripts/monitor-pr-merge.sh "$PR_NUMBER" 300
 MERGE_STATUS=$?
 
 if [[ $MERGE_STATUS -eq 0 ]]; then
-    # PR was successfully merged
-    echo "✓ PR #$PR_NUMBER has been merged!"
+    echo "✅ PR #$PR_NUMBER has been merged!"
+    echo ""
+    echo "🔄 Running /hansolo:sync to complete cleanup..."
 
-    # Save current branch for cleanup
-    CURRENT_BRANCH=$(git branch --show-current)
+    # Execute sync command for post-merge cleanup
+    # The sync command will detect the merged branch and clean up
+    /hansolo:sync
 
-    # Switch to main and pull latest
-    echo "Switching to main branch..."
-    git checkout main
-    git pull origin main
-
-    # Delete local feature branch
-    echo "Cleaning up local branch..."
-    git branch -D "$CURRENT_BRANCH" 2>/dev/null || true
-
-    # Verify remote deletion
-    if ! git ls-remote --heads origin "$CURRENT_BRANCH" | grep -q "$CURRENT_BRANCH"; then
-        echo "✓ Remote branch automatically deleted"
-    fi
-
-    echo "✓ Ship complete! You're on updated main."
+    echo ""
+    echo "🚀 Ship complete! You're on updated main, ready for the next feature."
 
 elif [[ $MERGE_STATUS -eq 2 ]]; then
-    # Timeout - attempt manual merge if possible
-    echo "Checking if manual merge is possible..."
+    echo "⏱ Monitoring timed out. The PR is not merged yet."
+    echo ""
+    echo "You can:"
+    echo "1. Check PR status: gh pr view $PR_NUMBER --web"
+    echo "2. Merge manually: gh pr merge $PR_NUMBER --squash"
+    echo "3. After merge, run: /hansolo:sync"
 
-    if gh pr view $PR_NUMBER --json mergeable -q '.mergeable' | grep -q "MERGEABLE"; then
-        echo "Attempting manual merge..."
-        if gh pr merge $PR_NUMBER --squash --delete-branch; then
-            # Perform cleanup after manual merge
-            git checkout main
-            git pull origin main
-            git branch -D "$(git branch --show-current)" 2>/dev/null || true
-            echo "✓ Manually merged and cleaned up!"
-        else
-            echo "✗ Manual merge failed. Check PR manually."
-        fi
-    fi
 else
-    echo "✗ PR merge failed. Manual intervention required."
-    echo "View PR: gh pr view $PR_NUMBER --web"
+    echo "❌ PR merge failed or was closed without merging."
+    echo "View details: $PR_URL"
 fi
 ```
 
@@ -137,17 +144,18 @@ fi
 
 The ship command provides a complete end-to-end workflow:
 
-1. **Pre-flight** - Validates you're on a shippable branch
+1. **Pre-flight** - Validates you're on a shippable branch (or creates one via launch)
 2. **PR Creation** - Red Squadron generates and submits the PR
 3. **Auto-merge Attempt** - Tries to enable automatic merge
-4. **Post-flight Monitoring** - Waits for merge (auto or manual)
-5. **Cleanup** - Returns to main with latest changes
+4. **Monitoring** - Waits for PR to be merged (up to 5 minutes)
+5. **Auto-sync** - Calls `/hansolo:sync` to cleanup and return to main
 
 After successful shipping:
-- ✓ PR merged (automatically or manually)
-- ✓ On main branch with latest changes
-- ✓ Local and remote feature branches deleted
-- ✓ Ready for next feature
+- ✅ PR created and merged
+- ✅ Automatically synced via `/hansolo:sync`
+- ✅ On main branch with latest changes
+- ✅ Feature branch cleaned up
+- ✅ Ready for next feature immediately
 
 ## Automatic Branch Creation
 
