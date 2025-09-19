@@ -5,7 +5,7 @@ argument_hint: "<feature-name>"
 
 # /hansolo:launch
 
-Inform the user by outputting:
+Firstr, inform the user by displaying:
 ```
 Creating a new feature branch...
 
@@ -16,7 +16,7 @@ Creating a new feature branch...
 ███████╗██║  ██║╚██████╔╝██║ ╚████║╚██████╗██║  ██║██║██║ ╚████║╚██████╔╝
 ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝ 
 ```
-Invoke the han-solo-gold-squadron subagent to create a new feature branch named 'feature/$1'.
+Invoke the hansolo-gold-squadron subagent to create a new feature branch named 'feature/$1'.
 
 The subagent MUST:
 1. Check current branch status and notify if on main

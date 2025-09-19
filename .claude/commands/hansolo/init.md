@@ -4,7 +4,7 @@ description: "Initialize repository with han-solo configuration"
 
 # /hansolo:init
 
-Invoke the han-solo-red-squadron subagent to set up this project according to the han-solo methodology.
+Invoke the hansolo-blue-squadron subagent to set up this project according to the han-solo methodology.
 
 The subagent will:
 1. Create standard configuration files (.gitignore, .gitconfig, .gitmessage)

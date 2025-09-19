@@ -59,7 +59,7 @@ To maintain clarity and prevent conflicts with other tools or built-in Claude Co
 
 han-solo will adopt the namespace /hansolo:\<verb\>. All command definition files will reside within the project's .claude/commands/hansolo/ directory. This structure provides immediate brand recognition for the tool's functions (e.g., /hansolo:init, /hansolo:launch, /hansolo:ship).
 
-The content of each command's markdown file will be minimal. Instead of containing complex logic, each file will serve as a simple directive to invoke the appropriate subagent. For example, the file .claude/commands/hansolo/init.md would contain a prompt such as: "Invoke the han-solo-red-squadron subagent to set up this project according to the han-solo methodology. Pass all user-provided arguments directly to the subagent." This design choice adheres to the principle of separation of concerns, keeping the user interface layer clean and delegating complex operations to the specialized engine room of subagents.
+The content of each command's markdown file will be minimal. Instead of containing complex logic, each file will serve as a simple directive to invoke the appropriate subagent. For example, the file .claude/commands/hansolo/init.md would contain a prompt such as: "Invoke the hansolo-red-squadron subagent to set up this project according to the han-solo methodology. Pass all user-provided arguments directly to the subagent." This design choice adheres to the principle of separation of concerns, keeping the user interface layer clean and delegating complex operations to the specialized engine room of subagents.
 
 ### **Leveraging Metadata for a Self-Documenting Experience**
 
@@ -71,7 +71,7 @@ Every han-solo command will have meticulously defined frontmatter. For the /hans
 
 ## **description: "Creates a new feature branch from an up-to-date main branch." argument-hint: ""**
 
-Invoke the han-solo-gold-squadron subagent to create a new feature branch named 'feature/$1'. The subagent MUST ensure the main branch is synced with the remote before creating the new branch.
+Invoke the hansolo-gold-squadron subagent to create a new feature branch named 'feature/$1'. The subagent MUST ensure the main branch is synced with the remote before creating the new branch.
 
 This approach elevates the slash command from a simple text macro to a well-defined API endpoint. The user immediately understands the command's purpose and the required arguments.
 

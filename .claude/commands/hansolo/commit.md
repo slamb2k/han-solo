@@ -5,7 +5,7 @@ argument_hint: "[message]"
 
 # /hansolo:commit
 
-Invoke the han-solo-gray-squadron subagent to handle the commit process.
+Invoke the hansolo-gray-squadron subagent to handle the commit process.
 
 The subagent will:
 1. Run quality checks via pre-commit hooks
