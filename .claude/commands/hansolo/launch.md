@@ -25,14 +25,16 @@ FEATURE_NAME="$1"
 ## Squadron Identity Display
 
 If NOT in JSON mode, display squadron identity:
-```bash
-if [[ "$JSON_MODE" != "true" ]]; then
-    echo ""
-    echo "Gold Leader, standing by..."
-    echo ""
-    cat .claude/lib/banners/launching.txt
-    echo ""
-fi
+
+**Gold Leader, standing by...**
+
+```
+██╗      █████╗ ██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██╗███╗   ██╗ ██████╗
+██║     ██╔══██╗██║   ██║████╗  ██║██╔════╝██║  ██║██║████╗  ██║██╔════╝
+██║     ███████║██║   ██║██╔██╗ ██║██║     ███████║██║██╔██╗ ██║██║  ███╗
+██║     ██╔══██║██║   ██║██║╚██╗██║██║     ██╔══██║██║██║╚██╗██║██║   ██║
+███████╗██║  ██║╚██████╔╝██║ ╚████║╚██████╗██║  ██║██║██║ ╚████║╚██████╔╝
+╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝
 ```
 
 ## Branch Creation Execution
