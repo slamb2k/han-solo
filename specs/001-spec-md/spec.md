@@ -8,26 +8,26 @@
 ## Execution Flow (main)
 ```
 1. Parse user description from Input
-   ’ If empty: ERROR "No feature description provided"
+   ï¿½ If empty: ERROR "No feature description provided"
 2. Extract key concepts from description
-   ’ Identify: actors, actions, data, constraints
+   ï¿½ Identify: actors, actions, data, constraints
 3. For each unclear aspect:
-   ’ Mark with [NEEDS CLARIFICATION: specific question]
+   ï¿½ Mark with [NEEDS CLARIFICATION: specific question]
 4. Fill User Scenarios & Testing section
-   ’ If no clear user flow: ERROR "Cannot determine user scenarios"
+   ï¿½ If no clear user flow: ERROR "Cannot determine user scenarios"
 5. Generate Functional Requirements
-   ’ Each requirement must be testable
-   ’ Mark ambiguous requirements
+   ï¿½ Each requirement must be testable
+   ï¿½ Mark ambiguous requirements
 6. Identify Key Entities (if data involved)
 7. Run Review Checklist
-   ’ If any [NEEDS CLARIFICATION]: WARN "Spec has uncertainties"
-   ’ If implementation details found: ERROR "Remove tech details"
+   ï¿½ If any [NEEDS CLARIFICATION]: WARN "Spec has uncertainties"
+   ï¿½ If implementation details found: ERROR "Remove tech details"
 8. Return: SUCCESS (spec ready for planning)
 ```
 
 ---
 
-## ¡ Quick Guidelines
+## ï¿½ Quick Guidelines
 -  Focus on WHAT users need and WHY
 - L Avoid HOW to implement (no tech stack, APIs, code structure)
 - =e Written for business stakeholders, not developers
@@ -70,6 +70,9 @@ As a software developer using Claude Code, I want an orchestrator tool that enfo
 - What occurs when attempting to create a branch from an outdated local main?
 - How does system respond when GitHub API limits are exceeded?
 - What happens if CI/CD pipeline configuration detection fails?
+- How does system handle JSON mode when commands invoke other commands?
+- What happens when ASCII banner display exceeds terminal width?
+- How does system maintain squadron identity across command chains?
 
 ## Requirements *(mandatory)*
 
@@ -89,6 +92,9 @@ As a software developer using Claude Code, I want an orchestrator tool that enfo
 - **FR-013**: System MUST integrate with GitHub for repository configuration
 - **FR-014**: System MUST maintain checkpoint history during development sessions
 - **FR-015**: System MUST squash checkpoint commits into single atomic commits when tasks complete
+- **FR-016**: System MUST support squadron-themed command interactions with quotes and ASCII banners
+- **FR-017**: System MUST provide JSON communication protocol for command chaining and agent responses
+- **FR-018**: System MUST prevent banner truncation when commands invoke other commands
 
 ### Key Entities *(include if feature involves data)*
 - **Repository Configuration**: Standard files and settings that define project structure and workflow rules
@@ -99,6 +105,8 @@ As a software developer using Claude Code, I want an orchestrator tool that enfo
 - **Workflow Status**: Real-time information about current branch, PR state, and CI/CD checks
 - **Quality Checks**: Linting and formatting validation results
 - **Conflict Resolution**: Merge conflict detection and resolution proposals
+- **Squadron Response**: Structured JSON communication between commands and agents with squadron identity
+- **Banner Configuration**: ASCII art banners and squadron quotes for themed command interactions
 
 ---
 

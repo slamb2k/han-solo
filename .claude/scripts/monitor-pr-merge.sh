@@ -1,181 +1,117 @@
 #!/bin/bash
-set -euo pipefail
+# monitor-pr-merge.sh - Monitor a pull request until it's merged
+# Usage: monitor-pr-merge.sh <pr-number> [timeout-seconds]
+# Exit codes: 0=merged, 1=error, 2=timeout
 
-# PR Merge Monitoring Script
-# Monitors a PR until it's merged or timeout occurs
-# Used by Blue Squadron for complete shipping workflow
+set -e
 
-# Get PR number from argument
-PR_NUMBER="${1:-}"
+# Configuration
+PR_NUMBER="$1"
+TIMEOUT="${2:-300}"  # Default 5 minutes
+POLL_INTERVAL=10     # Check every 10 seconds
+ELAPSED=0
+
+# Validate input
 if [[ -z "$PR_NUMBER" ]]; then
-    echo "ERROR: PR number required" >&2
-    echo "Usage: $0 <pr-number>" >&2
+    echo "Error: PR number required"
+    echo "Usage: $0 <pr-number> [timeout-seconds]"
     exit 1
 fi
 
-# Configuration
-MAX_WAIT_TIME=600  # 10 minutes max wait
-CHECK_INTERVAL=10   # Check every 10 seconds
-ELAPSED_TIME=0
+# Colors for output
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
-echo "Monitoring PR #$PR_NUMBER for merge completion..."
+echo "🔄 Monitoring PR #$PR_NUMBER for merge completion..."
+echo "   Timeout: ${TIMEOUT} seconds"
+echo ""
 
 # Function to check PR status
 check_pr_status() {
-    local pr_data=$(gh pr view "$PR_NUMBER" --json state,mergeable,mergeStateStatus,statusCheckRollup 2>/dev/null || echo "{}")
-
-    if [[ "$pr_data" == "{}" ]]; then
-        echo "ERROR: Could not fetch PR data" >&2
-        return 1
-    fi
-
-    local state=$(echo "$pr_data" | jq -r '.state')
-    local mergeable=$(echo "$pr_data" | jq -r '.mergeable')
-    local merge_state=$(echo "$pr_data" | jq -r '.mergeStateStatus')
-
-    echo "$state|$mergeable|$merge_state"
+    gh pr view "$PR_NUMBER" --json state,mergeable,mergeStateStatus 2>/dev/null || echo '{"error":"not found"}'
 }
 
-# Function to check CI status
-check_ci_status() {
-    local checks=$(gh pr checks "$PR_NUMBER" --json name,status,conclusion 2>/dev/null || echo "[]")
-
-    if [[ "$checks" == "[]" ]]; then
-        echo "NO_CHECKS"
-        return
-    fi
-
-    local failed=$(echo "$checks" | jq '[.[] | select(.conclusion == "FAILURE")] | length')
-    local pending=$(echo "$checks" | jq '[.[] | select(.status != "COMPLETED")] | length')
-    local success=$(echo "$checks" | jq '[.[] | select(.conclusion == "SUCCESS")] | length')
-
-    if [[ "$failed" -gt 0 ]]; then
-        echo "FAILED"
-    elif [[ "$pending" -gt 0 ]]; then
-        echo "PENDING"
-    elif [[ "$success" -gt 0 ]]; then
-        echo "SUCCESS"
-    else
-        echo "UNKNOWN"
-    fi
+# Function to show progress
+show_progress() {
+    local dots=$((ELAPSED / 10 % 4))
+    case $dots in
+        0) printf "\r⏳ Waiting for merge.   " ;;
+        1) printf "\r⏳ Waiting for merge..  " ;;
+        2) printf "\r⏳ Waiting for merge... " ;;
+        3) printf "\r⏳ Waiting for merge...." ;;
+    esac
 }
 
-# Function to enable auto-merge
-enable_auto_merge() {
-    echo "Enabling auto-merge for PR #$PR_NUMBER..."
+# Main monitoring loop
+while [[ $ELAPSED -lt $TIMEOUT ]]; do
+    # Get PR status
+    PR_JSON=$(check_pr_status)
 
-    if gh pr merge "$PR_NUMBER" --auto --squash --delete-branch 2>/dev/null; then
-        echo "✓ Auto-merge enabled"
-        return 0
-    else
-        echo "⚠️ Could not enable auto-merge, will monitor for manual merge"
-        return 1
+    # Check for errors
+    if echo "$PR_JSON" | grep -q '"error"'; then
+        echo -e "\n${RED}✗ Error: Could not find PR #$PR_NUMBER${NC}"
+        exit 1
     fi
-}
 
-# Initial status check
-INITIAL_STATUS=$(check_pr_status)
-IFS='|' read -r STATE MERGEABLE MERGE_STATE <<< "$INITIAL_STATUS"
-
-echo "Initial PR state: $STATE"
-echo "Mergeable: $MERGEABLE"
-echo "Merge state: $MERGE_STATE"
-
-# If PR is already merged, we're done
-if [[ "$STATE" == "MERGED" ]]; then
-    echo "✓ PR #$PR_NUMBER is already merged!"
-    exit 0
-fi
-
-# If PR is closed (not merged), exit with error
-if [[ "$STATE" == "CLOSED" ]]; then
-    echo "✗ PR #$PR_NUMBER is closed without merging"
-    exit 1
-fi
-
-# Try to enable auto-merge
-AUTO_MERGE_ENABLED=false
-if enable_auto_merge; then
-    AUTO_MERGE_ENABLED=true
-fi
-
-# Monitor loop
-echo ""
-echo "Monitoring PR merge status..."
-echo "Maximum wait time: ${MAX_WAIT_TIME}s"
-echo ""
-
-while [[ $ELAPSED_TIME -lt $MAX_WAIT_TIME ]]; do
-    # Check current status
-    CURRENT_STATUS=$(check_pr_status)
-    IFS='|' read -r STATE MERGEABLE MERGE_STATE <<< "$CURRENT_STATUS"
+    # Parse status
+    STATE=$(echo "$PR_JSON" | jq -r '.state')
+    MERGEABLE=$(echo "$PR_JSON" | jq -r '.mergeable')
+    MERGE_STATUS=$(echo "$PR_JSON" | jq -r '.mergeStateStatus')
 
     # Check if merged
     if [[ "$STATE" == "MERGED" ]]; then
-        echo ""
-        echo "✓ PR #$PR_NUMBER has been merged!"
-
-        # Get merge details
-        MERGE_INFO=$(gh pr view "$PR_NUMBER" --json mergedAt,mergedBy --jq '"\(.mergedAt) by \(.mergedBy.login)"')
-        echo "Merged at: $MERGE_INFO"
-
+        echo -e "\n${GREEN}✓ PR #$PR_NUMBER has been successfully merged!${NC}"
         exit 0
     fi
 
-    # Check if closed
+    # Check if closed without merging
     if [[ "$STATE" == "CLOSED" ]]; then
-        echo ""
-        echo "✗ PR #$PR_NUMBER was closed without merging"
+        echo -e "\n${RED}✗ PR #$PR_NUMBER was closed without merging${NC}"
         exit 1
     fi
 
-    # Check CI status
-    CI_STATUS=$(check_ci_status)
+    # Show current status on first iteration and every 30 seconds
+    if [[ $ELAPSED -eq 0 ]] || [[ $((ELAPSED % 30)) -eq 0 ]]; then
+        echo -e "\n📊 Status Check:"
+        echo "   State: $STATE"
+        echo "   Mergeable: $MERGEABLE"
+        echo "   Merge Status: $MERGE_STATUS"
 
-    # Display progress
-    printf "\r[%3d/%3d s] State: %-6s | CI: %-8s | Mergeable: %-8s | Auto-merge: %-8s" \
-        "$ELAPSED_TIME" "$MAX_WAIT_TIME" "$STATE" "$CI_STATUS" "$MERGEABLE" \
-        "$([ "$AUTO_MERGE_ENABLED" = true ] && echo "ENABLED" || echo "DISABLED")"
-
-    # If CI failed, exit
-    if [[ "$CI_STATUS" == "FAILED" ]]; then
+        # Provide helpful context based on status
+        case "$MERGE_STATUS" in
+            "BLOCKED")
+                echo -e "   ${YELLOW}⚠ Waiting for CI checks to complete...${NC}"
+                ;;
+            "BEHIND")
+                echo -e "   ${YELLOW}⚠ Branch is behind main, may need update${NC}"
+                ;;
+            "UNSTABLE")
+                echo -e "   ${YELLOW}⚠ Some checks are failing${NC}"
+                ;;
+            "CLEAN")
+                echo -e "   ${GREEN}✓ Ready to merge (waiting for auto-merge)${NC}"
+                ;;
+        esac
         echo ""
-        echo "✗ CI checks failed for PR #$PR_NUMBER"
-        echo "View details: gh pr checks $PR_NUMBER"
-        exit 1
     fi
 
-    # If mergeable and CI passed, but auto-merge not enabled, try manual merge
-    if [[ "$CI_STATUS" == "SUCCESS" ]] && [[ "$MERGEABLE" == "MERGEABLE" ]] && [[ "$AUTO_MERGE_ENABLED" == "false" ]]; then
-        echo ""
-        echo "CI passed and PR is mergeable. Attempting manual merge..."
-
-        if gh pr merge "$PR_NUMBER" --squash --delete-branch; then
-            echo "✓ PR #$PR_NUMBER has been merged!"
-            exit 0
-        else
-            echo "⚠️ Manual merge failed, continuing to monitor..."
-        fi
-    fi
+    # Show progress indicator
+    show_progress
 
     # Wait before next check
-    sleep $CHECK_INTERVAL
-    ELAPSED_TIME=$((ELAPSED_TIME + CHECK_INTERVAL))
+    sleep $POLL_INTERVAL
+    ELAPSED=$((ELAPSED + POLL_INTERVAL))
 done
 
 # Timeout reached
+echo -e "\n${YELLOW}⏱ Timeout reached after ${TIMEOUT} seconds${NC}"
 echo ""
-echo "⚠️ Timeout reached after ${MAX_WAIT_TIME}s"
-echo "PR #$PR_NUMBER is still not merged"
+echo "The PR has not been merged yet. You can:"
+echo "1. Check the PR status: gh pr view $PR_NUMBER --web"
+echo "2. Merge manually if ready: gh pr merge $PR_NUMBER --squash"
+echo "3. Continue monitoring: $0 $PR_NUMBER $TIMEOUT"
 echo ""
-echo "Current status:"
-echo "  State: $STATE"
-echo "  CI Status: $(check_ci_status)"
-echo "  Mergeable: $MERGEABLE"
-echo ""
-echo "You can:"
-echo "  1. Check PR manually: gh pr view $PR_NUMBER --web"
-echo "  2. Merge manually: gh pr merge $PR_NUMBER --squash"
-echo "  3. Continue monitoring: $0 $PR_NUMBER"
 
-exit 2  # Exit code 2 for timeout
+exit 2

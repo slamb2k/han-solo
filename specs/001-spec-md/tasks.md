@@ -281,7 +281,173 @@ Task: "Test squash operation works correctly"
 5. **For Linter Detection**: Use research.md lines 237-246 (detection matrix)
 
 ---
-*Total Tasks: 50* (45 original + 5 critical gaps identified)
-*Estimated Parallel Groups: 10*
-*Critical Path: Setup → Detection → Hooks → Commands → Tests → Documentation*
-*All tasks now include source references for implementation guidance*
+
+## Phase 6: Squadron Theme Implementation (Tasks 51-60)
+
+### 51. [P] Create ASCII banner files for all squadrons
+- Create `.claude/lib/banners/launching.txt` (Gold Squadron)
+- Create `.claude/lib/banners/shipping.txt` (Red Squadron)
+- Create `.claude/lib/banners/initializing.txt` (Blue Squadron)
+- Create `.claude/lib/banners/committing.txt` (Gray Squadron)
+- Create `.claude/lib/banners/syncing.txt` (Gold Squadron)
+- Create `.claude/lib/banners/configuring.txt` (Green Squadron)
+- **Depends on**: Directory structure creation
+
+### 52. Update /hansolo:init with Blue Squadron theme
+- Add "Blue Leader, standing by..." quote at start
+- Display INITIALIZING banner before agent invocation
+- Add JSON mode detection (--json flag)
+
+### 53. Update /hansolo:launch with Gold Squadron theme
+- Add "Gold Leader, standing by..." quote
+- Display LAUNCHING banner
+- Implement JSON response for ship command integration
+
+### 54. Update /hansolo:ship with Red Squadron theme
+- Add "Red Leader, standing by..." quote
+- Display SHIPPING banner
+- Parse JSON responses from launch when invoked
+
+### 55. Update /hansolo:commit with Gray Squadron theme
+- Add "Gray Leader, standing by..." quote
+- Display COMMITTING banner
+- Add JSON mode support
+
+### 56. Update /hansolo:sync with Gold Squadron theme
+- Add "Gold Leader, standing by..." quote
+- Display SYNCING banner
+- Add JSON mode support
+
+### 57. Update /hansolo:ci-setup with Green Squadron theme
+- Add "Green Leader, standing by..." quote
+- Display CONFIGURING banner
+- Add JSON mode support
+
+### 58. [P] Update all squadron agents with JSON response capability
+- Gold Squadron: Launch and sync responses
+- Red Squadron: Ship PR creation responses
+- Blue Squadron: Init responses
+- Gray Squadron: Commit responses
+- Green Squadron: CI setup responses
+
+### 59. Create squadron theme utilities
+- Create `.claude/lib/squadron-utils.sh` with banner display functions
+- Add quote display functions
+- Add JSON detection helpers
+
+### 60. Update CLAUDE.md with squadron documentation
+- Document squadron assignments
+- Add natural language triggers with squadron context
+- Document JSON mode usage
+
+## Phase 7: JSON Protocol Implementation (Tasks 61-70)
+
+### 61. Create JSON schema definitions
+- Create `.claude/lib/schemas/squadron-response.json`
+- Define universal response schema
+- Add validation schemas for each squadron
+- **Source**: squadron-api.yaml (complete schema)
+
+### 62. Implement JSON mode in /hansolo:launch
+- Check for --json flag
+- Return structured response when in JSON mode
+- Maintain backward compatibility
+
+### 63. Implement ship → launch JSON communication
+- Update ship to invoke launch with --json
+- Parse launch JSON response
+- Display appropriate banners from JSON
+
+### 64. [P] Add JSON parsing utilities
+- Create `.claude/lib/json-utils.sh`
+- Add jq-based parsing functions
+- Add response validation functions
+
+### 65. Implement JSON error handling
+- Standardize error responses across squadrons
+- Add error codes and details
+- Maintain consistent error structure
+
+### 66. Add JSON mode to remaining commands
+- /hansolo:commit with JSON support
+- /hansolo:sync with JSON support
+- /hansolo:ci-setup with JSON support
+- /hansolo:init with JSON support
+
+### 67. Create banner display manager
+- Prevent truncation in command chains
+- Handle terminal width detection
+- Implement smart banner caching
+
+### 68. Implement feature flags
+- HANSOLO_JSON_MODE environment variable
+- HANSOLO_SQUADRON_QUOTES environment variable
+- Default settings in settings.json
+
+### 69. Update status line for squadron awareness
+- Display current squadron context
+- Show JSON mode status
+- Add squadron-specific warnings
+
+### 70. Create squadron response validators
+- Validate all JSON responses against schema
+- Check required fields presence
+- Validate squadron identities
+
+## Phase 8: Testing & Validation (Tasks 71-80)
+
+### 71. Create squadron quote tests
+- Test quote presence in all commands
+- Verify correct squadron assignments
+- Test quote consistency
+
+### 72. Create banner display tests
+- Test ASCII art rendering
+- Verify no truncation occurs
+- Test terminal width handling
+
+### 73. Test JSON command chaining
+- Test ship → launch flow
+- Verify JSON parsing
+- Test error propagation
+
+### 74. Create JSON schema validation tests
+- Test all response types
+- Verify schema compliance
+- Test error responses
+
+### 75. Test backward compatibility
+- Verify non-JSON mode still works
+- Test existing workflows
+- Ensure no breaking changes
+
+### 76. Performance testing
+- Measure JSON parsing overhead
+- Test banner rendering speed
+- Profile command chaining
+
+### 77. Create squadron integration tests
+- Test complete workflows with themes
+- Verify squadron identity persistence
+- Test cross-command communication
+
+### 78. Documentation validation
+- Verify all squadron mappings documented
+- Check natural language triggers
+- Validate JSON examples
+
+### 79. Visual consistency testing
+- Verify all banners display correctly
+- Test quote formatting
+- Check color/formatting codes
+
+### 80. Create squadron demo script
+- Showcase all squadron themes
+- Demonstrate JSON chaining
+- Show complete ship → launch flow
+
+---
+*Total Tasks: 80* (50 original + 30 squadron refactoring)
+*New Parallel Groups: 6*
+*Refactoring Phases: Theme Implementation → JSON Protocol → Testing*
+*All squadron tasks include source references from refactor-plan.md*
