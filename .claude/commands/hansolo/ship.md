@@ -23,12 +23,16 @@ ISSUE_NUMBER="$1"
 ## Squadron Identity
 
 Display Red Squadron identity:
-```bash
-echo ""
-echo "Red Leader, standing by..."
-echo ""
-cat .claude/lib/banners/shipping.txt 2>/dev/null || true
-echo ""
+
+**Red Leader, standing by...**
+
+```
+███████╗██╗  ██╗██╗██████╗ ██████╗ ██╗███╗   ██╗ ██████╗
+██╔════╝██║  ██║██║██╔══██╗██╔══██╗██║████╗  ██║██╔════╝
+███████╗███████║██║██████╔╝██████╔╝██║██╔██╗ ██║██║  ███╗
+╚════██║██╔══██║██║██╔═══╝ ██╔═══╝ ██║██║╚██╗██║██║   ██║
+███████║██║  ██║██║██║     ██║     ██║██║ ╚████║╚██████╔╝
+╚══════╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝
 ```
 
 ## PRE-FLIGHT CHECKS
@@ -71,7 +75,13 @@ if [[ "$NEEDS_NEW_BRANCH" == "true" ]]; then
     # Show Gold Squadron banner since we launched
     echo ""
     echo "Gold Leader, standing by..."
-    cat .claude/lib/banners/launching.txt 2>/dev/null || true
+    echo ""
+    echo "██╗      █████╗ ██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██╗███╗   ██╗ ██████╗"
+    echo "██║     ██╔══██╗██║   ██║████╗  ██║██╔════╝██║  ██║██║████╗  ██║██╔════╝"
+    echo "██║     ███████║██║   ██║██╔██╗ ██║██║     ███████║██║██╔██╗ ██║██║  ███╗"
+    echo "██║     ██╔══██║██║   ██║██║╚██╗██║██║     ██╔══██║██║██║╚██╗██║██║   ██║"
+    echo "███████╗██║  ██║╚██████╔╝██║ ╚████║╚██████╗██║  ██║██║██║ ╚████║╚██████╔╝"
+    echo "╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝"
     echo ""
 
     # Update current branch

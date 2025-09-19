@@ -20,14 +20,16 @@ JSON_MODE="${JSON_MODE:-false}"
 ## Squadron Identity
 
 Display Gold Squadron identity (unless in JSON mode):
-```bash
-if [[ "$JSON_MODE" != "true" ]]; then
-    echo ""
-    echo "Gold Leader, standing by..."
-    echo ""
-    cat .claude/lib/banners/syncing.txt 2>/dev/null || true
-    echo ""
-fi
+
+**Gold Leader, standing by...**
+
+```
+███████╗██╗   ██╗███╗   ██╗ ██████╗██╗███╗   ██╗ ██████╗
+██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝██║████╗  ██║██╔════╝
+███████╗ ╚████╔╝ ██╔██╗ ██║██║     ██║██╔██╗ ██║██║  ███╗
+╚════██║  ╚██╔╝  ██║╚██╗██║██║     ██║██║╚██╗██║██║   ██║
+███████║   ██║   ██║ ╚████║╚██████╗██║██║ ╚████║╚██████╔╝
+╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝╚═╝╚═╝  ╚═══╝ ╚═════╝
 ```
 
 ## PRE-FLIGHT: DETECT SYNC MODE
