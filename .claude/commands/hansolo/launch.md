@@ -24,16 +24,23 @@ The subagent MUST:
 3. Create new branch from latest main
 4. Switch to the new feature branch
 
-If no feature name provided, prompt user for the feature name. If they describe a bug, chore or docs type work then use the appropriate name instead. i.e. bug/user-fix, chore/spelling-correct, docs/added-readme. If theydon't provide anything (i.e. They just hit enter) then auto-generate feature branch name from latest commit or timestamp.
+If no feature name provided, prompt the user with:
 
-## Auto-Generated Branch Names
-
-When a new branch is needed, automatically generate name using:
-```bash
-# From latest commit subject (sanitized)
-LAST_COMMIT=$(git log -1 --pretty=%s | sed 's/[^a-zA-Z0-9-]/-/g' | cut -c1-30)
-BRANCH_NAME="feature/${LAST_COMMIT}-$(date +%s)"
-
-# Or simple timestamp-based
-BRANCH_NAME="feature/ship-$(date +%Y%m%d-%H%M%S)"
 ```
+Enter branch name (respond with one of the following):
+  • Natural language description: "bug fixes to authentication"
+  • Explicit branch name: "fix/auth-validation" or "feature/new-login"
+  • Single '*' character for auto-generation based on your changes
+```
+
+Handle the user's response:
+1. **Natural language or explicit branch name** - Pass it directly to Gold Squadron
+2. **'*' character** - Do NOT pass anything to Gold Squadron; the absence of input triggers auto-generation
+
+The Gold Squadron agent will:
+- Parse natural language (e.g., "bug fixes to auth" → `fix/auth`)
+- Use explicit branch names as-is (with type detection)
+- Auto-generate when no input is provided, using this priority:
+  1. From uncommitted changes
+  2. From unshipped commits
+  3. Timestamp fallback if all commits are shipped
