@@ -1,0 +1,194 @@
+openapi: 3.0.0
+info:
+  title: han-solo Squadron Response API
+  version: 1.0.0
+  description: JSON communication protocol for squadron-themed command and agent interactions
+
+components:
+  schemas:
+    SquadronIdentity:
+      type: object
+      required:
+        - name
+        - quote
+        - banner_type
+      properties:
+        name:
+          type: string
+          enum: [gold, red, blue, gray, green]
+          description: Squadron identifier
+        quote:
+          type: string
+          description: Squadron leader standing-by quote
+          example: "Gold Leader, standing by..."
+        banner_type:
+          type: string
+          enum: [LAUNCHING, SHIPPING, INITIALIZING, COMMITTING, SYNCING, CONFIGURING]
+          description: Type of ASCII banner to display
+
+    DisplayProperties:
+      type: object
+      properties:
+        banner:
+          type: string
+          description: ASCII art banner content
+          maxLength: 2000
+        message:
+          type: string
+          description: Message to display to user
+        prompt:
+          type: string
+          description: Input prompt for user interaction
+
+    ErrorInfo:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code identifier
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error context
+
+    SquadronResponse:
+      type: object
+      required:
+        - squadron
+        - status
+      properties:
+        squadron:
+          $ref: '#/components/schemas/SquadronIdentity'
+        status:
+          type: string
+          enum: [ready, awaiting_input, in_progress, completed, error]
+          description: Current response status
+        display:
+          $ref: '#/components/schemas/DisplayProperties'
+        data:
+          type: object
+          description: Agent-specific response data
+        error:
+          $ref: '#/components/schemas/ErrorInfo'
+        next_action:
+          type: string
+          description: Next command action identifier
+
+paths:
+  /command/invoke:
+    post:
+      summary: Invoke command with optional JSON mode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                command:
+                  type: string
+                  description: Command to invoke
+                args:
+                  type: array
+                  items:
+                    type: string
+                json_mode:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Command executed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SquadronResponse'
+            text/plain:
+              schema:
+                type: string
+                description: Human-readable output when not in JSON mode
+
+  /agent/execute:
+    post:
+      summary: Execute squadron agent task
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - squadron
+                - task
+              properties:
+                squadron:
+                  type: string
+                  enum: [gold, red, blue, gray, green]
+                task:
+                  type: string
+                  description: Task for agent to perform
+                json_mode:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: Agent task completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SquadronResponse'
+
+examples:
+  launch_awaiting_input:
+    value:
+      squadron:
+        name: gold
+        quote: "Gold Leader, standing by..."
+        banner_type: LAUNCHING
+      status: awaiting_input
+      display:
+        banner: |
+          ██╗      █████╗ ██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██╗███╗   ██╗ ██████╗
+          ██║     ██╔══██╗██║   ██║████╗  ██║██╔════╝██║  ██║██║████╗  ██║██╔════╝
+          ██║     ███████║██║   ██║██╔██╗ ██║██║     ███████║██║██╔██╗ ██║██║  ███╗
+          ██║     ██╔══██║██║   ██║██║╚██╗██║██║     ██╔══██║██║██║╚██╗██║██║   ██║
+          ███████╗██║  ██║╚██████╔╝██║ ╚████║╚██████╗██║  ██║██║██║ ╚████║╚██████╔╝
+          ╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝ ╚═════╝
+        prompt: |
+          Enter branch name (respond with one of the following):
+            • Natural language description: "bug fixes to authentication"
+            • Explicit branch name: "fix/auth-validation"
+            • Single '*' character for auto-generation
+      data:
+        current_branch: main
+        has_uncommitted: true
+      next_action: provide_branch_name
+
+  ship_completed:
+    value:
+      squadron:
+        name: red
+        quote: "Red Leader, standing by..."
+        banner_type: SHIPPING
+      status: completed
+      data:
+        pr_number: 123
+        pr_url: "https://github.com/owner/repo/pull/123"
+        auto_merge_enabled: true
+      display:
+        message: "✓ PR #123 created and auto-merge enabled"
+
+  error_response:
+    value:
+      squadron:
+        name: blue
+        quote: "Blue Leader, standing by..."
+        banner_type: INITIALIZING
+      status: error
+      error:
+        code: "ALREADY_INITIALIZED"
+        message: "Repository is already initialized"
+        details:
+          existing_files: [".gitignore", ".gitconfig", "CLAUDE.md"]

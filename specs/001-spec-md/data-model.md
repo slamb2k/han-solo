@@ -141,19 +141,64 @@ The han-solo data model represents the configuration and state entities required
 **Relationships**:
 - SelectedBy → User (via /output-style command)
 
+### 9. Squadron Response
+
+**Entity**: SquadronResponse
+**Storage**: Runtime (JSON communication)
+
+| Field | Type | Required | Description | Validation |
+|-------|------|----------|-------------|------------|
+| squadron | object | Yes | Squadron identity | Valid squadron object |
+| squadron.name | enum | Yes | Squadron identifier | gold, red, blue, gray, green |
+| squadron.quote | string | Yes | Squadron leader quote | "{Color} Leader, standing by..." |
+| squadron.banner_type | string | Yes | Banner display type | LAUNCHING, SHIPPING, etc. |
+| status | enum | Yes | Response status | ready, awaiting_input, in_progress, completed, error |
+| display | object | No | Display properties | Valid display object |
+| display.banner | string | No | ASCII art banner | Max 2000 characters |
+| display.message | string | No | User message | Plain text |
+| display.prompt | string | No | Input prompt | Plain text |
+| data | object | No | Agent-specific data | Valid JSON object |
+| error | object | No | Error information | Valid error object |
+| next_action | string | No | Next command action | Valid action identifier |
+
+**State Transitions**:
+- ready → awaiting_input (needs user input)
+- awaiting_input → in_progress (processing)
+- in_progress → completed (success)
+- in_progress → error (failure)
+
+### 10. Banner Configuration
+
+**Entity**: BannerConfig
+**Storage**: `.claude/lib/banners/*.txt`
+
+| Field | Type | Required | Description | Validation |
+|-------|------|----------|-------------|------------|
+| name | string | Yes | Banner identifier | Matches squadron.banner_type |
+| content | text | Yes | ASCII art content | Max 10 lines, 80 chars wide |
+| squadron | enum | Yes | Associated squadron | gold, red, blue, gray, green |
+| action | string | Yes | Action being performed | LAUNCHING, SHIPPING, etc. |
+
+**Relationships**:
+- DisplayedBy → SquadronResponse (via banner_type)
+- AssociatedWith → Subagent (via squadron)
+
 ## Entity Relationships
 
 ```mermaid
 erDiagram
     SlashCommand ||--o| Subagent : invokes
     SlashCommand ||--o{ Hook : triggers
+    SlashCommand ||--o| SquadronResponse : generates
     Subagent ||--o{ Tool : executes
     Subagent ||--o{ Hook : triggers
+    Subagent ||--|| SquadronResponse : returns
     Hook }o--o{ Tool : intercepts
     Settings ||--|| RepoConfig : configures
     WorkflowState ||--|| StatusInfo : generates
     User ||--o| OutputStyle : selects
     RepoConfig ||--|| WorkflowState : defines-rules-for
+    SquadronResponse ||--o| BannerConfig : displays
 ```
 
 ## Validation Rules
