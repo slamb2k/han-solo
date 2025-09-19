@@ -36,11 +36,11 @@ Based on the branch state, take appropriate action:
    - Stop (no duplicate PR needed)
 
 4. **If ready to ship**:
-   - Invoke Blue Squadron to create PR
+   - Invoke Red Squadron to create PR
 
 ## Stop! Banner Time!
 
-When branch is ready, first inform the user by outputting:
+When branch is ready, first inform the user by displaying:
 ```
 🚢 Now shipping your changes through the PR workflow...
 
@@ -52,9 +52,9 @@ When branch is ready, first inform the user by outputting:
 ╚══════╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
 ```
 
-## Blue Squadron Invocation
+## Red Squadron Invocation
 
-Invoke the han-solo-blue-squadron subagent to:
+Invoke the hansolo-red-squadron subagent to:
 1. Analyze changes with git diff
 2. Generate PR title and description
 3. Link to related issues if provided
@@ -66,11 +66,11 @@ Optional: Pass issue number as $1 to auto-link
 
 ## Post-flight: Monitor and Complete
 
-After Blue Squadron creates the PR, the ship command performs post-flight operations:
+After Red Squadron creates the PR, the ship command performs post-flight operations:
 
 ```bash
-# Extract PR number from Blue Squadron output
-PR_NUMBER=<from-blue-squadron>
+# Extract PR number from Red Squadron output
+PR_NUMBER=<from-red-squadron>
 
 # Monitor PR until merged (handles both auto-merge and manual merge)
 echo "Monitoring PR #$PR_NUMBER for merge completion..."
@@ -127,7 +127,7 @@ fi
 The ship command provides a complete end-to-end workflow:
 
 1. **Pre-flight** - Validates you're on a shippable branch
-2. **PR Creation** - Blue Squadron generates and submits the PR
+2. **PR Creation** - Red Squadron generates and submits the PR
 3. **Auto-merge Attempt** - Tries to enable automatic merge
 4. **Post-flight Monitoring** - Waits for merge (auto or manual)
 5. **Cleanup** - Returns to main with latest changes

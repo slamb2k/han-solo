@@ -4,7 +4,7 @@ description: "Sync feature branch with latest main"
 
 # /hansolo:sync
 
-Invoke the han-solo-gold-squadron subagent to synchronize the current feature branch with main.
+Invoke the hansolo-gold-squadron subagent to synchronize the current feature branch with main.
 
 The subagent will:
 1. Fetch latest changes from origin

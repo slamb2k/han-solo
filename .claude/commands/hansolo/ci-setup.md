@@ -5,7 +5,7 @@ argument_hint: "[--deploy]"
 
 # /hansolo:ci-setup
 
-Invoke the han-solo-green-squadron subagent to set up continuous integration.
+Invoke the hansolo-green-squadron subagent to set up continuous integration.
 
 The subagent will:
 1. Auto-detect project type
