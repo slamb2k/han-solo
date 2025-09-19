@@ -5,6 +5,17 @@ argument_hint: "[issue-number]"
 
 # /hansolo:ship
 
+## Squadron Identity
+
+Display Red Squadron identity:
+```
+echo ""
+echo "Red Leader, standing by..."
+echo ""
+cat .claude/lib/banners/shipping.txt
+echo ""
+```
+
 Smart shipping command that ensures you're on a proper feature branch before creating a PR.
 
 ## Pre-flight Checks
@@ -21,13 +32,20 @@ STATE_MESSAGE=$(echo "$BRANCH_STATE" | jq -r '.message')
 Based on the branch state, take appropriate action:
 
 1. **If on main/master branch** OR **If PR already merged**:
-   - **IMPORTANT**: Execute the command `/hansolo:launch` (no arguments)
+   - **IMPORTANT**: Execute the command `/hansolo:launch --json`
    - DO NOT create the branch directly with git commands
    - DO NOT generate or pass a branch name
-   - The /hansolo:launch command will:
-     - Display the LAUNCHING banner
-     - Handle all branch naming (may prompt user)
-     - Create and switch to the new feature branch
+   - Parse the JSON response from /hansolo:launch
+   - If JSON response received:
+     - Display Gold Squadron identity from JSON:
+       ```bash
+       echo ""
+       echo "Gold Leader, standing by..."
+       echo ""
+       cat .claude/lib/banners/launching.txt
+       echo ""
+       ```
+     - Handle any user prompts from the JSON response
    - Wait for /hansolo:launch to complete before proceeding
    - Then continue with shipping process
 
@@ -38,16 +56,9 @@ Based on the branch state, take appropriate action:
 4. **If ready to ship**:
    - Invoke Red Squadron to create PR
 
-## Stop! Banner Time!
+## Ready to Ship
 
-When branch is ready, first inform the user by displaying:
-```
-🚢 Now shipping your changes through the PR workflow...
-
-███████╗██╗  ██╗██╗██████╗ ██████╗ ██╗███╗   ██╗ ██████╗ 
-██╔════╝██║  ██║██║██╔══██╗██╔══██╗██║████╗  ██║██╔════╝ 
-███████╗███████║██║██████╔╝██████╔╝██║██╔██╗ ██║██║  ███╗
-╚════██║██╔══██║██║██╔═══╝ ██╔═══╝ ██║██║╚██╗██║██║   ██║
+When branch is ready, the banner is already displayed from the squadron identity section above.
 ███████║██║  ██║██║██║     ██║     ██║██║ ╚████║╚██████╔╝
 ╚══════╝╚═╝  ╚═╝╚═╝╚═╝     ╚═╝     ╚═╝╚═╝  ╚═══╝ ╚═════╝ 
 ```
