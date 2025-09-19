@@ -19,60 +19,22 @@ You are responsible for creating high-quality, informative pull requests that fo
 ## Pre-flight Branch Check
 
 ### Step 0: Validate Branch State
-```bash
-# Check branch state first
-BRANCH_STATE=$(.claude/scripts/check-branch-state.sh)
-BRANCH_STATUS=$(echo "$BRANCH_STATE" | jq -r '.branch_state')
-NEEDS_NEW_BRANCH=$(echo "$BRANCH_STATE" | jq -r '.needs_new_branch')
-MESSAGE=$(echo "$BRANCH_STATE" | jq -r '.message')
 
-# Handle different states
-case "$BRANCH_STATUS" in
-    "protected")
-        echo "ERROR: $MESSAGE"
-        echo "Please run: /hansolo:launch <feature-name>"
-        exit 1
-        ;;
-    "has_open_pr")
-        PR_URL=$(echo "$BRANCH_STATE" | jq -r '.pr_url')
-        echo "✓ $MESSAGE"
-        echo "View PR: $PR_URL"
-        exit 0
-        ;;
-    "has_merged_pr")
-        echo "WARNING: $MESSAGE"
-        echo "Please run: /hansolo:launch <new-feature-name>"
-        exit 1
-        ;;
-    "no_changes")
-        echo "ERROR: $MESSAGE"
-        exit 1
-        ;;
-    "ready")
-        echo "✓ $MESSAGE"
-        # Continue with PR creation
-        ;;
-esac
+**IMPORTANT**: You must EXECUTE these commands using the Bash tool:
 
-# Warn about uncommitted changes
-if [[ $(echo "$BRANCH_STATE" | jq -r '.uncommitted_changes') == "true" ]]; then
-    echo "WARNING: You have uncommitted changes. Consider committing them first."
-fi
-```
+1. First, run the check-branch-state.sh script to validate the current branch
+2. Parse the JSON response to determine the branch state
+3. Handle each state appropriately (exit if not ready, continue if ready)
+4. If the branch is ready, proceed with PR creation
 
 ## PR Creation Protocol
 
 ### Step 1: Gather Context
-```bash
-# Get diff summary
-git diff origin/main...HEAD --stat
 
-# Get detailed changes
-git diff origin/main...HEAD
-
-# Get commit messages
-git log origin/main..HEAD --oneline
-```
+**EXECUTE** these commands using Bash tool to gather information:
+- Get diff summary with: `git diff origin/main...HEAD --stat`
+- Get commit messages with: `git log origin/main..HEAD --oneline`
+- Analyze the changes to generate a meaningful PR description
 
 ### Step 2: Generate PR Content
 
@@ -102,12 +64,11 @@ Closes #<issue-number>
 ```
 
 ### Step 3: Create PR
-```bash
-gh pr create \
-  --title "$title" \
-  --body "$body" \
-  --base main
-```
+
+**EXECUTE** the PR creation using Bash tool:
+1. Use `gh pr create` with the title and body you generated
+2. Specify `--base main` to target the main branch
+3. Capture the PR number for subsequent operations
 
 ## Quality Standards
 
@@ -125,30 +86,12 @@ Always ask user for:
 
 ## Step 4: Try to Enable Auto-Merge
 
-```bash
-# Get the PR number we just created
-PR_NUMBER=$(gh pr view --json number -q .number)
-echo "Created PR #$PR_NUMBER"
+**EXECUTE** these commands using Bash tool after PR creation:
 
-# Try to enable auto-merge (may fail if not available)
-echo "Attempting to enable auto-merge..."
-if gh pr merge $PR_NUMBER --auto --squash --delete-branch 2>/dev/null; then
-    echo "✓ Auto-merge enabled for PR #$PR_NUMBER"
-    echo "The PR will automatically merge when checks pass."
-else
-    echo "ℹ️ Auto-merge could not be enabled."
-    echo "Possible reasons:"
-    echo "  - Repository doesn't have auto-merge enabled"
-    echo "  - PR requires review approvals"
-    echo "  - CI checks haven't been configured"
-    echo "The PR will need to be merged manually or by the ship command."
-fi
-
-# Return PR information to the ship command
-echo ""
-echo "PR_NUMBER=$PR_NUMBER"
-echo "PR_URL=$(gh pr view $PR_NUMBER --json url -q .url)"
-```
+1. Get the PR number: `gh pr view --json number -q .number`
+2. Try to enable auto-merge: `gh pr merge $PR_NUMBER --auto --squash --delete-branch`
+3. Report the status (whether auto-merge was enabled or not)
+4. Return the PR number and URL for the ship command to use
 
 ## Success Output
 
